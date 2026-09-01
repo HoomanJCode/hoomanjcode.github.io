@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://hooman.jalalpoor.com/sitemap.xml
