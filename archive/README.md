@@ -29,7 +29,7 @@ Text content extracted from the old portfolio website **https://hooman.jalalpoor
 
 - **Name:** Hooman's Portfolio — Hooman Jalalpoor
 - **Profiles:** [GitHub](https://github.com/HoomanJCode) · [itch.io](https://hoomanj.itch.io/) · [LinkedIn](https://www.linkedin.com/in/hooman-jalalpoor/) · [fxhash](https://www.fxhash.xyz/u/Parallax%20Rendering)
-- **Email:** hooman@jalalpoor.com
+- **Email:** hooman.jalalpoor@gmail.com
 - **Other site:** generative-art blog at https://parallax.tez.page
 
 ## Notes

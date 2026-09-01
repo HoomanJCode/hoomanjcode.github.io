@@ -33,7 +33,7 @@ The repository is configured for a root-directory GitHub Pages deployment:
 - Folder: `/ (root)`
 - `.nojekyll` is included so GitHub Pages serves the static files directly
 
-The custom domain is configured through the GitHub Pages repository settings.
+The previous custom domain has expired. Contact: `hooman.jalalpoor@gmail.com`.
 
 ## Project files
 
