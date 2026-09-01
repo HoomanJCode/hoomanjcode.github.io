@@ -70,9 +70,9 @@ By mixing old-school pixel graphics with high-speed animation effects, *Balls of
 *Balls of Chaos* was crafted by an all-star indie team:
 
 - **Madzaa** – Game Design
-- ****[Hooman Jalalpoor](https://hooman.jalalpoor.com/) – Programming
+- ****[Hooman Jalalpour](https://hooman.jalalpoor.com/) – Programming
 - ****[Htet Oo Lwin ](https://htetoolwin676.carrd.co)– Art
-- ****[Hesam Jalalpoor ](https://hesam.jalalpoor.com/)– Music & SFX
+- ****[Hesam Jalalpour ](https://hesam.jalalpoor.com/)– Music & SFX
 
 ## Play Now – If You Can Handle It
 
@@ -84,7 +84,7 @@ Think you have what it takes to survive *Balls of Chaos*?
 
 ## Final Thoughts from the Developers
 
-> *“We set out to create something that feels fast, fun, and punishing all at once—a game where every second is a battle. We think we nailed it. And that secret mode? Well, let’s just say it’s where the real chaos begins.”* – Hooman Jalalpoor, Programmer
+> *“We set out to create something that feels fast, fun, and punishing all at once—a game where every second is a battle. We think we nailed it. And that secret mode? Well, let’s just say it’s where the real chaos begins.”* – Hooman Jalalpour, Programmer
 
 So, the question is: **Can you outlast the chaos?** Step up, take the challenge, and see if you can secure a place on the leaderboard. 🔥
 

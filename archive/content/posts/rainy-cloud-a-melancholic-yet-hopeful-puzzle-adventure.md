@@ -15,7 +15,7 @@ Rainy Cloud is an atmospheric 2D puzzle game born from the Brackeys Game Jam 202
 
 Game jams are a breeding ground for innovation, where developers push their limits under extreme time constraints. Among the many titles born from such creative pressure, *Rainy Cloud* stands out as an emotionally charged, atmospheric 2D puzzle game that encapsulates both chaos and serenity. Developed during the **Brackeys Game Jam 2021.1**, this prototype is a testament to what a small team can achieve in just **seven days**.
 
-A collaborative effort by **Hooman Jalalpoor, Mahdi Motazedi, Hesam Jalalpoor,** and **Golara Mozdbar**, *Rainy Cloud* weaves a delicate balance between urgency and calmness, delivering a gaming experience that lingers long after the screen fades to black.
+A collaborative effort by **Hooman Jalalpour, Mahdi Motazedi, Hesam Jalalpour,** and **Golara Mozdbar**, *Rainy Cloud* weaves a delicate balance between urgency and calmness, delivering a gaming experience that lingers long after the screen fades to black.
 
 ---
 ## The Story: A Race Against the Rising Waters
@@ -56,12 +56,12 @@ The ticking pressure of the flood adds an element of urgency—forcing players t
 
 Mahdi Motazedi, the game’s artist and animator, has crafted a world that is both whimsical and melancholic. The stark contrast between the glowing fox and the dark, rain-drenched surroundings heightens the sense of isolation, while the fluid animations add a layer of realism to the characters' emotions.
 
-The audio design, led by **Hesam Jalalpoor**, further enhances the experience. With soft piano melodies intertwined with the ever-present sound of rain and distant thunder, the game creates an atmosphere that is at once soothing and unsettling. *“We wanted the music to reflect both the desperation and the quiet determination of our characters,”* Hesam explains.
+The audio design, led by **Hesam Jalalpour**, further enhances the experience. With soft piano melodies intertwined with the ever-present sound of rain and distant thunder, the game creates an atmosphere that is at once soothing and unsettling. *“We wanted the music to reflect both the desperation and the quiet determination of our characters,”* Hesam explains.
 
 ---
 ## The Challenge of Game Jams
 
-Game jams demand a tight workflow, and the *Rainy Cloud* team knew they had limited time to execute their vision. **Hooman Jalalpoor**, the Unity developer, emphasized the importance of prioritization:
+Game jams demand a tight workflow, and the *Rainy Cloud* team knew they had limited time to execute their vision. **Hooman Jalalpour**, the Unity developer, emphasized the importance of prioritization:
 
 *“We focused first on movement, puzzles, and the flood mechanic. Once that core loop was polished, we filled in the details with art and sound.”*
 
@@ -85,7 +85,7 @@ Whether you’re a fan of puzzle games, indie titles, or simply appreciate thoug
 
 - **Title**: Rainy Cloud
 - **Platforms**: Windows
-- **Developers**: Hooman Jalalpoor, Mahdi Motazedi, Hesam Jalalpoor, Golara Mozdbar
+- **Developers**: Hooman Jalalpour, Mahdi Motazedi, Hesam Jalalpour, Golara Mozdbar
 - **Tags**: 2D, puzzle, atmospheric, indie, game jam
 
 🎮 **Play Rainy Cloud here:**[itch.io link](https://jammersclub.itch.io/rainy-cloud)

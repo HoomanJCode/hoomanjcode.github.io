@@ -333,7 +333,7 @@ def extract_pages():
     au = open(os.path.join(ROOT, "authors", "hooman-jalalpoor", "index.html"), encoding="utf-8").read()
     au_bio = html_to_markdown(grab(r'<div class="page--author__desc">(.*?)</div>', au))
     write_md(os.path.join(pages_dir, "hooman-jalalpoor.md"), {
-        "title": "Hooman Jalalpoor",
+        "title": "Hooman Jalalpour",
         "type": "author",
         "slug": "hooman-jalalpoor",
         "cover": rel_media("https://hooman.jalalpoor.com/media/website/dfjhkk-2-2xl.png"),
@@ -404,7 +404,7 @@ def build_readme(post_slugs, media_count, media_size_mb):
     missing = "\n".join(
         f"- {url}  \n  used in **{where}** — {why}" for url, where, why in MISSING_EXTERNAL
     )
-    readme = f"""# Hooman Jalalpoor — Portfolio Site Archive
+    readme = f"""# Hooman Jalalpour — Portfolio Site Archive
 
 Complete export of the old portfolio website **https://hooman.jalalpoor.com**
 ("Hooman's Portfolio", a static Publiki-generated site), captured as the basis
@@ -429,7 +429,7 @@ for building a new website.
 
 ## Site facts worth keeping
 
-- **Name:** Hooman's Portfolio — Hooman Jalalpoor
+- **Name:** Hooman's Portfolio — Hooman Jalalpour
 - **Profiles:** [GitHub](https://github.com/HoomanJCode) · [itch.io](https://hoomanj.itch.io/) · [LinkedIn](https://www.linkedin.com/in/hooman-jalalpoor/) · [fxhash](https://www.fxhash.xyz/u/Parallax%20Rendering)
 - **Email:** hooman.jalalpoor@gmail.com
 - **Other site:** generative-art blog at https://parallax.tez.page

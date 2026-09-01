@@ -7,7 +7,7 @@ updated: "2025-05-04"
 cover: "../../media/posts/1/dfjhkk-2.png"
 original_url: "https://hooman.jalalpoor.com/about-me/"
 ---
-Hi, I’m **Hooman Jalalpoor**—an **Indie Game Programmer**, **Software Engineer**, and **Generative Artist**. With a deep passion for creating immersive and artistic games, I specialize in **game development** using **Unity** and **C#**, as well as crafting unique **generative art** and **NFTs**.
+Hi, I’m **Hooman Jalalpour**—an **Indie Game Programmer**, **Software Engineer**, and **Generative Artist**. With a deep passion for creating immersive and artistic games, I specialize in **game development** using **Unity** and **C#**, as well as crafting unique **generative art** and **NFTs**.
 
 My journey in game development has been driven by a love for storytelling, creativity, and innovation. I’ve participated in numerous **game jams**, where my team and I created award-winning games like **Impasse**, **Balls of Chaos**, and **Shattered**. These experiences have honed my skills in **game design**, **team collaboration**, and **rapid prototyping**.
 

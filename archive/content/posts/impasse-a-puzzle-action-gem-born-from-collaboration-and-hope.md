@@ -6,14 +6,14 @@ date: "2025-05-02T03:03:27+03:30"
 updated: "2025-05-02T20:42:04+03:30"
 tags: ["Game"]
 cover: "../../media/posts/3/mj5ceJ.png"
-summary: "Impasse: A 2D puzzle-action game by Hooman &amp; Hesam Jalalpoor, born from&hellip;"
+summary: "Impasse: A 2D puzzle-action game by Hooman &amp; Hesam Jalalpour, born from&hellip;"
 original_url: "https://hooman.jalalpoor.com/impasse-a-puzzle-action-gem-born-from-collaboration-and-hope/"
 ---
-Impasse: A 2D puzzle-action game by Hooman & Hesam Jalalpoor, born from a game jam, blending strategy, art, and emotion.
+Impasse: A 2D puzzle-action game by Hooman & Hesam Jalalpour, born from a game jam, blending strategy, art, and emotion.
 
 **Introduction**
 
-In the bustling world of indie game development, few stories resonate as deeply as those born from passion, tight deadlines, and creative synergy. *Impasse*, a 2D isometric puzzle-action game developed during a game jam, is one such story. Created by **Hooman Jalalpoor** (programmer/Unity developer) and **Hesam Jalalpoor** (music, SFX, and artist), this prototype earned **1st place** at Isfahan University’s Game Dev Camp Final Jam. With its unique blend of strategic gameplay, emotional storytelling, and striking art, *Impasse* stands as a testament to what small teams can achieve under pressure.
+In the bustling world of indie game development, few stories resonate as deeply as those born from passion, tight deadlines, and creative synergy. *Impasse*, a 2D isometric puzzle-action game developed during a game jam, is one such story. Created by **Hooman Jalalpour** (programmer/Unity developer) and **Hesam Jalalpour** (music, SFX, and artist), this prototype earned **1st place** at Isfahan University’s Game Dev Camp Final Jam. With its unique blend of strategic gameplay, emotional storytelling, and striking art, *Impasse* stands as a testament to what small teams can achieve under pressure.
 
 > **[Play Impasse on Android](https://hoomanj.itch.io/impasse)
 > [Itch Page of Game](https://hoomanj.itch.io/impasse)
@@ -39,14 +39,14 @@ Blending puzzle-solving with action-packed combat, *Impasse* offers a fresh take
 The game’s jam roots shine through its concise design—every mechanic serves the story and theme.
 
 **Art and Sound: A Feast for the Senses**
-Hesam Jalalpoor’s contributions elevate *Impasse* into an artistic triumph:
+Hesam Jalalpour’s contributions elevate *Impasse* into an artistic triumph:
 
 - **Visual Style**: The isometric 2D art blends crisp geometry with muted, atmospheric colors, reflecting the game’s tone of struggle and hope. The environments are designed with a minimalist yet detailed approach, featuring soft gradients and carefully crafted textures that give the world a hand-painted feel. Character designs emphasize expressive animations, ensuring that movements feel fluid and natural. The color palette strategically shifts between warm and cool tones, reinforcing the emotional highs and lows of the journey. Lighting effects, subtle shadows, and particle details enhance the immersion, making the world feel alive despite its stylized simplicity.
 - **Music and SFX**: Hesam’s haunting melodies and immersive sound effects deepen the emotional weight. From the clang of combat to the subtle hum of puzzles, the audio design pulls players into the world.
 Explore Hesam’s portfolio: [hesam.jalalpoor.com](http://hesam.jalalpoor.com/?ref=hooman.jalalpoor.com).
 
 **Technical Execution: Unity-Powered Precision**
-Hooman Jalalpoor’s technical prowess ensured *Impasse*’s smooth gameplay:
+Hooman Jalalpour’s technical prowess ensured *Impasse*’s smooth gameplay:
 
 - **What is Unity?**: Unity is a powerful, cross-platform game engine widely used in game development. It offers a robust suite of tools for building both 2D and 3D experiences and is favored for its flexibility, real-time rendering, and support for multiple platforms, including **Android**, where *Impasse* was developed.
 - **Unity’s Role in *Impasse***: Several of Unity’s technical features contributed to the game’s design and execution:
@@ -78,7 +78,7 @@ While still a prototype, its success hints at potential for a full release.
 ---
 **About the Developers**
 
-- **Hooman Jalalpoor**: Indie game programmer, Unity specialist, and generative artist. [Explore his work](https://hooman.jalalpoor.com/).
-- **Hesam Jalalpoor**: Multidisciplinary artist and composer. [Visit his portfolio](http://hesam.jalalpoor.com/?ref=hooman.jalalpoor.com).
+- **Hooman Jalalpour**: Indie game programmer, Unity specialist, and generative artist. [Explore his work](https://hooman.jalalpoor.com/).
+- **Hesam Jalalpour**: Multidisciplinary artist and composer. [Visit his portfolio](http://hesam.jalalpoor.com/?ref=hooman.jalalpoor.com).
 
 Follow their journeys as they continue to push boundaries in gaming and digital art! 🎮✨

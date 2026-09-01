@@ -1,4 +1,4 @@
-# Hooman Jalalpoor — Portfolio Content (Text Only)
+# Hooman Jalalpour — Portfolio Content (Text Only)
 
 Text content extracted from the old portfolio website **https://hooman.jalalpoor.com**
 ("Hooman's Portfolio"), kept as the basis for building a new website.
@@ -27,7 +27,7 @@ Text content extracted from the old portfolio website **https://hooman.jalalpoor
 
 ## Site facts worth keeping
 
-- **Name:** Hooman's Portfolio — Hooman Jalalpoor
+- **Name:** Hooman's Portfolio — Hooman Jalalpour
 - **Profiles:** [GitHub](https://github.com/HoomanJCode) · [itch.io](https://hoomanj.itch.io/) · [LinkedIn](https://www.linkedin.com/in/hooman-jalalpoor/) · [fxhash](https://www.fxhash.xyz/u/Parallax%20Rendering)
 - **Email:** hooman.jalalpoor@gmail.com
 - **Other site:** generative-art blog at https://parallax.tez.page

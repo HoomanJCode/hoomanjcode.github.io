@@ -1,6 +1,6 @@
-# Hooman Jalalpoor — Portfolio
+# Hooman Jalalpour — Portfolio
 
-Personal portfolio for **Hooman Jalalpoor**, an indie game programmer,
+Personal portfolio for **Hooman Jalalpour**, an indie game programmer,
 software engineer, and generative artist.
 
 The site is a static GitHub Pages project with a procedural Three.js scene,
