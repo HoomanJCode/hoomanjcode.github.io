@@ -1,0 +1,22 @@
+# Local preview/server output
+*.log
+.preview-server.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local environment and temporary files
+.env
+.env.*
+!.env.example
+.tmp/
+.tmp-*/
+
+# Common build/cache output
+node_modules/
+dist/
+build/
+.cache/
