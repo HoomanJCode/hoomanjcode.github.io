@@ -15,10 +15,6 @@ Thumbs.db
 .tmp/
 .tmp-*/
 
-# Legacy generated archive feeds (kept as historical reference)
-/archive/data/feed.json
-/archive/data/feed.xml
-
 # Common build/cache output
 node_modules/
 dist/

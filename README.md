@@ -42,14 +42,6 @@ The previous custom domain has expired. Contact: `hooman.jalalpoor@gmail.com`.
 - `app.js` — procedural Three.js planet, stars, orbital rings, and scroll behavior
 - `.nojekyll` — disables Jekyll processing
 - `.gitignore` — excludes local logs, temporary files, and build artifacts
-- `archive/` — extracted text content from the former portfolio site
 
-## Content archive
-
-The `archive/content/` directory contains the original profile pages and eight
-articles in Markdown. `archive/data/` contains the original feeds and sitemap
-for future content imports.
-
-Images and videos are intentionally not included in the current working tree;
-the new design generates its visual elements procedurally. The Markdown still
-retains the original media references for future re-linking.
+Images and videos are intentionally not included in the working tree; the
+design generates its visual elements procedurally.
