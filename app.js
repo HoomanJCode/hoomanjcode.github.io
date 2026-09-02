@@ -189,50 +189,44 @@ if (boatCanvas) {
     const { width: w, height: h } = boatCanvas.getBoundingClientRect();
     if (!w || !h) return;
     const t = time / 1000;
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#283a2a'; ctx.fillRect(0, 0, w, h);
-    const sky = ctx.createLinearGradient(0, 0, 0, h * .58);
-    sky.addColorStop(0, '#435f46'); sky.addColorStop(1, '#789b62');
-    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * .62);
-    ctx.fillStyle = '#99b873'; ctx.fillRect(0, h * .54, w, h * .46);
-    ctx.fillStyle = 'rgba(213,255,79,.1)'; ctx.fillRect(0, h * .54, w, h * .025);
-    // Distant reeds and shoreline marks.
-    ctx.strokeStyle = 'rgba(22,45,31,.45)'; ctx.lineWidth = 1;
-    for (let i = 0; i < 17; i++) {
-      const x = (i / 16) * w + Math.sin(i * 4.7) * 5;
-      ctx.beginPath(); ctx.moveTo(x, h * .58); ctx.quadraticCurveTo(x - 3, h * .5, x + 2, h * .43); ctx.stroke();
-    }
-    // Water waves with small deterministic motion.
+    ctx.clearRect(0, 0, w, h);    // Top-down water field in the game's warm yellow-green palette.
+    const water = ctx.createLinearGradient(0, 0, w, h);
+    water.addColorStop(0, '#d8c96a'); water.addColorStop(.52, '#b5ad56'); water.addColorStop(1, '#8d9347');
+    ctx.fillStyle = water; ctx.fillRect(0, 0, w, h);
     ctx.lineCap = 'round';
     for (const wave of waves) {
-      const x = wave.x * w + Math.sin(t * wave.speed + wave.phase) * 4;
+      const x = wave.x * w + Math.sin(t * wave.speed + wave.phase) * 3;
       const y = wave.y * h + Math.cos(t * wave.speed * .7 + wave.phase) * 2;
-      ctx.strokeStyle = `rgba(38,76,53,${wave.alpha})`; ctx.lineWidth = wave.weight;
+      ctx.strokeStyle = `rgba(255,242,142,${wave.alpha})`; ctx.lineWidth = wave.weight;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + wave.length * w * .45, y - 2, x + wave.length * w, y); ctx.stroke();
     }
-    // Rope anchor wood, behind the boat.
-    const postX = w * .82, postY = h * .56;
-    ctx.fillStyle = '#5d432b'; ctx.fillRect(postX - 7, postY - 57, 13, 62);
-    ctx.fillStyle = '#89623c'; ctx.beginPath(); ctx.ellipse(postX, postY - 58, 10, 5, -.12, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#382a20'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(postX - 4, postY - 51); ctx.lineTo(postX + 1, postY - 8); ctx.stroke();
-    // Floating boat, gently bobbing.
-    const bob = reducedMotion ? 0 : Math.sin(t * 1.25) * 3;
-    const bx = w * .48, by = h * .39 + bob;
-    ctx.strokeStyle = 'rgba(213,255,79,.28)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(bx + 30, by + 13); ctx.quadraticCurveTo(w * .66, by + 27, postX - 2, postY - 56); ctx.stroke();
-    ctx.fillStyle = '#d5ff4f'; ctx.globalAlpha = .16; ctx.beginPath(); ctx.ellipse(bx, by + 43, 68, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-    ctx.fillStyle = '#536b31'; ctx.beginPath(); ctx.moveTo(bx - 51, by + 9); ctx.quadraticCurveTo(bx, by + 34, bx + 51, by + 9); ctx.lineTo(bx + 39, by + 24); ctx.quadraticCurveTo(bx, by + 43, bx - 39, by + 24); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#d5ff4f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx - 49, by + 9); ctx.quadraticCurveTo(bx, by + 31, bx + 49, by + 9); ctx.stroke();
-    ctx.fillStyle = '#e4c35e'; ctx.beginPath(); ctx.moveTo(bx - 34, by + 2); ctx.lineTo(bx + 34, by + 2); ctx.lineTo(bx + 26, by + 11); ctx.lineTo(bx - 27, by + 11); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#8e773d'; ctx.fillRect(bx - 2, by - 25, 4, 28);
-    ctx.fillStyle = '#d5ff4f'; ctx.beginPath(); ctx.moveTo(bx + 2, by - 24); ctx.lineTo(bx + 2, by + 1); ctx.lineTo(bx + 29, by - 1); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#fff0a5'; ctx.beginPath(); ctx.moveTo(bx - 2, by - 22); ctx.lineTo(bx - 2, by - 1); ctx.lineTo(bx - 25, by - 2); ctx.closePath(); ctx.fill();
-    // Lilies in the foreground.
+    const postX = w * .82, postY = h * .55;
+    // Top-down wooden post, with a small shadow and visible rope knot.
+    ctx.fillStyle = 'rgba(55,45,23,.2)'; ctx.beginPath(); ctx.ellipse(postX + 3, postY + 4, 14, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#815829'; ctx.beginPath(); ctx.ellipse(postX, postY, 11, 14, -.15, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#b27b37'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(postX, postY, 7, 10, -.15, 0, Math.PI * 2); ctx.stroke();
+    const bob = reducedMotion ? 0 : Math.sin(t * 1.25) * 2;
+    const bx = w * .47, by = h * .38 + bob;
+    // Rope from the boat's bow to the post, with a loose middle curve.
+    ctx.strokeStyle = 'rgba(73,51,23,.8)'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(bx + 25, by + 4); ctx.quadraticCurveTo(w * .65, by + 22, postX, postY - 8); ctx.stroke(); ctx.setLineDash([]);
+    // Boat viewed from above: hull, rim, seats, and central mast.
+    ctx.fillStyle = 'rgba(55,45,23,.22)'; ctx.beginPath(); ctx.ellipse(bx + 4, by + 6, 55, 25, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#d4aa3d'; ctx.beginPath(); ctx.ellipse(bx, by, 54, 25, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#fff09a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(bx, by, 48, 19, -.12, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#7d6530'; ctx.fillRect(bx - 2, by - 15, 4, 30);
+    ctx.fillStyle = '#f4e17b'; ctx.fillRect(bx - 29, by - 4, 58, 5);
+    ctx.fillStyle = '#6e5429'; ctx.beginPath(); ctx.arc(bx + 27, by + 4, 3, 0, Math.PI * 2); ctx.fill();
+    // Lily pads and lily flowers are the only green elements.
     for (const lily of lilies) {
       const x = lily.x * w, y = lily.y * h, s = lily.size;
-      ctx.fillStyle = '#365e3d'; ctx.beginPath(); ctx.ellipse(x, y, s, s * .58, lily.angle, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(213,255,79,.42)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(lily.angle) * s, y + Math.sin(lily.angle) * s); ctx.stroke();
-      if (lily.bloom) { ctx.fillStyle = '#d5ff4f'; ctx.beginPath(); ctx.arc(x + s * .15, y - s * .45, s * .32, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = '#46753d'; ctx.beginPath(); ctx.arc(x, y, s, .25, Math.PI * 2 - .25); ctx.lineTo(x, y); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(213,255,79,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(lily.angle) * s, y + Math.sin(lily.angle) * s); ctx.stroke();
+      if (lily.bloom) {
+        ctx.fillStyle = '#f5e88a';
+        for (let petal = 0; petal < 5; petal++) { const a = petal * Math.PI * 2 / 5; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * s * .55, y + Math.sin(a) * s * .55, s * .3, s * .15, a, 0, Math.PI * 2); ctx.fill(); }
+        ctx.fillStyle = '#b36b2c'; ctx.beginPath(); ctx.arc(x, y, s * .16, 0, Math.PI * 2); ctx.fill();
+      }
     }
   };
   const renderBoat = (now) => {
