@@ -65,7 +65,7 @@ window.__appDone = true;
 // The archive ticker is an animated marquee that remains manually
 // draggable/scrollable for touch, wheel, and trackpad users.
 const ticker = document.querySelector('[data-ticker]');
-if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && window.matchMedia('(min-width: 761px)').matches) {
   const rows = [...ticker.querySelectorAll('[data-ticker-row]')];
   let pointerId = null;
   let lastX = 0;
@@ -96,10 +96,6 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     lastX = event.clientX;
     moved = false;
     ticker.classList.add('is-dragging');
-    rows.forEach((row) => {
-      const track = row.querySelector('.ticker-track');
-      if (track) track.style.animationPlayState = 'paused';
-    });
     ticker.setPointerCapture(pointerId);
   });
 
