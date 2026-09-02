@@ -9,7 +9,8 @@ and contact links.
 
 ## Live site
 
-- Website: <https://hooman.jalalpoor.com>
+- Website: <https://hooman.jlpr.ir> (custom domain via the `CNAME` file;
+  <https://hoomanjcode.github.io> redirects here)
 - Repository: <https://github.com/HoomanJCode/hoomanjcode.github.io>
 
 ## Run locally
@@ -33,7 +34,7 @@ The repository is configured for a root-directory GitHub Pages deployment:
 - Folder: `/ (root)`
 - `.nojekyll` is included so GitHub Pages serves the static files directly
 
-The previous custom domain has expired. Contact: `hooman.jalalpoor@gmail.com`.
+Contact: `hooman.jalalpoor@gmail.com`.
 
 ## Project files
 
