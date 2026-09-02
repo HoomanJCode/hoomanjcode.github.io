@@ -70,10 +70,18 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   let pointerId = null;
   let lastX = 0;
   let moved = false;
+  let manualOffset = 0;
+  const setManualOffset = (delta) => {
+    manualOffset += delta;
+    rows.forEach((row) => {
+      const track = row.querySelector('.ticker-track');
+      if (track) track.style.transform = `translateX(${manualOffset}px)`;
+    });
+  };
 
   ticker.addEventListener('wheel', (event) => {
     if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) {
-      ticker.scrollLeft += event.deltaY;
+      setManualOffset(-event.deltaY);
       event.preventDefault();
     }
     rows.forEach((row) => {
@@ -95,7 +103,7 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     if (event.pointerId !== pointerId) return;
     const delta = event.clientX - lastX;
     if (Math.abs(delta) > 0) moved = true;
-    ticker.scrollLeft -= delta;
+    setManualOffset(delta);
     rows.forEach((row) => {
       const track = row.querySelector('.ticker-track');
       if (track) track.style.animationPlayState = 'paused';
@@ -110,6 +118,9 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   };
   ticker.addEventListener('pointerup', endDrag);
   ticker.addEventListener('pointercancel', endDrag);
+  ticker.addEventListener('pointerleave', (event) => {
+    if (event.pointerId === pointerId) endDrag(event);
+  });
   ticker.addEventListener('click', (event) => {
     if (moved) {
       event.preventDefault();
