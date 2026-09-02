@@ -1,109 +1,72 @@
-// Live top-down low-poly visual for the Impasse project card.
+// Live 2D top-down generative visual for the Impasse project card.
 const boatCanvas = document.querySelector('#boatCanvas');
-if (boatCanvas && window.THREE) {
+if (boatCanvas) {
+  const ctx = boatCanvas.getContext('2d');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const scene = new THREE.Scene();
-  const camera = new THREE.OrthographicCamera(-3, 3, 2, -2, .1, 100);
-  camera.position.set(0, 6.8, .15);
-  camera.lookAt(0, 0, 0);
-  const renderer = new THREE.WebGLRenderer({ canvas: boatCanvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
-  renderer.setClearColor(0x111c34, 1);
-
-  const world = new THREE.Group();
-  world.rotation.y = -.12;
-  scene.add(world);
-  const lake = new THREE.Mesh(
-    new THREE.PlaneGeometry(8, 6, 18, 14),
-    new THREE.MeshStandardMaterial({ color: 0x233a75, roughness: .7, metalness: .05, flatShading: true })
-  );
-  lake.rotation.x = -Math.PI / 2;
-  world.add(lake);
-
-  const ripples = [];
-  const rippleMaterial = new THREE.MeshBasicMaterial({ color: 0x91baff, transparent: true, opacity: .28, side: THREE.DoubleSide });
-  for (let i = 0; i < 15; i++) {
-    const ring = new THREE.Mesh(new THREE.RingGeometry(.08, .095, 20), rippleMaterial.clone());
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.set(-3.4 + (i * 1.71) % 6.8, -2.4 + ((i * .91) % 4.7), .025);
-    ring.userData.phase = i * .73;
-    ring.userData.base = .65 + (i % 4) * .12;
-    world.add(ring); ripples.push(ring);
-  }
-
-  const padMaterial = new THREE.MeshStandardMaterial({ color: 0x315486, roughness: .9, flatShading: true });
-  const flowerMaterial = new THREE.MeshBasicMaterial({ color: 0xd5ff4f });
-  const centerMaterial = new THREE.MeshBasicMaterial({ color: 0xff765c });
-  for (let i = 0; i < 10; i++) {
-    const pad = new THREE.Mesh(new THREE.CircleGeometry(.14 + (i % 3) * .035, 7), padMaterial);
-    pad.rotation.x = -Math.PI / 2;
-    pad.position.set(-3.1 + (i * 1.37) % 6.2, -2.1 + ((i * 1.11) % 4.1), .06);
-    world.add(pad);
-    if (i % 2 === 0) {
-      const flower = new THREE.Group();
-      for (let p = 0; p < 5; p++) {
-        const petal = new THREE.Mesh(new THREE.CircleGeometry(.055, 6), flowerMaterial);
-        petal.rotation.x = -Math.PI / 2;
-        const angle = p * Math.PI * 2 / 5;
-        petal.position.set(Math.cos(angle) * .06, .075, Math.sin(angle) * .06);
-        flower.add(petal);
-      }
-      const center = new THREE.Mesh(new THREE.CircleGeometry(.027, 8), centerMaterial);
-      center.rotation.x = -Math.PI / 2; center.position.y = .078; flower.add(center);
-      flower.position.copy(pad.position); flower.position.y += .02; world.add(flower);
-    }
-  }
-
-  const anchor = new THREE.Group();
-  const wood = new THREE.Mesh(new THREE.CylinderGeometry(.25, .3, .16, 8), new THREE.MeshStandardMaterial({ color: 0xff765c, roughness: .85, flatShading: true }));
-  wood.rotation.x = -Math.PI / 2; anchor.add(wood);
-  const woodCore = new THREE.Mesh(new THREE.CylinderGeometry(.13, .16, .18, 8), new THREE.MeshStandardMaterial({ color: 0x080a0e, roughness: 1, flatShading: true }));
-  woodCore.rotation.x = -Math.PI / 2; woodCore.position.z = .02; anchor.add(woodCore);
-  anchor.position.set(2.25, .16, -.6); world.add(anchor);
-
-  const boat = new THREE.Group();
-  const hull = new THREE.Mesh(new THREE.CapsuleGeometry(.62, 1.05, 4, 10), new THREE.MeshStandardMaterial({ color: 0xd5ff4f, roughness: .58, metalness: .08, flatShading: true }));
-  hull.scale.set(1, .16, .48); hull.rotation.y = Math.PI / 2; hull.position.y = .28; boat.add(hull);
-  const inside = new THREE.Mesh(new THREE.CapsuleGeometry(.44, .76, 4, 10), new THREE.MeshStandardMaterial({ color: 0x668ee2, roughness: .72, flatShading: true }));
-  inside.scale.set(1, .08, .38); inside.rotation.y = Math.PI / 2; inside.position.y = .36; boat.add(inside);
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(.14, .05, .55), new THREE.MeshStandardMaterial({ color: 0xff765c, roughness: .7, flatShading: true }));
-  seat.position.set(-.1, .44, 0); boat.add(seat);
-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(.035, .05, .62, 6), new THREE.MeshStandardMaterial({ color: 0xf0eee8, flatShading: true }));
-  mast.position.y = .68; boat.add(mast);
-  boat.position.set(-.65, .18, .15); world.add(boat);
-
-  const ropeCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(.0, .46, .15), new THREE.Vector3(.75, .34, .2),
-    new THREE.Vector3(1.35, .28, -.05), new THREE.Vector3(2.25, .25, -.6),
-  ]);
-  const rope = new THREE.Mesh(new THREE.TubeGeometry(ropeCurve, 24, .018, 5, false), new THREE.MeshBasicMaterial({ color: 0xf0eee8, transparent: true, opacity: .8 }));
-  world.add(rope);
-
-  scene.add(new THREE.AmbientLight(0x91baff, 2.2));
-  const key = new THREE.DirectionalLight(0xf0eee8, 2.6); key.position.set(-3, 6, 2); scene.add(key);
-  let visible = true, frame = 0, last = 0;
+  const random = (seed) => () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const rand = random(91357);
+  const waves = Array.from({ length: 32 }, () => ({
+    x: rand(), y: rand(), width: .025 + rand() * .1, phase: rand() * 6.28,
+    speed: .35 + rand() * .7, alpha: .1 + rand() * .16,
+  }));
+  const lilies = [[.1,.2],[.22,.76],[.38,.16],[.53,.82],[.72,.22],[.88,.67],[.09,.56],[.82,.42],[.33,.9],[.65,.91]]
+    .map(([x,y], i) => ({ x, y, size: 9 + (i % 3) * 3, flower: i % 2 === 0, phase: rand() * 6.28 }));
+  let width = 0, height = 0, ratio = 1, frame = 0, visible = true;
   const resize = () => {
     const rect = boatCanvas.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height, false);
-    const aspect = rect.width / Math.max(1, rect.height);
-    camera.left = -3 * aspect; camera.right = 3 * aspect; camera.top = 2; camera.bottom = -2; camera.updateProjectionMatrix();
+    width = rect.width; height = rect.height; ratio = Math.min(window.devicePixelRatio || 1, 2);
+    boatCanvas.width = Math.max(1, Math.round(width * ratio));
+    boatCanvas.height = Math.max(1, Math.round(height * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   };
-  const render = (now) => {
-    frame = 0; if (!visible) return;
-    const t = now / 1000, dt = Math.min(.04, (now - last) / 1000 || .016); last = now;
-    if (!reducedMotion) {
-      boat.position.y = .18 + Math.sin(t * 1.15) * .035;
-      boat.rotation.y = Math.sin(t * .7) * .035;
-      rope.rotation.y = Math.sin(t * .7) * .01;
-      ripples.forEach((ring, i) => { const pulse = (Math.sin(t * .8 + ring.userData.phase) + 1) / 2; ring.scale.setScalar(ring.userData.base + pulse * .55); ring.material.opacity = .12 + pulse * .18; });
-      world.rotation.z = Math.sin(t * .12) * .008;
+  const drawWave = (wave, time) => {
+    const x = wave.x * width + Math.sin(time * wave.speed + wave.phase) * 4;
+    const y = wave.y * height + Math.cos(time * wave.speed * .7 + wave.phase) * 2;
+    ctx.strokeStyle = `rgba(145,186,255,${wave.alpha})`; ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + wave.width * width * .5, y - 2, x + wave.width * width, y); ctx.stroke();
+  };
+  const drawLily = (lily, time) => {
+    const x = lily.x * width, y = lily.y * height + (reducedMotion ? 0 : Math.sin(time * .55 + lily.phase) * 1.5), s = lily.size;
+    ctx.fillStyle = '#315486'; ctx.beginPath(); ctx.arc(x, y, s, .28, Math.PI * 2 - .28); ctx.lineTo(x, y); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(213,255,79,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + s * .75, y - s * .35); ctx.stroke();
+    if (lily.flower) {
+      ctx.fillStyle = '#f0eee8';
+      for (let i = 0; i < 5; i++) { const a = i * Math.PI * 2 / 5; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * s * .55, y + Math.sin(a) * s * .55, s * .34, s * .17, a, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = '#ff765c'; ctx.beginPath(); ctx.arc(x, y, s * .17, 0, Math.PI * 2); ctx.fill();
     }
-    renderer.render(scene, camera);
-    if (!reducedMotion) frame = requestAnimationFrame(render);
   };
+  const drawBoat = (time) => {
+    const bx = width * .45, by = height * .47 + (reducedMotion ? 0 : Math.sin(time * 1.1) * 2), bw = Math.min(width * .32, 170), bh = bw * .42;
+    const postX = width * .83, postY = height * .42;
+    ctx.strokeStyle = 'rgba(240,238,232,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(bx + bw * .35, by - bh * .05); ctx.quadraticCurveTo(width * .64, by + height * .05, postX, postY); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(8,10,14,.3)'; ctx.beginPath(); ctx.ellipse(bx + 3, by + 6, bw * .52, bh * .38, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#d5ff4f'; ctx.beginPath(); ctx.ellipse(bx, by, bw * .52, bh * .35, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#f0eee8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(bx, by, bw * .45, bh * .23, -.12, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#668ee2'; ctx.beginPath(); ctx.ellipse(bx, by, bw * .35, bh * .15, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ff765c'; ctx.fillRect(bx - bw * .18, by - 2, bw * .36, 4);
+    ctx.fillStyle = '#f0eee8'; ctx.beginPath(); ctx.arc(bx + bw * .37, by - bh * .03, 3, 0, Math.PI * 2); ctx.fill();
+    // Top-down faceted wood anchor with a visible dark cut end.
+    ctx.fillStyle = '#ff765c'; ctx.beginPath(); ctx.ellipse(postX, postY, 16, 12, -.18, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#080a0e'; ctx.beginPath(); ctx.ellipse(postX, postY, 9, 7, -.18, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(240,238,232,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(postX, postY, 13, 9, -.18, 0, Math.PI * 2); ctx.stroke();
+  };
+  const draw = (now) => {
+    const time = now / 1000;
+    ctx.clearRect(0, 0, width, height);
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#080a0e'); gradient.addColorStop(.55, '#111c34'); gradient.addColorStop(1, '#233a75');
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, width, height);
+    waves.forEach((wave) => drawWave(wave, time));
+    lilies.forEach((lily) => drawLily(lily, time));
+    drawBoat(time);
+  };
+  const render = (now) => { frame = 0; if (!visible) return; draw(now); if (!reducedMotion) frame = requestAnimationFrame(render); };
   const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible && !reducedMotion && !frame) frame = requestAnimationFrame(render); }, { threshold: 0 });
   observer.observe(boatCanvas);
-  window.addEventListener('resize', resize, { passive: true });
-  resize();
-  if (reducedMotion) render(0); else frame = requestAnimationFrame(render);
+  window.addEventListener('resize', resize, { passive: true }); resize();
+  if (reducedMotion) draw(0); else frame = requestAnimationFrame(render);
 }

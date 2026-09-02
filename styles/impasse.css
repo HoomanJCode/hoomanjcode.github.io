@@ -1,5 +1,3 @@
 .visual-impasse { background: var(--ink); }
 .visual-impasse canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .visual-grid, .pixel-core { display: none; }
-@media (prefers-reduced-motion: reduce) { #boatCanvas { animation: none; } }
-@media (prefers-reduced-motion: reduce) { #boatCanvas { animation: none; } }
