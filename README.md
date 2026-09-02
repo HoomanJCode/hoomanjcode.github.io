@@ -39,7 +39,8 @@ The previous custom domain has expired. Contact: `hooman.jalalpoor@gmail.com`.
 
 - `index.html` — page structure and portfolio content
 - `styles.css` — visual design, responsive rules, and CSS animations
-- `app.js` — procedural Three.js planet, stars, orbital rings, and scroll behavior
+- `app.js` — scroll progress, reveal animations, and section tracking
+- `scene.js` — procedural Three.js planet, stars, orbital rings, and scroll behavior
 - `.nojekyll` — disables Jekyll processing
 - `.gitignore` — excludes local logs, temporary files, and build artifacts
 
