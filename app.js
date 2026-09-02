@@ -71,6 +71,26 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   let lastX = 0;
   let moved = false;
   let manualOffset = 0;
+  let resumeTimer = 0;
+  const setAnimationState = (state) => {
+    rows.forEach((row) => {
+      const track = row.querySelector('.ticker-track');
+      if (track) track.style.animationPlayState = state;
+    });
+  };
+  const cancelResume = () => {
+    if (resumeTimer) {
+      clearTimeout(resumeTimer);
+      resumeTimer = 0;
+    }
+  };
+  const resumeAfterDelay = () => {
+    cancelResume();
+    resumeTimer = window.setTimeout(() => {
+      resumeTimer = 0;
+      setAnimationState('running');
+    }, 4000);
+  };
   const setManualOffset = (delta) => {
     manualOffset += delta;
     rows.forEach((row) => {
@@ -84,14 +104,20 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setManualOffset(-event.deltaY);
       event.preventDefault();
     }
-    rows.forEach((row) => {
-      const track = row.querySelector('.ticker-track');
-      if (track) track.style.animationPlayState = 'paused';
-    });
+    cancelResume();
+    setAnimationState('paused');
   }, { passive: false });
+
+  ticker.addEventListener('pointerenter', () => {
+    cancelResume();
+    setAnimationState('paused');
+  });
+  ticker.addEventListener('pointerleave', resumeAfterDelay);
 
   ticker.addEventListener('pointerdown', (event) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
+    cancelResume();
+    setAnimationState('paused');
     pointerId = event.pointerId;
     lastX = event.clientX;
     moved = false;
@@ -104,10 +130,7 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const delta = event.clientX - lastX;
     if (Math.abs(delta) > 0) moved = true;
     setManualOffset(delta);
-    rows.forEach((row) => {
-      const track = row.querySelector('.ticker-track');
-      if (track) track.style.animationPlayState = 'paused';
-    });
+    setAnimationState('paused');
     lastX = event.clientX;
   });
 
@@ -115,6 +138,7 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     if (event.pointerId !== pointerId) return;
     pointerId = null;
     ticker.classList.remove('is-dragging');
+    resumeAfterDelay();
   };
   ticker.addEventListener('pointerup', endDrag);
   ticker.addEventListener('pointercancel', endDrag);
