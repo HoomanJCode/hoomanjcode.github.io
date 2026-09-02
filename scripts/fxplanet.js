@@ -71,12 +71,14 @@
     ctx.clearRect(0, 0, pixelWidth, pixelHeight);
 
     // Draw procedural starfield
-    const starCount = 180;
+    const starCount = 220;
     for (let s = 0; s < starCount; s += 1) {
       const sx = random(nextSeed + s * 3 + 7001) * pixelWidth;
       const sy = random(nextSeed + s * 3 + 7002) * pixelHeight;
-      const sr = 0.5 + random(nextSeed + s * 3 + 7003) * 2;
-      const sb = 0.15 + random(nextSeed + s * 3 + 7004) * 0.85;
+      const bright = random(nextSeed + s * 3 + 7004);
+      const isBright = bright > 0.88;
+      const sr = isBright ? (1.2 + random(nextSeed + s * 3 + 7003) * 0.6) : (0.2 + random(nextSeed + s * 3 + 7003) * 0.6);
+      const sb = isBright ? (0.7 + bright * 0.3) : (0.12 + bright * 0.55);
       const colorChoice = random(nextSeed + s * 3 + 7005);
       let sc;
       if (colorChoice < 0.55) sc = [240, 238, 232];
@@ -85,9 +87,15 @@
       else sc = [255, 118, 92];
       ctx.globalAlpha = sb;
       ctx.fillStyle = `rgb(${sc[0]}, ${sc[1]}, ${sc[2]})`;
+      if (isBright) {
+        ctx.shadowColor = `rgba(${sc[0]}, ${sc[1]}, ${sc[2]}, .6)`;
+        ctx.shadowBlur = 6 * dpr;
+      }
       ctx.beginPath();
       ctx.arc(sx, sy, sr * dpr, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
     }
     ctx.globalAlpha = 1;
 
