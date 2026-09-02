@@ -191,20 +191,20 @@ if (boatCanvas) {
     const t = time / 1000;
     ctx.clearRect(0, 0, w, h);    // Top-down water field in the game's warm yellow-green palette.
     const water = ctx.createLinearGradient(0, 0, w, h);
-    water.addColorStop(0, '#d8c96a'); water.addColorStop(.52, '#b5ad56'); water.addColorStop(1, '#8d9347');
+    water.addColorStop(0, '#111c34'); water.addColorStop(.52, '#233a75'); water.addColorStop(1, '#080a0e');
     ctx.fillStyle = water; ctx.fillRect(0, 0, w, h);
     ctx.lineCap = 'round';
     for (const wave of waves) {
       const x = wave.x * w + Math.sin(t * wave.speed + wave.phase) * 3;
       const y = wave.y * h + Math.cos(t * wave.speed * .7 + wave.phase) * 2;
-      ctx.strokeStyle = `rgba(255,242,142,${wave.alpha})`; ctx.lineWidth = wave.weight;
+      ctx.strokeStyle = `rgba(145,186,255,${wave.alpha})`; ctx.lineWidth = wave.weight;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + wave.length * w * .45, y - 2, x + wave.length * w, y); ctx.stroke();
     }
     const postX = w * .82, postY = h * .55;
     // Top-down wooden post, with a small shadow and visible rope knot.
     ctx.fillStyle = 'rgba(55,45,23,.2)'; ctx.beginPath(); ctx.ellipse(postX + 3, postY + 4, 14, 11, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#815829'; ctx.beginPath(); ctx.ellipse(postX, postY, 11, 14, -.15, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#b27b37'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(postX, postY, 7, 10, -.15, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#ff765c'; ctx.beginPath(); ctx.ellipse(postX, postY, 11, 14, -.15, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ff765c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(postX, postY, 7, 10, -.15, 0, Math.PI * 2); ctx.stroke();
     const bob = reducedMotion ? 0 : Math.sin(t * 1.25) * 2;
     const bx = w * .47, by = h * .38 + bob;
     // Rope from the boat's bow to the post, with a loose middle curve.
@@ -212,10 +212,10 @@ if (boatCanvas) {
     ctx.beginPath(); ctx.moveTo(bx + 25, by + 4); ctx.quadraticCurveTo(w * .65, by + 22, postX, postY - 8); ctx.stroke(); ctx.setLineDash([]);
     // Boat viewed from above: hull, rim, seats, and central mast.
     ctx.fillStyle = 'rgba(55,45,23,.22)'; ctx.beginPath(); ctx.ellipse(bx + 4, by + 6, 55, 25, -.12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#d4aa3d'; ctx.beginPath(); ctx.ellipse(bx, by, 54, 25, -.12, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#fff09a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(bx, by, 48, 19, -.12, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#d5ff4f'; ctx.beginPath(); ctx.ellipse(bx, by, 54, 25, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#f0eee8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(bx, by, 48, 19, -.12, 0, Math.PI * 2); ctx.stroke();
     ctx.fillStyle = '#7d6530'; ctx.fillRect(bx - 2, by - 15, 4, 30);
-    ctx.fillStyle = '#f4e17b'; ctx.fillRect(bx - 29, by - 4, 58, 5);
+    ctx.fillStyle = '#91baff'; ctx.fillRect(bx - 29, by - 4, 58, 5);
     ctx.fillStyle = '#6e5429'; ctx.beginPath(); ctx.arc(bx + 27, by + 4, 3, 0, Math.PI * 2); ctx.fill();
     // Lily pads and lily flowers are the only green elements.
     for (const lily of lilies) {
@@ -225,7 +225,7 @@ if (boatCanvas) {
       if (lily.bloom) {
         ctx.fillStyle = '#f5e88a';
         for (let petal = 0; petal < 5; petal++) { const a = petal * Math.PI * 2 / 5; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * s * .55, y + Math.sin(a) * s * .55, s * .3, s * .15, a, 0, Math.PI * 2); ctx.fill(); }
-        ctx.fillStyle = '#b36b2c'; ctx.beginPath(); ctx.arc(x, y, s * .16, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff765c'; ctx.beginPath(); ctx.arc(x, y, s * .16, 0, Math.PI * 2); ctx.fill();
       }
     }
   };
@@ -292,7 +292,7 @@ if (pongCanvas) {
     if (trail.length > 9) trail.shift();
     ctx.clearRect(0, 0, width, height);
     const bg = ctx.createLinearGradient(0, 0, width, height);
-    bg.addColorStop(0, '#15181b'); bg.addColorStop(1, '#2d2020');
+    bg.addColorStop(0, '#080a0e'); bg.addColorStop(1, '#17191e');
     ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height);
     ctx.strokeStyle = 'rgba(213,255,79,.2)'; ctx.lineWidth = 1; ctx.setLineDash([4, 9]);
     ctx.beginPath(); ctx.moveTo(width * .12, height / 2); ctx.lineTo(width * .88, height / 2); ctx.stroke(); ctx.setLineDash([]);
@@ -317,12 +317,16 @@ if (fxPlanet) {
     return planetSeed / 4294967296;
   };
   const createPlanet = () => {
-    const hue = Math.round(nextRandom() * 360);
-    const hueTwo = (hue + 25 + Math.round(nextRandom() * 80)) % 360;
-    const light = 42 + Math.round(nextRandom() * 14);
-    fxPlanet.style.setProperty('--planet-a', `hsl(${hue} 68% ${light + 20}%)`);
-    fxPlanet.style.setProperty('--planet-b', `hsl(${hueTwo} 62% ${light}%)`);
-    fxPlanet.style.setProperty('--planet-c', `hsl(${(hue + 190) % 360} 55% 20%)`);
+    const palette = [
+      ['#91baff', '#668ee2', '#233a75'],
+      ['#d5ff4f', '#91baff', '#315486'],
+      ['#ff765c', '#668ee2', '#111c34'],
+      ['#f0eee8', '#91baff', '#3f66b8'],
+    ];
+    const selected = palette[Math.floor(nextRandom() * palette.length)];
+    fxPlanet.style.setProperty('--planet-a', selected[0]);
+    fxPlanet.style.setProperty('--planet-b', selected[1]);
+    fxPlanet.style.setProperty('--planet-c', selected[2]);
     fxPlanet.style.setProperty('--planet-x', `${28 + Math.round(nextRandom() * 44)}%`);
     fxPlanet.style.setProperty('--planet-y', `${22 + Math.round(nextRandom() * 40)}%`);
     fxPlanet.style.setProperty('--planet-rotation', `${-8 + Math.round(nextRandom() * 16)}deg`);
