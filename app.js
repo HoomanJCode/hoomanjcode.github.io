@@ -154,3 +154,100 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   }, true);
 }
 sections.forEach((section) => sectionObserver.observe(section));
+
+// Generative Impasse thumbnail: a quiet levitating boat over a lily lake.
+const boatCanvas = document.querySelector('#boatCanvas');
+if (boatCanvas) {
+  const ctx = boatCanvas.getContext('2d');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const boatRng = (seed) => () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const rand = boatRng(20250301);
+  const waves = Array.from({ length: 18 }, (_, i) => ({
+    x: rand(), y: .53 + rand() * .4, length: .04 + rand() * .12,
+    phase: rand() * Math.PI * 2, speed: .45 + rand() * .75, weight: .6 + rand() * 1.4,
+    alpha: .14 + rand() * .18,
+  }));
+  const lilies = Array.from({ length: 11 }, () => ({
+    x: .05 + rand() * .9, y: .59 + rand() * .31, size: 5 + rand() * 7,
+    angle: rand() * Math.PI * 2, bloom: rand() > .58,
+  }));
+  let frame = 0;
+  let visible = true;
+  let lastTime = 0;
+  const resizeBoat = () => {
+    const rect = boatCanvas.getBoundingClientRect();
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    boatCanvas.width = Math.max(1, Math.round(rect.width * ratio));
+    boatCanvas.height = Math.max(1, Math.round(rect.height * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    if (reducedMotion) drawBoat(0);
+  };
+  const drawBoat = (time) => {
+    const { width: w, height: h } = boatCanvas.getBoundingClientRect();
+    if (!w || !h) return;
+    const t = time / 1000;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#283a2a'; ctx.fillRect(0, 0, w, h);
+    const sky = ctx.createLinearGradient(0, 0, 0, h * .58);
+    sky.addColorStop(0, '#435f46'); sky.addColorStop(1, '#789b62');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * .62);
+    ctx.fillStyle = '#99b873'; ctx.fillRect(0, h * .54, w, h * .46);
+    ctx.fillStyle = 'rgba(213,255,79,.1)'; ctx.fillRect(0, h * .54, w, h * .025);
+    // Distant reeds and shoreline marks.
+    ctx.strokeStyle = 'rgba(22,45,31,.45)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 17; i++) {
+      const x = (i / 16) * w + Math.sin(i * 4.7) * 5;
+      ctx.beginPath(); ctx.moveTo(x, h * .58); ctx.quadraticCurveTo(x - 3, h * .5, x + 2, h * .43); ctx.stroke();
+    }
+    // Water waves with small deterministic motion.
+    ctx.lineCap = 'round';
+    for (const wave of waves) {
+      const x = wave.x * w + Math.sin(t * wave.speed + wave.phase) * 4;
+      const y = wave.y * h + Math.cos(t * wave.speed * .7 + wave.phase) * 2;
+      ctx.strokeStyle = `rgba(38,76,53,${wave.alpha})`; ctx.lineWidth = wave.weight;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + wave.length * w * .45, y - 2, x + wave.length * w, y); ctx.stroke();
+    }
+    // Rope anchor wood, behind the boat.
+    const postX = w * .82, postY = h * .56;
+    ctx.fillStyle = '#5d432b'; ctx.fillRect(postX - 7, postY - 57, 13, 62);
+    ctx.fillStyle = '#89623c'; ctx.beginPath(); ctx.ellipse(postX, postY - 58, 10, 5, -.12, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#382a20'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(postX - 4, postY - 51); ctx.lineTo(postX + 1, postY - 8); ctx.stroke();
+    // Floating boat, gently bobbing.
+    const bob = reducedMotion ? 0 : Math.sin(t * 1.25) * 3;
+    const bx = w * .48, by = h * .39 + bob;
+    ctx.strokeStyle = 'rgba(213,255,79,.28)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bx + 30, by + 13); ctx.quadraticCurveTo(w * .66, by + 27, postX - 2, postY - 56); ctx.stroke();
+    ctx.fillStyle = '#d5ff4f'; ctx.globalAlpha = .16; ctx.beginPath(); ctx.ellipse(bx, by + 43, 68, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#536b31'; ctx.beginPath(); ctx.moveTo(bx - 51, by + 9); ctx.quadraticCurveTo(bx, by + 34, bx + 51, by + 9); ctx.lineTo(bx + 39, by + 24); ctx.quadraticCurveTo(bx, by + 43, bx - 39, by + 24); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#d5ff4f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx - 49, by + 9); ctx.quadraticCurveTo(bx, by + 31, bx + 49, by + 9); ctx.stroke();
+    ctx.fillStyle = '#e4c35e'; ctx.beginPath(); ctx.moveTo(bx - 34, by + 2); ctx.lineTo(bx + 34, by + 2); ctx.lineTo(bx + 26, by + 11); ctx.lineTo(bx - 27, by + 11); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#8e773d'; ctx.fillRect(bx - 2, by - 25, 4, 28);
+    ctx.fillStyle = '#d5ff4f'; ctx.beginPath(); ctx.moveTo(bx + 2, by - 24); ctx.lineTo(bx + 2, by + 1); ctx.lineTo(bx + 29, by - 1); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff0a5'; ctx.beginPath(); ctx.moveTo(bx - 2, by - 22); ctx.lineTo(bx - 2, by - 1); ctx.lineTo(bx - 25, by - 2); ctx.closePath(); ctx.fill();
+    // Lilies in the foreground.
+    for (const lily of lilies) {
+      const x = lily.x * w, y = lily.y * h, s = lily.size;
+      ctx.fillStyle = '#365e3d'; ctx.beginPath(); ctx.ellipse(x, y, s, s * .58, lily.angle, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(213,255,79,.42)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(lily.angle) * s, y + Math.sin(lily.angle) * s); ctx.stroke();
+      if (lily.bloom) { ctx.fillStyle = '#d5ff4f'; ctx.beginPath(); ctx.arc(x + s * .15, y - s * .45, s * .32, 0, Math.PI * 2); ctx.fill(); }
+    }
+  };
+  const renderBoat = (now) => {
+    frame = 0;
+    if (!visible) return;
+    drawBoat(now);
+    if (!reducedMotion) frame = requestAnimationFrame(renderBoat);
+  };
+  const boatObserver = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (visible && !reducedMotion && !frame) frame = requestAnimationFrame(renderBoat);
+  }, { threshold: 0 });
+  boatObserver.observe(boatCanvas);
+  window.addEventListener('resize', resizeBoat, { passive: true });
+  resizeBoat();
+  if (!reducedMotion) frame = requestAnimationFrame(renderBoat);
+}
+
