@@ -45,8 +45,14 @@ The previous custom domain has expired. Contact: `hooman.jalalpoor@gmail.com`.
 - `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` — favicon set with a
   planet + ring mark in the site palette
 - `site.webmanifest` — web app manifest exposing the favicon set
+- `og-image.png` — 1200x630 Open Graph card shown by Telegram, X, Discord, and
+  other link previews
 - `scripts/generate-favicons.js` — regenerates the PNG favicons from the SVG
   design (`node scripts/generate-favicons.js`, no dependencies)
+- `scripts/generate-og-image.js` — regenerates `og-image.png`
+  (`node scripts/generate-og-image.js`, no dependencies; uses `rsvg-convert`,
+  `inkscape`, or ImageMagick for the title text if one is installed)
+- `scripts/lib/png.js` — shared minimal PNG encoder used by both generators
 - `.nojekyll` — disables Jekyll processing
 - `.gitignore` — excludes local logs, temporary files, and build artifacts
 
