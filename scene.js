@@ -102,12 +102,14 @@ function createScene() {
   let scrollFrame = 0;
   const updateScroll = () => {
     scrollFrame = 0;
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    scrollProgress = max > 0 ? window.scrollY / max : 0;
+    // Progress across the hero's own exit (first viewport height), so the
+    // animation plays out exactly while the scene is still on screen.
+    scrollProgress = Math.min(1, window.scrollY / (window.innerHeight || 1));
   };
   window.addEventListener('scroll', () => {
     if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
   }, { passive: true });
+  updateScroll();
 
   const visibilityObserver = new IntersectionObserver(([entry]) => {
     isVisible = entry.isIntersecting;
