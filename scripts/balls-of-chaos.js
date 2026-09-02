@@ -8,6 +8,7 @@ if (pongCanvas) {
   let playerTarget = .5, player = .5, ai = .28;
   let balls = [{ x: .5, y: .5, vx: (Math.random() - .5) * .34, vy: .3 }];
   let score = 0, aiScore = 0;
+  let touchStartX = 0, touchStartY = 0;
   const trail = [];
   const resizePong = () => {
     const rect = pongCanvas.getBoundingClientRect();
@@ -68,7 +69,22 @@ if (pongCanvas) {
   const renderPong = (now) => { frame = 0; if (!visible) return; drawPong(now); if (!reducedMotion) frame = requestAnimationFrame(renderPong); };
   pongCanvas.addEventListener('pointermove', setPlayerFromPointer);
   pongCanvas.addEventListener('pointerdown', setPlayerFromPointer);
-  pongCanvas.addEventListener('touchstart', (event) => { const touch = event.touches[0]; if (touch) setPlayerFromPointer(touch); }, { passive: true });
+  pongCanvas.addEventListener('touchstart', (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    setPlayerFromPointer(touch);
+  }, { passive: true });
+  pongCanvas.addEventListener('touchmove', (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    const dx = Math.abs(touch.clientX - touchStartX);
+    const dy = Math.abs(touch.clientY - touchStartY);
+    // Horizontal movement controls the paddle. Vertical movement remains
+    // native browser scrolling because the canvas uses touch-action: pan-y.
+    if (dx > dy) setPlayerFromPointer(touch);
+  }, { passive: true });
   const pongObserver = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible && !reducedMotion && !frame) frame = requestAnimationFrame(renderPong); }, { threshold: 0 });
   pongObserver.observe(pongCanvas);
   window.addEventListener('resize', resizePong, { passive: true });
