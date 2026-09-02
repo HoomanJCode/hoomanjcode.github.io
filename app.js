@@ -232,7 +232,17 @@ if (boatCanvas) {
   const renderBoat = (now) => {
     frame = 0;
     if (!visible) return;
-    drawBoat(now);  if (!reducedMotion) frame = requestAnimationFrame(renderBoat);
+    drawBoat(now);
+    if (!reducedMotion) frame = requestAnimationFrame(renderBoat);
+  };
+  const boatObserver = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (visible && !reducedMotion && !frame) frame = requestAnimationFrame(renderBoat);
+  }, { threshold: 0 });
+  boatObserver.observe(boatCanvas);
+  window.addEventListener('resize', resizeBoat, { passive: true });
+  resizeBoat();
+  if (!reducedMotion) frame = requestAnimationFrame(renderBoat);
 }
 
 // Playable Balls of Chaos thumbnail: minimal Pong with a yellow player
@@ -293,7 +303,47 @@ if (pongCanvas) {
     ctx.fillStyle = '#f0eee8'; ctx.shadowColor = '#f0eee8'; ctx.shadowBlur = 13; ctx.beginPath(); ctx.arc(ball.x * width, ball.y * height, Math.max(4, width * .014), 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(240,238,232,.7)'; ctx.font = `${Math.max(10, width * .025)}px DM Mono, monospace`; ctx.fillText(String(score).padStart(2, '0'), width * .16, height * .16); ctx.fillText(String(aiScore).padStart(2, '0'), width * .78, height * .16);
   };
-  const renderPong = (now) => { frame = 0; if (!visible) return; drawPong(now); if (!reducedMotion) frame = requestAnimationFrame(renderPong); };
+  const renderPong = (now) => { frame = 0; if (!visible) return; drawPong(now);  if (!reducedMotion) frame = requestAnimationFrame(renderPong);
+}
+
+// FxPlanet thumbnail: regenerate a new procedural planet every five seconds.
+const fxPlanet = document.querySelector('.mini-planet');
+if (fxPlanet) {
+  let planetSeed = Math.floor(Math.random() * 0xffffffff);
+  let planetTimer = 0;
+  let planetVisible = true;
+  const nextRandom = () => {
+    planetSeed = (planetSeed * 1664525 + 1013904223) >>> 0;
+    return planetSeed / 4294967296;
+  };
+  const createPlanet = () => {
+    const hue = Math.round(nextRandom() * 360);
+    const hueTwo = (hue + 25 + Math.round(nextRandom() * 80)) % 360;
+    const light = 42 + Math.round(nextRandom() * 14);
+    fxPlanet.style.setProperty('--planet-a', `hsl(${hue} 68% ${light + 20}%)`);
+    fxPlanet.style.setProperty('--planet-b', `hsl(${hueTwo} 62% ${light}%)`);
+    fxPlanet.style.setProperty('--planet-c', `hsl(${(hue + 190) % 360} 55% 20%)`);
+    fxPlanet.style.setProperty('--planet-x', `${28 + Math.round(nextRandom() * 44)}%`);
+    fxPlanet.style.setProperty('--planet-y', `${22 + Math.round(nextRandom() * 40)}%`);
+    fxPlanet.style.setProperty('--planet-rotation', `${-8 + Math.round(nextRandom() * 16)}deg`);
+    fxPlanet.classList.remove('planet-new');
+    void fxPlanet.offsetWidth;
+    fxPlanet.classList.add('planet-new');
+  };
+  const schedulePlanet = () => {
+    clearTimeout(planetTimer);
+    if (planetVisible && !reducedMotion) planetTimer = window.setTimeout(() => { createPlanet(); schedulePlanet(); }, 5000);
+  };
+  const planetObserver = new IntersectionObserver(([entry]) => {
+    planetVisible = entry.isIntersecting;
+    if (planetVisible) schedulePlanet(); else clearTimeout(planetTimer);
+  }, { threshold: 0 });
+  planetObserver.observe(fxPlanet);
+  createPlanet();
+  schedulePlanet();
+}
+
+;
   pongCanvas.addEventListener('pointermove', setPlayerFromPointer);
   pongCanvas.addEventListener('pointerdown', setPlayerFromPointer);
   pongCanvas.addEventListener('touchstart', (event) => { const touch = event.touches[0]; if (touch) setPlayerFromPointer(touch); }, { passive: true });
@@ -304,14 +354,4 @@ if (pongCanvas) {
   if (reducedMotion) drawPong(0); else frame = requestAnimationFrame(renderPong);
 }
 
-;
-  const boatObserver = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    if (visible && !reducedMotion && !frame) frame = requestAnimationFrame(renderBoat);
-  }, { threshold: 0 });
-  boatObserver.observe(boatCanvas);
-  window.addEventListener('resize', resizeBoat, { passive: true });
-  resizeBoat();
-  if (!reducedMotion) frame = requestAnimationFrame(renderBoat);
-}
 
