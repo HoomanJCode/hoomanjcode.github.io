@@ -1,3 +1,7 @@
+// Mark the UI script as loaded so the inline failsafe in index.html can
+// force hidden .reveal sections visible if this file ever fails to run.
+window.__appReady = true;
+
 const progressBar = document.querySelector('#progressBar');
 let progressFrame = 0;
 const updateProgress = () => {
@@ -55,4 +59,6 @@ const sectionObserver = new IntersectionObserver((entries) => {
     }
   });
 }, { threshold: .55 });
+
+window.__appDone = true;
 sections.forEach((section) => sectionObserver.observe(section));

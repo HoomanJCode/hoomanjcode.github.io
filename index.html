@@ -11,15 +11,15 @@
   <meta property="og:site_name" content="Hooman Jalalpour — World Builder">
   <meta property="og:title" content="Hooman Jalalpour — World Builder">
   <meta property="og:description" content="Indie game programmer, software engineer, and generative artist shaping playful systems into emotional experiences.">
-  <meta property="og:url" content="https://hoomanjcode.github.io/">
-  <meta property="og:image" content="https://hoomanjcode.github.io/og-image.png">
+  <meta property="og:url" content="https://hooman.jlpr.ir/">
+  <meta property="og:image" content="https://hooman.jlpr.ir/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="A generative blue planet ringed in acid green over a starfield, titled I build worlds that stay with you.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Hooman Jalalpour — World Builder">
   <meta name="twitter:description" content="Indie game programmer, software engineer, and generative artist.">
-  <meta name="twitter:image" content="https://hoomanjcode.github.io/og-image.png">
+  <meta name="twitter:image" content="https://hooman.jlpr.ir/og-image.png">
   <meta name="twitter:image:alt" content="A generative blue planet ringed in acid green over a starfield.">
   <title>Hooman Jalalpour — World Builder</title>
   <script>document.documentElement.classList.add('js');</script>
@@ -120,5 +120,15 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
   <script src="app.js" defer></script>
   <script src="scene.js" defer></script>
+  <script>
+    // Failsafe: if app.js loaded but failed mid-run, or never loaded at all,
+    // force all reveal sections visible after a short grace period so the
+    // page is never a wall of invisible text.
+    setTimeout(function () {
+      var ok = window.__appDone || (!window.__appReady && !document.documentElement.classList.contains('js'));
+      if (ok) return;
+      document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('is-visible'); });
+    }, 2500);
+  </script>
 </body>
 </html>
