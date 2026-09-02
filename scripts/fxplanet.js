@@ -69,6 +69,28 @@
     }
 
     ctx.clearRect(0, 0, pixelWidth, pixelHeight);
+
+    // Draw procedural starfield
+    const starCount = 180;
+    for (let s = 0; s < starCount; s += 1) {
+      const sx = random(nextSeed + s * 3 + 7001) * pixelWidth;
+      const sy = random(nextSeed + s * 3 + 7002) * pixelHeight;
+      const sr = 0.5 + random(nextSeed + s * 3 + 7003) * 2;
+      const sb = 0.15 + random(nextSeed + s * 3 + 7004) * 0.85;
+      const colorChoice = random(nextSeed + s * 3 + 7005);
+      let sc;
+      if (colorChoice < 0.55) sc = [240, 238, 232];
+      else if (colorChoice < 0.75) sc = [145, 186, 255];
+      else if (colorChoice < 0.88) sc = [213, 255, 79];
+      else sc = [255, 118, 92];
+      ctx.globalAlpha = sb;
+      ctx.fillStyle = `rgb(${sc[0]}, ${sc[1]}, ${sc[2]})`;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr * dpr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
     const size = Math.round(Math.min(pixelWidth, pixelHeight) * (0.39 + random(nextSeed + 41) * 0.08));
     const palette = palettes[Math.floor(random(nextSeed + 17) * palettes.length)];
     const rotation = (random(nextSeed + 23) - 0.5) * 0.5;

@@ -17,16 +17,6 @@
   pointer-events: none;
 }
 
-.visual-planet:after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(135deg, rgba(145, 186, 255, .06) 25%, transparent 25%) 0 0 / 36px 36px,
-    linear-gradient(315deg, rgba(255, 118, 92, .05) 25%, transparent 25%) 0 0 / 36px 36px;
-  opacity: .5;
-  pointer-events: none;
-}
 
 .planet-texture {
   position: absolute;
