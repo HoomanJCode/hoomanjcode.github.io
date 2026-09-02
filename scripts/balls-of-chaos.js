@@ -30,16 +30,16 @@ if (pongCanvas) {
     const dt = Math.min(.035, (now - lastTime) / 1000 || .016);
     lastTime = now;
     const paddleW = Math.max(44, width * .24), paddleH = Math.max(5, height * .018);
-    const py = height * .09, ay = height * .91;
+    const py = height * .91, ay = height * .09;
     player += (playerTarget - player) * Math.min(1, dt * 12);
     ai += (ball.x - ai) * Math.min(1, dt * (reducedMotion ? 3 : 4.2));
     ai = Math.max(.12, Math.min(.88, ai));
     if (!reducedMotion) { ball.x += ball.vx * dt; ball.y += ball.vy * dt; }
     if (ball.x < .08 || ball.x > .92) { ball.vx *= -1; ball.x = Math.max(.08, Math.min(.92, ball.x)); }
-    const playerHit = ball.y < .12 && ball.y > .095 && Math.abs(ball.x - player) < .16;
-    const aiHit = ball.y > .88 && ball.y < .905 && Math.abs(ball.x - ai) < .16;
-    if (playerHit && ball.vy < 0) { ball.vy = Math.abs(ball.vy) * 1.04; ball.vx += (ball.x - player) * .28; score++; }
-    if (aiHit && ball.vy > 0) { ball.vy = -Math.abs(ball.vy) * 1.04; ball.vx += (ball.x - ai) * .22; aiScore++; }
+    const playerHit = ball.y > .88 && ball.y < .905 && Math.abs(ball.x - player) < .16;
+    const aiHit = ball.y < .12 && ball.y > .095 && Math.abs(ball.x - ai) < .16;
+    if (playerHit && ball.vy > 0) { ball.vy = -Math.abs(ball.vy) * 1.04; ball.vx += (ball.x - player) * .28; score++; }
+    if (aiHit && ball.vy < 0) { ball.vy = Math.abs(ball.vy) * 1.04; ball.vx += (ball.x - ai) * .22; aiScore++; }
     if (ball.y < -.04) resetBall(1);
     if (ball.y > 1.04) resetBall(-1);
     trail.push({ x: ball.x * width, y: ball.y * height });
@@ -55,7 +55,7 @@ if (pongCanvas) {
     ctx.fillStyle = '#d5ff4f'; ctx.shadowColor = '#d5ff4f'; ctx.shadowBlur = 16; ctx.fillRect(player * width - paddleW / 2, py - paddleH / 2, paddleW, paddleH); ctx.shadowBlur = 0;
     ctx.fillStyle = '#ff765c'; ctx.shadowColor = '#ff765c'; ctx.shadowBlur = 16; ctx.fillRect(ai * width - paddleW / 2, ay - paddleH / 2, paddleW, paddleH); ctx.shadowBlur = 0;
     ctx.fillStyle = '#f0eee8'; ctx.shadowColor = '#f0eee8'; ctx.shadowBlur = 13; ctx.beginPath(); ctx.arc(ball.x * width, ball.y * height, Math.max(4, width * .014), 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(240,238,232,.7)'; ctx.font = `${Math.max(10, width * .025)}px DM Mono, monospace`; ctx.fillText(String(score).padStart(2, '0'), width * .16, height * .16); ctx.fillText(String(aiScore).padStart(2, '0'), width * .78, height * .16);
+    ctx.fillStyle = 'rgba(240,238,232,.7)'; ctx.font = `${Math.max(10, width * .025)}px DM Mono, monospace`; ctx.fillText(String(aiScore).padStart(2, '0'), width * .16, height * .16); ctx.fillText(String(score).padStart(2, '0'), width * .78, height * .16);
   };
   const renderPong = (now) => {
     frame = 0;
