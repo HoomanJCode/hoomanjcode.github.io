@@ -65,7 +65,7 @@ window.__appDone = true;
 // The archive ticker is an animated marquee that remains manually
 // draggable/scrollable for touch, wheel, and trackpad users.
 const ticker = document.querySelector('[data-ticker]');
-if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && window.matchMedia('(min-width: 761px)').matches) {
+if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const rows = [...ticker.querySelectorAll('[data-ticker-row]')];
   let pointerId = null;
   let lastX = 0;
