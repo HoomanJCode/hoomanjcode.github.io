@@ -10,6 +10,30 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 updateProgress();
 
+// Browser chrome (mobile address bar / tab strip) tint per scene
+const loadingTheme = document.querySelector('meta[data-meta="theme-color-loading"]');
+const pageTheme = document.querySelector('meta[data-meta="theme-color-page"]');
+const setThemeColor = (content) => {
+  if (pageTheme) pageTheme.setAttribute('content', content);
+};
+const SCENE_COLORS = {
+  hero: '#07090d',
+  statement: '#f0eee8',
+  work: '#07090d',
+  about: '#bdcce9',
+  contact: '#17191e',
+};
+if (loadingTheme && pageTheme) {
+  requestAnimationFrame(() => loadingTheme.remove()); // leave the loading tint once painted
+}
+const applySceneTheme = (scene) => {
+  if (SCENE_COLORS[scene]) setThemeColor(SCENE_COLORS[scene]);
+};
+applySceneTheme(document.body.dataset.scene || 'hero');
+window.addEventListener('pageshow', () => {
+  if (document.body.dataset.scene) applySceneTheme(document.body.dataset.scene);
+});
+
 const revealElements = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
@@ -25,7 +49,10 @@ if ('IntersectionObserver' in window) {
 const sections = [...document.querySelectorAll('.scene-section')];
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
-    if (entry.isIntersecting) document.body.dataset.scene = entry.target.dataset.scene;
+    if (entry.isIntersecting) {
+      document.body.dataset.scene = entry.target.dataset.scene;
+      applySceneTheme(entry.target.dataset.scene);
+    }
   });
 }, { threshold: .55 });
 sections.forEach((section) => sectionObserver.observe(section));

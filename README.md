@@ -39,8 +39,14 @@ The previous custom domain has expired. Contact: `hooman.jalalpoor@gmail.com`.
 
 - `index.html` — page structure and portfolio content
 - `styles.css` — visual design, responsive rules, and CSS animations
-- `app.js` — scroll progress, reveal animations, and section tracking
+- `app.js` — scroll progress, reveal animations, section tracking, and browser
+  chrome (theme-color) tinting per section
 - `scene.js` — procedural Three.js planet, stars, orbital rings, and scroll behavior
+- `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` — favicon set with a
+  planet + ring mark in the site palette
+- `site.webmanifest` — web app manifest exposing the favicon set
+- `scripts/generate-favicons.js` — regenerates the PNG favicons from the SVG
+  design (`node scripts/generate-favicons.js`, no dependencies)
 - `.nojekyll` — disables Jekyll processing
 - `.gitignore` — excludes local logs, temporary files, and build artifacts
 
