@@ -1,5 +1,80 @@
-.visual-planet { background: var(--ink); display: grid; place-items: center; isolation: isolate; }
-.visual-planet:before { content: ''; position: absolute; width: 75%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(145,186,255,.2), transparent 58%); filter: blur(16px); }
-.planet-core { position: absolute; width: 43%; aspect-ratio: 1; border-radius: 48% 52% 46% 54%; background: var(--blue); box-shadow: inset -25px -18px 28px rgba(8,10,14,.55), 0 0 50px rgba(145,186,255,.28); transform: rotate(-8deg); }
-.planet-noise { position: absolute; width: 43%; aspect-ratio: 1; border-radius: 48% 52% 46% 54%; pointer-events: none; mix-blend-mode: screen; }.planet-noise:after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: repeating-radial-gradient(ellipse at 42% 36%, transparent 0 8px, rgba(213,255,79,.46) 9px 12px, transparent 13px 22px); opacity: .65; }.noise-one { transform: rotate(26deg) scale(1.03); background: rgba(213,255,79,.3); }.noise-two { transform: rotate(-38deg) scale(.86); background: repeating-linear-gradient(28deg, transparent 0 13px, rgba(255,118,92,.45) 14px 18px, transparent 19px 31px); }.noise-three { transform: rotate(72deg) scale(.7); background: repeating-linear-gradient(-43deg, transparent 0 9px, rgba(240,238,232,.26) 10px 12px, transparent 13px 22px); }
-.planet-ring { position: absolute; width: 78%; height: 18%; border: 2px solid var(--acid); border-radius: 50%; transform: rotate(-19deg); box-shadow: 0 0 18px rgba(213,255,79,.2); }.planet-spark { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 18px var(--coral); }.spark-one { top: 20%; right: 23%; }.spark-two { bottom: 23%; left: 22%; background: var(--paper); box-shadow: 0 0 18px var(--paper); }
+.visual-planet {
+  background: var(--ink);
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.visual-planet:before {
+  content: '';
+  position: absolute;
+  width: 76%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(145, 186, 255, .2), transparent 58%);
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+.visual-planet:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(145, 186, 255, .06) 25%, transparent 25%) 0 0 / 36px 36px,
+    linear-gradient(315deg, rgba(255, 118, 92, .05) 25%, transparent 25%) 0 0 / 36px 36px;
+  opacity: .5;
+  pointer-events: none;
+}
+
+.planet-texture {
+  position: absolute;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.planet-ring {
+  position: absolute;
+  z-index: 5;
+  width: 78%;
+  height: 18%;
+  border: 2px solid var(--acid);
+  border-radius: 50%;
+  transform: rotate(-19deg);
+  box-shadow: 0 0 18px rgba(213, 255, 79, .2);
+  pointer-events: none;
+}
+
+.planet-ring:after {
+  content: '';
+  position: absolute;
+  inset: 22% 5%;
+  border-top: 1px solid rgba(240, 238, 232, .48);
+  border-bottom: 1px solid rgba(240, 238, 232, .2);
+  border-radius: 50%;
+}
+
+.planet-spark {
+  position: absolute;
+  z-index: 6;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--coral);
+  box-shadow: 0 0 18px var(--coral);
+  pointer-events: none;
+}
+
+.spark-one { top: 20%; right: 23%; }
+.spark-two { bottom: 23%; left: 22%; background: var(--paper); box-shadow: 0 0 18px var(--paper); }
+
+@media (prefers-reduced-motion: reduce) {
+  .planet-ring,
+  .planet-spark {
+    animation: none;
+  }
+}
