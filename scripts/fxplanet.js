@@ -15,6 +15,7 @@
   ];
 
   let seed = Math.floor(Math.random() * 2147483647);
+  const starSeed = seed;
   let visible = true;
   let timer = 0;
   let currentFrame = 0;
@@ -73,13 +74,13 @@
     // Draw procedural starfield
     const starCount = 220;
     for (let s = 0; s < starCount; s += 1) {
-      const sx = random(nextSeed + s * 3 + 7001) * pixelWidth;
-      const sy = random(nextSeed + s * 3 + 7002) * pixelHeight;
-      const bright = random(nextSeed + s * 3 + 7004);
+      const sx = random(starSeed + s * 3 + 7001) * pixelWidth;
+      const sy = random(starSeed + s * 3 + 7002) * pixelHeight;
+      const bright = random(starSeed + s * 3 + 7004);
       const isBright = bright > 0.88;
-      const sr = isBright ? (1.2 + random(nextSeed + s * 3 + 7003) * 0.6) : (0.2 + random(nextSeed + s * 3 + 7003) * 0.6);
+      const sr = isBright ? (1.2 + random(starSeed + s * 3 + 7003) * 0.6) : (0.2 + random(starSeed + s * 3 + 7003) * 0.6);
       const sb = isBright ? (0.7 + bright * 0.3) : (0.12 + bright * 0.55);
-      const colorChoice = random(nextSeed + s * 3 + 7005);
+      const colorChoice = random(starSeed + s * 3 + 7005);
       let sc;
       if (colorChoice < 0.55) sc = [240, 238, 232];
       else if (colorChoice < 0.75) sc = [145, 186, 255];
