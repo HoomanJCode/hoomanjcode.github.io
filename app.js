@@ -10,12 +10,17 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 updateProgress();
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) entry.target.classList.add('is-visible');
-  });
-}, { threshold: .13 });
-document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
+const revealElements = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('is-visible');
+    });
+  }, { threshold: .13 });
+  revealElements.forEach((element) => observer.observe(element));
+} else {
+  revealElements.forEach((element) => element.classList.add('is-visible'));
+}
 
 const sections = [...document.querySelectorAll('.scene-section')];
 const sectionObserver = new IntersectionObserver((entries) => {
