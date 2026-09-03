@@ -7,6 +7,7 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const visual = canvas.closest('.visual-planet');
+  if (!visual) return;
   const palettes = [
     [[145, 186, 255], [213, 255, 79], [255, 118, 92], [240, 238, 232]],
     [[213, 255, 79], [145, 186, 255], [240, 238, 232], [255, 118, 92]],
@@ -72,14 +73,14 @@
     ctx.clearRect(0, 0, pixelWidth, pixelHeight);
 
     // Draw procedural starfield
-    const starCount = 220;
+    const starCount = 280;
     for (let s = 0; s < starCount; s += 1) {
       const sx = random(starSeed + s * 3 + 7001) * pixelWidth;
       const sy = random(starSeed + s * 3 + 7002) * pixelHeight;
       const bright = random(starSeed + s * 3 + 7004);
-      const isBright = bright > 0.88;
-      const sr = isBright ? (1.2 + random(starSeed + s * 3 + 7003) * 0.6) : (0.2 + random(starSeed + s * 3 + 7003) * 0.6);
-      const sb = isBright ? (0.7 + bright * 0.3) : (0.12 + bright * 0.55);
+      const isBright = bright > 0.85;
+      const sr = isBright ? (1.4 + random(starSeed + s * 3 + 7003) * 0.8) : (0.35 + random(starSeed + s * 3 + 7003) * 0.65);
+      const sb = isBright ? (0.85 + bright * 0.15) : (0.25 + bright * 0.55);
       const colorChoice = random(starSeed + s * 3 + 7005);
       let sc;
       if (colorChoice < 0.55) sc = [240, 238, 232];
@@ -89,8 +90,8 @@
       ctx.globalAlpha = sb;
       ctx.fillStyle = `rgb(${sc[0]}, ${sc[1]}, ${sc[2]})`;
       if (isBright) {
-        ctx.shadowColor = `rgba(${sc[0]}, ${sc[1]}, ${sc[2]}, .6)`;
-        ctx.shadowBlur = 6 * dpr;
+        ctx.shadowColor = `rgba(${sc[0]}, ${sc[1]}, ${sc[2]}, .8)`;
+        ctx.shadowBlur = 8 * dpr;
       }
       ctx.beginPath();
       ctx.arc(sx, sy, sr * dpr, 0, Math.PI * 2);
@@ -204,5 +205,21 @@
   observer.observe(visual);
   reducedMotion.addEventListener?.('change', startRegeneration);
   window.addEventListener('resize', () => drawPlanet(seed), { passive: true });
-  drawPlanet(seed);
+
+  // Use ResizeObserver to draw once the container has real dimensions,
+  // handling the case where getBoundingClientRect() initially returns
+  // zero (e.g. inside a hidden/reveal element before first paint).
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+        drawPlanet(seed);
+        ro.disconnect();
+      }
+    });
+    ro.observe(visual);
+  } else {
+    // Fallback: wait a frame to let layout settle
+    requestAnimationFrame(() => drawPlanet(seed));
+  }
 })();
