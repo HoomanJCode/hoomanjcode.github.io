@@ -15,6 +15,7 @@
   let isVisible = false;
   let raf = 0;
   let spawnTimer = 0;
+  let manualMode = false;
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -40,8 +41,11 @@
     }
   });
 
+  container.addEventListener('click', handleClick);
+
   function createBall(el, size) {
     const ballSize = size || el.offsetWidth || parseInt(getComputedStyle(el).width) || 50;
+    el.dataset.chaosBall = 'true';
     return {
       el,
       x: 0,
@@ -51,6 +55,35 @@
       r: ballSize / 2,
       mass: ballSize * ballSize,
     };
+  }
+
+  function handleClick(event) {
+    if (!isVisible || document.hidden) return;
+
+    manualMode = true;
+    stopSpawning();
+
+    const rect = container.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const clickedBallIndex = findBallAt(x, y);
+
+    if (clickedBallIndex !== -1) {
+      balls[clickedBallIndex].el.remove();
+      balls.splice(clickedBallIndex, 1);
+      return;
+    }
+
+    if (balls.length >= MAX_BALLS) return;
+    addRandomBallAt(x, y, rect.width || 1, rect.height || 1);
+  }
+
+  function findBallAt(x, y) {
+    for (let i = balls.length - 1; i >= 0; i--) {
+      const ball = balls[i];
+      if (Math.hypot(x - ball.x, y - ball.y) <= ball.r) return i;
+    }
+    return -1;
   }
 
   function tick() {
@@ -159,7 +192,7 @@
 
   function startSpawning() {
     stopSpawning();
-    if (!isVisible || document.hidden || balls.length >= MAX_BALLS) return;
+    if (manualMode || !isVisible || document.hidden || balls.length >= MAX_BALLS) return;
 
     spawnTimer = window.setInterval(() => {
       const currentRect = container.getBoundingClientRect();
@@ -167,13 +200,7 @@
     }, SPAWN_INTERVAL);
   }
 
-  function addRandomBall(w, h) {
-    if (balls.length >= MAX_BALLS) {
-      window.clearInterval(spawnTimer);
-      spawnTimer = 0;
-      return;
-    }
-
+  function createRandomBall(w, h) {
     const colors = [
       ['var(--acid)', 'inset -15px -15px 0 rgba(213, 255, 79, .12), 0 0 25px rgba(213, 255, 79, .25)'],
       ['var(--coral)', '0 0 25px rgba(255, 118, 92, .25)'],
@@ -192,6 +219,21 @@
     const ball = createBall(el, size);
     balls.push(ball);
     placeAndLaunch(ball, w, h, 0.8 + Math.random() * 1.2);
+    return ball;
+  }
+
+  function addRandomBall(w, h) {
+    if (balls.length >= MAX_BALLS) {
+      stopSpawning();
+      return;
+    }
+    createRandomBall(w, h);
+  }
+
+  function addRandomBallAt(x, y, w, h) {
+    const ball = createRandomBall(w, h);
+    ball.x = Math.max(ball.r, Math.min(w - ball.r, x));
+    ball.y = Math.max(ball.r, Math.min(h - ball.r, y));
   }
 
   function init() {

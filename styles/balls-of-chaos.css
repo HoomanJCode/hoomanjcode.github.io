@@ -4,6 +4,7 @@
   background-size: 18px 18px;
   isolation: isolate;
   overflow: hidden;
+  cursor: crosshair;
 }
 
 .chaos-ball {

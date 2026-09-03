@@ -4,6 +4,7 @@
   place-items: center;
   isolation: isolate;
   overflow: hidden;
+  cursor: crosshair;
 }
 
 .visual-planet:before {

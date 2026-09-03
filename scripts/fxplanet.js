@@ -21,6 +21,7 @@
   let visible = true;
   let timer = 0;
   let currentFrame = 0;
+  let manualMode = false;
 
   const mix = (a, b, amount) => a + (b - a) * amount;
   const smooth = (value) => value * value * (3 - 2 * value);
@@ -188,12 +189,19 @@
     drawPlanet(seed);
   }
 
+  function handleClick() {
+    if (!visible || document.hidden) return;
+    manualMode = true;
+    window.clearInterval(timer);
+    timer = 0;
+    regenerate();
+  }
+
   function startRegeneration() {
     window.clearInterval(timer);
     timer = 0;
-    if (visible && !document.hidden && !reducedMotion.matches) {
-      timer = window.setInterval(regenerate, 5000);
-    }
+    if (manualMode || !visible || document.hidden || reducedMotion.matches) return;
+    timer = window.setInterval(regenerate, 5000);
   }
 
   const observer = new IntersectionObserver((entries) => {
@@ -208,6 +216,7 @@
   }, { threshold: [0, WATCH_THRESHOLD] });
 
   observer.observe(visual);
+  visual.addEventListener('click', handleClick);
   reducedMotion.addEventListener?.('change', startRegeneration);
   document.addEventListener('visibilitychange', startRegeneration);
   window.addEventListener('resize', () => {
