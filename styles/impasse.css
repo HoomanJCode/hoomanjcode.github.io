@@ -1,6 +1,25 @@
-.visual-impasse { background: #1a2927; }
-.visual-grid { position: absolute; inset: -25%; opacity: .55; background: repeating-linear-gradient(35deg, transparent 0 35px, #65958a 36px 37px, transparent 38px 72px), repeating-linear-gradient(-35deg, transparent 0 35px, #42645f 36px 37px, transparent 38px 72px); transform: perspective(400px) rotateX(50deg) rotateZ(-15deg); }
-.pixel-core { position: absolute; width: 130px; height: 130px; background: var(--coral); transform: rotate(45deg); top: 37%; left: 41%; box-shadow: 20px 20px 0 #ebad70, -20px -20px 0 #8db7a7; animation: floatCore 5s ease-in-out infinite; }
+.visual-impasse { background: #1a2927; isolation: isolate; }
+.impasse-ground {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: perspective(500px) rotateX(52deg) rotateZ(-15deg);
+  transform-origin: center;
+}
+.impasse-ground::before {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  z-index: 0;
+  background:
+    linear-gradient(35deg, transparent 48.8%, rgba(169, 178, 173, .3) 49.5% 50.5%, transparent 51.2%),
+    linear-gradient(-35deg, transparent 48.8%, rgba(169, 178, 173, .3) 49.5% 50.5%, transparent 51.2%),
+    repeating-conic-gradient(from 45deg, rgba(142, 151, 147, .3) 0 25%, rgba(67, 78, 74, .24) 0 50%);
+  background-size: 88px 88px;
+  opacity: .8;
+}
+.visual-grid { position: absolute; inset: -25%; z-index: 1; opacity: .45; background: repeating-linear-gradient(35deg, transparent 0 35px, #8ba49b 36px 37px, transparent 38px 72px), repeating-linear-gradient(-35deg, transparent 0 35px, #5d7770 36px 37px, transparent 38px 72px); }
+.pixel-core { position: absolute; z-index: 3; width: 130px; height: 130px; background: var(--coral); transform: rotate(45deg); top: 37%; left: 41%; box-shadow: 20px 20px 0 #ebad70, -20px -20px 0 #8db7a7; animation: floatCore 5s ease-in-out infinite; }
 @keyframes floatCore { 0%,100% { transform: rotate(45deg) translateY(0); } 50% { transform: rotate(48deg) translateY(-18px); } }
 
 .lily-pad {
@@ -8,6 +27,9 @@
   border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #5a9e6f, #3d7a52 55%, #2d5e3d);
   box-shadow: 0 2px 8px rgba(0, 0, 0, .3), inset 0 -2px 6px rgba(0, 0, 0, .15);
+  z-index: 2;
+  transform: scaleY(.92);
+  transform-origin: center;
   pointer-events: none;
 }
 
@@ -42,9 +64,13 @@
 .lp-4 { width: 30px; height: 30px; top: 35%; right: 22%; animation: lilyFloat 6.5s ease-in-out 1.5s infinite; opacity: .7; }
 .lp-5 { width: 40px; height: 40px; bottom: 38%; left: 45%; animation: lilyFloat 5s ease-in-out .8s infinite; opacity: .6; }
 
+.visual-impasse .visual-caption {
+  z-index: 4;
+}
+
 @keyframes lilyFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-4px) rotate(2deg); }
+  0%, 100% { transform: scaleY(.92) translateY(0); }
+  50% { transform: scaleY(.92) translateY(-4px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

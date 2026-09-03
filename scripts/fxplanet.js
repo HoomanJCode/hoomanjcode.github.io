@@ -15,6 +15,7 @@
     [[240, 238, 232], [255, 118, 92], [213, 255, 79], [145, 186, 255]],
   ];
 
+  const WATCH_THRESHOLD = 0.35;
   let seed = Math.floor(Math.random() * 2147483647);
   const starSeed = seed;
   let visible = true;
@@ -182,29 +183,36 @@
   }
 
   function regenerate() {
-    if (!visible) return;
+    if (!visible || document.hidden || reducedMotion.matches) return;
     seed = Math.floor(Math.random() * 2147483647);
     drawPlanet(seed);
   }
 
   function startRegeneration() {
     window.clearInterval(timer);
-    if (!reducedMotion.matches) timer = window.setInterval(regenerate, 5000);
+    timer = 0;
+    if (visible && !document.hidden && !reducedMotion.matches) {
+      timer = window.setInterval(regenerate, 5000);
+    }
   }
 
   const observer = new IntersectionObserver((entries) => {
-    visible = entries[0].isIntersecting;
+    const entry = entries[0];
+    visible = entry.isIntersecting && entry.intersectionRatio >= WATCH_THRESHOLD;
     if (visible) {
       if (!canvas.dataset.generation) drawPlanet(seed);
       startRegeneration();
     } else {
       window.clearInterval(timer);
     }
-  }, { threshold: 0.05 });
+  }, { threshold: [0, WATCH_THRESHOLD] });
 
   observer.observe(visual);
   reducedMotion.addEventListener?.('change', startRegeneration);
-  window.addEventListener('resize', () => drawPlanet(seed), { passive: true });
+  document.addEventListener('visibilitychange', startRegeneration);
+  window.addEventListener('resize', () => {
+    if (visible && !document.hidden) drawPlanet(seed);
+  }, { passive: true });
 
   // Use ResizeObserver to draw once the container has real dimensions,
   // handling the case where getBoundingClientRect() initially returns
@@ -213,13 +221,15 @@
     const ro = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
-        drawPlanet(seed);
+        if (visible && !document.hidden) drawPlanet(seed);
         ro.disconnect();
       }
     });
     ro.observe(visual);
   } else {
     // Fallback: wait a frame to let layout settle
-    requestAnimationFrame(() => drawPlanet(seed));
+    requestAnimationFrame(() => {
+      if (visible && !document.hidden) drawPlanet(seed);
+    });
   }
 })();

@@ -5,37 +5,53 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reducedMotion.matches) return;
 
-  const ballEls = [...container.querySelectorAll('.chaos-ball')];
+  const MAX_BALLS = 10;
+  const SPAWN_INTERVAL = 5000;
+  const WATCH_THRESHOLD = 0.35;
+  const ballEls = [...container.querySelectorAll('.chaos-ball')].slice(0, 2);
   if (!ballEls.length) return;
 
-  const balls = ballEls.map((el) => {
-    const size = el.offsetWidth || parseInt(getComputedStyle(el).width) || 50;
-    return {
-      el,
-      x: Math.random() * 0.6 + 0.2,
-      y: Math.random() * 0.6 + 0.2,
-      vx: (Math.random() - 0.5) * 0.004,
-      vy: (Math.random() - 0.5) * 0.004,
-      r: size / 2,
-      mass: size * size,
-    };
-  });
-
-  let isVisible = true;
+  const balls = ballEls.map((el) => createBall(el));
+  let isVisible = false;
   let raf = 0;
+  let spawnTimer = 0;
 
   const observer = new IntersectionObserver(
     (entries) => {
-      isVisible = entries[0].isIntersecting;
-      if (isVisible && !raf) tick();
+      const entry = entries[0];
+      isVisible = entry.isIntersecting && entry.intersectionRatio >= WATCH_THRESHOLD;
+      if (isVisible) {
+        startSpawning();
+        if (!raf) tick();
+      } else {
+        stopSpawning();
+      }
     },
-    { threshold: 0 }
+    { threshold: [0, WATCH_THRESHOLD] }
   );
   observer.observe(container);
 
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && isVisible && !raf) tick();
+    if (isVisible && !document.hidden) {
+      startSpawning();
+      if (!raf) tick();
+    } else {
+      stopSpawning();
+    }
   });
+
+  function createBall(el, size) {
+    const ballSize = size || el.offsetWidth || parseInt(getComputedStyle(el).width) || 50;
+    return {
+      el,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      r: ballSize / 2,
+      mass: ballSize * ballSize,
+    };
+  }
 
   function tick() {
     if (!isVisible || document.hidden) {
@@ -52,10 +68,10 @@
       b.x += b.vx;
       b.y += b.vy;
 
-      const minX = b.r / w;
-      const maxX = 1 - b.r / w;
-      const minY = b.r / h;
-      const maxY = 1 - b.r / h;
+      const minX = b.r;
+      const maxX = w - b.r;
+      const minY = b.r;
+      const maxY = h - b.r;
 
       if (b.x < minX) { b.x = minX; b.vx = Math.abs(b.vx); }
       if (b.x > maxX) { b.x = maxX; b.vx = -Math.abs(b.vx); }
@@ -63,36 +79,49 @@
       if (b.y > maxY) { b.y = maxY; b.vy = -Math.abs(b.vy); }
     }
 
-    for (let i = 0; i < balls.length; i++) {
-      for (let j = i + 1; j < balls.length; j++) {
-        const a = balls[i];
-        const b = balls[j];
-        const dx = (b.x - a.x) * w;
-        const dy = (b.y - a.y) * h;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const minDist = a.r + b.r;
+    // Resolve more than once because separating one pair can create a new
+    // overlap with a third ball, especially around the largest ball.
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+          const a = balls[i];
+          const b = balls[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const distanceSquared = dx * dx + dy * dy;
+          const minDist = a.r + b.r;
 
-        if (dist < minDist && dist > 0) {
-          const nx = dx / dist;
-          const ny = dy / dist;
-          const overlap = minDist - dist;
+          if (distanceSquared < minDist * minDist) {
+            const dist = Math.sqrt(distanceSquared);
+            const dvx = a.vx - b.vx;
+            const dvy = a.vy - b.vy;
+            const relativeSpeed = Math.hypot(dvx, dvy);
+            const nx = dist > 0.0001
+              ? dx / dist
+              : relativeSpeed > 0.0001
+                ? dvx / relativeSpeed
+                : (i + j) % 2 === 0 ? 1 : 0;
+            const ny = dist > 0.0001
+              ? dy / dist
+              : relativeSpeed > 0.0001
+                ? dvy / relativeSpeed
+                : (i + j) % 2 === 0 ? 0 : 1;
+            const overlap = minDist - dist;
 
-          const totalMass = a.mass + b.mass;
-          a.x -= (nx * overlap * (b.mass / totalMass)) / w;
-          a.y -= (ny * overlap * (b.mass / totalMass)) / h;
-          b.x += (nx * overlap * (a.mass / totalMass)) / w;
-          b.y += (ny * overlap * (a.mass / totalMass)) / h;
+            const totalMass = a.mass + b.mass;
+            a.x -= nx * overlap * (b.mass / totalMass);
+            a.y -= ny * overlap * (b.mass / totalMass);
+            b.x += nx * overlap * (a.mass / totalMass);
+            b.y += ny * overlap * (a.mass / totalMass);
 
-          const dvx = a.vx - b.vx;
-          const dvy = a.vy - b.vy;
-          const dvDotN = dvx * nx + dvy * ny;
-
-          if (dvDotN > 0) {
-            const impulse = (2 * dvDotN) / totalMass;
-            a.vx -= impulse * b.mass * nx;
-            a.vy -= impulse * b.mass * ny;
-            b.vx += impulse * a.mass * nx;
-            b.vy += impulse * a.mass * ny;
+            const dvDotN = dvx * nx + dvy * ny;
+            if (dvDotN > 0) {
+              const impulse = (2 * dvDotN) / totalMass;
+              a.vx -= impulse * b.mass * nx;
+              a.vy -= impulse * b.mass * ny;
+              b.vx += impulse * a.mass * nx;
+              b.vy += impulse * a.mass * ny;
+            }
           }
         }
       }
@@ -100,10 +129,69 @@
 
     for (let i = 0; i < balls.length; i++) {
       const b = balls[i];
-      b.el.style.transform = `translate(${(b.x - 0.5) * 100}%, ${(b.y - 0.5) * 100}%)`;
+      b.x = Math.max(b.r, Math.min(w - b.r, b.x));
+      b.y = Math.max(b.r, Math.min(h - b.r, b.y));
+      b.el.style.transform = `translate3d(${b.x}px, ${b.y}px, 0) translate(-50%, -50%)`;
     }
 
     raf = requestAnimationFrame(tick);
+  }
+
+  function placeAndLaunch(ball, w, h, speed) {
+    const minX = ball.r;
+    const maxX = Math.max(minX, w - ball.r);
+    const minY = ball.r;
+    const maxY = Math.max(minY, h - ball.r);
+    const angle = Math.random() * Math.PI * 2;
+
+    ball.x = minX + Math.random() * (maxX - minX);
+    ball.y = minY + Math.random() * (maxY - minY);
+    ball.vx = Math.cos(angle) * speed;
+    ball.vy = Math.sin(angle) * speed;
+  }
+
+  function stopSpawning() {
+    if (spawnTimer) {
+      window.clearInterval(spawnTimer);
+      spawnTimer = 0;
+    }
+  }
+
+  function startSpawning() {
+    stopSpawning();
+    if (!isVisible || document.hidden || balls.length >= MAX_BALLS) return;
+
+    spawnTimer = window.setInterval(() => {
+      const currentRect = container.getBoundingClientRect();
+      addRandomBall(currentRect.width || 1, currentRect.height || 1);
+    }, SPAWN_INTERVAL);
+  }
+
+  function addRandomBall(w, h) {
+    if (balls.length >= MAX_BALLS) {
+      window.clearInterval(spawnTimer);
+      spawnTimer = 0;
+      return;
+    }
+
+    const colors = [
+      ['var(--acid)', 'inset -15px -15px 0 rgba(213, 255, 79, .12), 0 0 25px rgba(213, 255, 79, .25)'],
+      ['var(--coral)', '0 0 25px rgba(255, 118, 92, .25)'],
+      ['var(--blue)', '0 0 25px rgba(145, 186, 255, .25)'],
+    ];
+    const [color, shadow] = colors[Math.floor(Math.random() * colors.length)];
+    const size = 28 + Math.random() * 72;
+    const el = document.createElement('div');
+    el.className = 'chaos-ball';
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.setProperty('--ball-color', color);
+    el.style.setProperty('--ball-shadow', shadow);
+    container.appendChild(el);
+
+    const ball = createBall(el, size);
+    balls.push(ball);
+    placeAndLaunch(ball, w, h, 0.8 + Math.random() * 1.2);
   }
 
   function init() {
@@ -111,21 +199,15 @@
     const w = rect.width || 1;
     const h = rect.height || 1;
 
-    balls.forEach((b, i) => {
-      const size = b.el.offsetWidth || parseInt(getComputedStyle(b.el).width) || 50;
-      b.r = size / 2;
-      b.mass = size * size;
-
-      b.x = 0.2 + Math.random() * 0.6;
-      b.y = 0.2 + Math.random() * 0.6;
-
-      const speed = 0.0015 + (balls.length - i) * 0.001;
-      const angle = Math.random() * Math.PI * 2;
-      b.vx = Math.cos(angle) * speed;
-      b.vy = Math.sin(angle) * speed;
+    balls.forEach((ball, i) => {
+      const size = ball.el.offsetWidth || parseInt(getComputedStyle(ball.el).width) || 50;
+      ball.r = size / 2;
+      ball.mass = size * size;
+      placeAndLaunch(ball, w, h, 0.8 + (balls.length - i) * 0.35);
     });
 
     tick();
+    startSpawning();
   }
 
   if (container.offsetWidth > 0) {

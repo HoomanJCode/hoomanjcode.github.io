@@ -8,34 +8,26 @@
 
 .chaos-ball {
   position: absolute;
+  left: 0;
+  top: 0;
   border-radius: 50%;
-  border: 1px solid var(--acid);
-  box-shadow: inset -15px -15px 0 rgba(213, 255, 79, .12), 0 0 25px rgba(213, 255, 79, .25);
+  border: 1px solid var(--ball-color, var(--acid));
+  box-shadow: var(--ball-shadow, inset -15px -15px 0 rgba(213, 255, 79, .12), 0 0 25px rgba(213, 255, 79, .25));
   pointer-events: none;
 }
 
 .ball-one {
+  --ball-color: var(--acid);
+  --ball-shadow: inset -15px -15px 0 rgba(213, 255, 79, .12), 0 0 25px rgba(213, 255, 79, .25);
   width: 190px;
   height: 190px;
-  left: 50%;
-  top: 50%;
 }
 
 .ball-two {
+  --ball-color: var(--coral);
+  --ball-shadow: 0 0 25px rgba(255, 118, 92, .25);
   width: 75px;
   height: 75px;
-  left: 50%;
-  top: 50%;
-  border-color: var(--coral);
-  box-shadow: 0 0 25px rgba(255, 118, 92, .25);
-}
-
-.ball-three {
-  width: 38px;
-  height: 38px;
-  left: 50%;
-  top: 50%;
-  border-color: var(--blue);
 }
 
 .visual-caption {
