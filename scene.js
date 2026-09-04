@@ -1,9 +1,11 @@
+import * as THREE from './vendor/three/three.module.js';
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
 const canvas = document.querySelector('#heroCanvas');
 
 function createScene() {
-  if (!canvas || !window.THREE || !window.WebGLRenderingContext || prefersReducedMotion) return;
+  if (!canvas || !window.WebGLRenderingContext || prefersReducedMotion) return;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
