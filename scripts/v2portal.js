@@ -26,13 +26,13 @@
       this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
       this.nodes = {
         clients: [
-          { x: 0.17, y: 0.28 }, { x: 0.17, y: 0.5 }, { x: 0.17, y: 0.72 },
+          { x: 0.22, y: 0.3 }, { x: 0.22, y: 0.5 }, { x: 0.22, y: 0.7 },
         ],
         inbounds: [
-          { x: 0.41, y: 0.36 }, { x: 0.41, y: 0.64 },
+          { x: 0.43, y: 0.38 }, { x: 0.43, y: 0.62 },
         ],
         outbounds: [
-          { x: 0.81, y: 0.28, weight: 0.44 }, { x: 0.84, y: 0.5, weight: 0.34 }, { x: 0.81, y: 0.72, weight: 0.22 },
+          { x: 0.76, y: 0.3, weight: 0.44 }, { x: 0.78, y: 0.5, weight: 0.34 }, { x: 0.76, y: 0.7, weight: 0.22 },
         ],
       };
       this.traffic = Array.from({ length: 18 }, (_, index) => ({
@@ -128,8 +128,8 @@
 
     point(node) {
       return {
-        x: clamp(node.x * this.width + (this.pointer.x - 0.5) * 5, 14, this.width - 14),
-        y: clamp(node.y * this.height + (this.pointer.y - 0.5) * 4, 14, this.height - 14),
+        x: clamp(node.x * this.width + (this.pointer.x - 0.5) * 5, 22, this.width - 22),
+        y: clamp(node.y * this.height + (this.pointer.y - 0.5) * 4, 22, this.height - 22),
       };
     }
 
@@ -244,14 +244,14 @@
           ctx.shadowColor = color;
           ctx.shadowBlur = 9;
           ctx.beginPath();
-          ctx.arc(point.x, point.y, group === 'clients' ? 5 : 7, 0, TAU);
+          ctx.arc(point.x, point.y, group === 'clients' ? 6 : 9, 0, TAU);
           ctx.fill();
           ctx.stroke();
           ctx.restore();
           ctx.fillStyle = color;
           ctx.globalAlpha = 0.35;
           ctx.beginPath();
-          ctx.arc(point.x, point.y, group === 'clients' ? 9 : 12, 0, TAU);
+          ctx.arc(point.x, point.y, group === 'clients' ? 11 : 15, 0, TAU);
           ctx.fill();
           ctx.globalAlpha = 1;
         });
