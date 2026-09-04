@@ -159,18 +159,32 @@
       return { start, middle, end, controlOneX, controlTwoX, controlY };
     }
 
+    clientPath(client, inbound) {
+      const start = this.point(client);
+      const end = this.point(inbound);
+      return { start, end, controlX: lerp(start.x, end.x, 0.5), controlY: start.y };
+    }
+
+    quadraticPoint(path, progress) {
+      const amount = clamp(progress, 0, 1);
+      const inverse = 1 - amount;
+      return {
+        x: inverse ** 2 * path.start.x + 2 * inverse * amount * path.controlX + amount ** 2 * path.end.x,
+        y: inverse ** 2 * path.start.y + 2 * inverse * amount * path.controlY + amount ** 2 * path.end.y,
+      };
+    }
+
     drawRoutes() {
       const { ctx } = this;
       ctx.save();
       ctx.lineWidth = 1;
       this.nodes.clients.forEach((client, clientIndex) => {
         this.nodes.inbounds.forEach((inbound, inboundIndex) => {
-          const start = this.point(client);
-          const end = this.point(inbound);
+          const path = this.clientPath(client, inbound);
           ctx.strokeStyle = 'rgba(145,186,255,.22)';
           ctx.beginPath();
-          ctx.moveTo(start.x, start.y);
-          ctx.quadraticCurveTo(lerp(start.x, end.x, 0.5), start.y, end.x, end.y);
+          ctx.moveTo(path.start.x, path.start.y);
+          ctx.quadraticCurveTo(path.controlX, path.controlY, path.end.x, path.end.y);
           ctx.stroke();
         });
       });
@@ -208,12 +222,8 @@
         const inboundProgress = clamp(packet.progress * 2, 0, 1);
         let point;
         if (packet.progress < 0.5) {
-          const start = this.point(client);
-          const end = this.point(inbound);
-          point = {
-            x: lerp(start.x, end.x, inboundProgress),
-            y: lerp(start.y, end.y, inboundProgress),
-          };
+          const path = this.clientPath(client, inbound);
+          point = this.quadraticPoint(path, inboundProgress);
         } else {
           const path = this.routePath(inbound, inbound, outbound, inbound.y + (outbound.y - inbound.y) * 0.5);
           point = this.cubicPoint(path, (packet.progress - 0.5) * 2);
