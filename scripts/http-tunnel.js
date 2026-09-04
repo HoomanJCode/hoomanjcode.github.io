@@ -127,7 +127,6 @@
       this.drawPackets(this.requests, '#ff765c', false);
       this.drawPackets(this.responses, '#d5ff4f', true);
       this.drawNodes();
-      this.drawLabels();
     }
 
     drawBackground() {
@@ -219,21 +218,6 @@
       });
     }
 
-    drawLabels() {
-      const { ctx, width, height } = this;
-      ctx.save();
-      ctx.font = `${Math.max(8, Math.min(10, width / 42))}px 'DM Mono', monospace`;
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(145,186,255,.86)';
-      ctx.fillText('USER', width * 0.1, height * 0.25);
-      ctx.fillStyle = 'rgba(255,118,92,.86)';
-      ctx.fillText('SERVER', width * 0.76, height * 0.25);
-      ctx.fillStyle = 'rgba(255,118,92,.76)';
-      ctx.fillText('POST / REQUEST', width * 0.3, height * 0.4);
-      ctx.fillStyle = 'rgba(213,255,79,.76)';
-      ctx.fillText('WEBPAGE / RESPONSE', width * 0.29, height * 0.64);
-      ctx.restore();
-    }
   }
 
   const lazyObserver = new IntersectionObserver((entries) => {
