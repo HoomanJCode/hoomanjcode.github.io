@@ -21,6 +21,8 @@ if (viewMoreButton && selectedProjects && allProjects && moreWork && workModeLab
     moreWork.setAttribute('aria-hidden', String(expanded));
     workModeLabel.textContent = expanded ? 'all projects' : 'selected work';
     viewMoreLabel.textContent = expanded ? 'View less' : 'View more';
+    if (expanded) allProjects.after(viewMoreButton);
+    else moreWork.after(viewMoreButton);
   };
 
   setExpanded(false);
