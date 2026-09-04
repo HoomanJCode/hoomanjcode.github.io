@@ -52,26 +52,6 @@ if ('IntersectionObserver' in window) {
 
 const sections = [...document.querySelectorAll('.scene-section')];
 
-const viewMoreButton = document.querySelector('.view-more-button');
-const projectList = document.querySelector('#projectList');
-const workSection = document.querySelector('#work');
-const workModeLabel = document.querySelector('#workModeLabel');
-if (viewMoreButton && projectList && workModeLabel) {
-  viewMoreButton.addEventListener('click', () => {
-    const isExpanded = viewMoreButton.getAttribute('aria-expanded') === 'true';
-    const nextExpanded = !isExpanded;
-    viewMoreButton.setAttribute('aria-expanded', String(nextExpanded));
-    projectList.classList.toggle('is-expanded', nextExpanded);
-    workModeLabel.textContent = nextExpanded ? 'all projects' : 'selected work';
-    viewMoreButton.querySelector('.view-more-label').textContent = nextExpanded ? 'View less' : 'View more';
-    if (nextExpanded) {
-      projectList.querySelectorAll('.is-extra').forEach((element) => element.classList.add('is-visible'));
-      requestAnimationFrame(() => {
-        workSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
-  });
-}
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
