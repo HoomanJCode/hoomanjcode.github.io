@@ -23,7 +23,22 @@
   document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${project.title} — Hooman Jalalpour`);
   document.querySelector('meta[property="og:description"]')?.setAttribute('content', project.description);
   document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonical);
-  if (project.image) document.querySelector('meta[property="og:image"]')?.setAttribute('content', project.image);
+  if (project.image) {
+    document.querySelector('meta[property="og:image"]')?.setAttribute('content', project.image);
+    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', project.image);
+  }
+  document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', `${project.title} — Hooman Jalalpour`);
+  document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', project.description);
+  const structuredData = document.createElement('script');
+  structuredData.type = 'application/ld+json';
+  structuredData.textContent = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'CreativeWork', '@id': `${canonical}#project`,
+    name: project.title, description: project.description, url: canonical,
+    image: project.image || 'https://hooman.jlpr.ir/og-image.png?v=2',
+    creator: { '@type': 'Person', name: 'Hooman Jalalpour', url: 'https://hooman.jlpr.ir/' },
+    keywords: project.technologies.join(', '), sameAs: project.source
+  });
+  document.head.appendChild(structuredData);
 
   document.querySelector('#projectPage').innerHTML = `
     <header class="detail-header">
