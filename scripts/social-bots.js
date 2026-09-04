@@ -7,17 +7,7 @@
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const lerp = (start, end, amount) => start + (end - start) * amount;
-
-  function roundedRect(ctx, x, y, width, height, radius) {
-    const r = Math.min(radius, width / 2, height / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + width, y, x + width, y + height, r);
-    ctx.arcTo(x + width, y + height, x, y + height, r);
-    ctx.arcTo(x, y + height, x, y, r);
-    ctx.arcTo(x, y, x + width, y, r);
-    ctx.closePath();
-  }
+  const TAU = Math.PI * 2;
 
   class SocialBotPreview {
     constructor(canvas, type) {
@@ -32,44 +22,46 @@
       this.lastTime = 0;
       this.width = 0;
       this.height = 0;
-      this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5, active: false };
       this.phase = type === 'instagram' ? 0.7 : 2.1;
-      this.particles = Array.from({ length: type === 'instagram' ? 18 : 24 }, (_, index) => ({
-        seed: index * 1.73 + this.phase,
-        x: (index * 0.6180339887 + this.phase) % 1,
-        y: (index * 0.3819660113 + this.phase * 0.3) % 1,
-        size: 1.5 + (index % 4) * 1.2,
-        speed: 0.12 + (index % 5) * 0.025,
+      this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
+      this.colors = type === 'instagram'
+        ? { source: '#ff765c', platform: '#d5ff4f', telegram: '#91baff', server: '#f0eee8' }
+        : { source: '#ff765c', platform: '#ff765c', telegram: '#d5ff4f', server: '#91baff' };
+      this.nodes = {
+        urls: [{ x: 0.12, y: 0.27 }, { x: 0.1, y: 0.5 }, { x: 0.12, y: 0.73 }],
+        platform: { x: 0.32, y: 0.5 },
+        telegram: { x: 0.52, y: 0.5 },
+        server: { x: 0.71, y: 0.5 },
+        clients: [{ x: 0.9, y: 0.27 }, { x: 0.92, y: 0.5 }, { x: 0.9, y: 0.73 }],
+      };
+      this.packets = Array.from({ length: 18 }, (_, index) => ({
+        progress: (index / 18 + 0.02) % 1,
+        speed: 0.11 + (index % 4) * 0.012,
+        source: index % 3,
+        client: (index * 2) % 3,
       }));
 
       if (!this.ctx || !this.visual) return;
       this.resizeObserver = new ResizeObserver(() => this.resize());
       this.resizeObserver.observe(this.visual);
-      this.intersectionObserver = new IntersectionObserver((entries) => {
+      this.visibilityObserver = new IntersectionObserver((entries) => {
         this.visible = entries[0].isIntersecting;
+        if (this.visible) requestAnimationFrame(() => this.resize());
         this.updateLoop();
       }, { threshold: 0.2 });
-      this.intersectionObserver.observe(this.visual);
+      this.visibilityObserver.observe(this.visual);
       this.bindEvents();
       this.resize();
       this.draw(0);
     }
 
     bindEvents() {
-      this.canvas.addEventListener('pointerenter', () => {
-        this.pointer.active = true;
-        this.updateLoop();
-      });
       this.canvas.addEventListener('pointermove', (event) => {
         const bounds = this.canvas.getBoundingClientRect();
         this.pointer.targetX = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
         this.pointer.targetY = clamp((event.clientY - bounds.top) / bounds.height, 0, 1);
-        this.pointer.active = true;
-        if (reducedMotion.matches) this.draw(0);
-        else this.updateLoop();
       });
       this.canvas.addEventListener('pointerleave', () => {
-        this.pointer.active = false;
         this.pointer.targetX = 0.5;
         this.pointer.targetY = 0.5;
       });
@@ -119,150 +111,175 @@
       this.frame = requestAnimationFrame((nextTime) => this.tick(nextTime));
     }
 
+    point(node) {
+      return {
+        x: node.x * this.width + (this.pointer.x - 0.5) * 4,
+        y: node.y * this.height + (this.pointer.y - 0.5) * 4,
+      };
+    }
+
     draw(delta) {
       if (!this.ctx || !this.width || !this.height) return;
       this.phase += delta;
       this.pointer.x = lerp(this.pointer.x, this.pointer.targetX, 0.08);
       this.pointer.y = lerp(this.pointer.y, this.pointer.targetY, 0.08);
+      this.packets.forEach((packet) => {
+        packet.progress = (packet.progress + delta * packet.speed) % 1;
+      });
       this.ctx.clearRect(0, 0, this.width, this.height);
-      if (this.type === 'instagram') this.drawInstagram();
-      else this.drawYoutube();
+      this.drawBackground();
+      this.drawRoutes();
+      this.drawTraffic();
+      this.drawNodes();
+      this.drawLabels();
     }
 
-    drawInstagram() {
-      const { ctx, width, height, pointer } = this;
-      const px = (pointer.x - 0.5) * width;
-      const py = (pointer.y - 0.5) * height;
+    drawBackground() {
+      const { ctx, width, height } = this;
       const background = ctx.createLinearGradient(0, 0, width, height);
-      background.addColorStop(0, '#422348');
-      background.addColorStop(0.48, '#1d2949');
-      background.addColorStop(1, '#bd5b70');
+      if (this.type === 'instagram') {
+        background.addColorStop(0, '#422348');
+        background.addColorStop(0.5, '#1d2949');
+        background.addColorStop(1, '#3e1f34');
+      } else {
+        background.addColorStop(0, '#351b28');
+        background.addColorStop(0.5, '#171a25');
+        background.addColorStop(1, '#080a0e');
+      }
       ctx.fillStyle = background;
       ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(240,238,232,.055)';
+      for (let x = 10; x < width; x += 24) ctx.fillRect(x, 0, 1, height);
+      for (let y = 10; y < height; y += 24) ctx.fillRect(0, y, width, 1);
+    }
 
+    drawRoutes() {
+      const { ctx } = this;
+      const platform = this.point(this.nodes.platform);
+      const telegram = this.point(this.nodes.telegram);
+      const server = this.point(this.nodes.server);
       ctx.save();
-      ctx.globalAlpha = 0.14;
-      ctx.translate(px * 0.08, py * 0.08);
-      ctx.rotate(-0.08 + px / width * 0.03);
-      for (let x = -height; x < width + height; x += 24) {
-        ctx.fillStyle = x % 48 ? '#91baff' : '#d5ff4f';
-        ctx.fillRect(x, -height, 1, height * 3);
-      }
-      ctx.restore();
-
-      const tiles = [
-        [-0.18, -0.13, 0.32, '#ff765c', '#d5ff4f'],
-        [0.12, -0.2, 0.26, '#91baff', '#f0eee8'],
-        [0.28, 0.17, 0.34, '#d5ff4f', '#ff765c'],
-        [-0.22, 0.22, 0.24, '#f0eee8', '#91baff'],
-      ];
-      tiles.forEach(([offsetX, offsetY, sizeFactor, colorA, colorB], index) => {
-        const size = Math.min(width, height) * sizeFactor;
-        const x = width * (0.5 + offsetX) + px * (0.025 + index * 0.008) - size / 2;
-        const y = height * (0.5 + offsetY) + py * (0.02 + index * 0.006) - size / 2;
-        ctx.save();
-        ctx.translate(x + size / 2, y + size / 2);
-        ctx.rotate((index - 1.5) * 0.12 + px / width * 0.08);
-        roundedRect(ctx, -size / 2, -size / 2, size, size, size * 0.14);
-        ctx.clip();
-        const tile = ctx.createLinearGradient(-size / 2, -size / 2, size / 2, size / 2);
-        tile.addColorStop(0, colorA);
-        tile.addColorStop(1, colorB);
-        ctx.fillStyle = tile;
-        ctx.fillRect(-size / 2, -size / 2, size, size);
-        ctx.globalAlpha = 0.35;
-        ctx.fillStyle = '#080a0e';
+      ctx.lineWidth = 1.2;
+      this.nodes.urls.forEach((url) => {
+        const start = this.point(url);
+        ctx.strokeStyle = 'rgba(255,118,92,.5)';
         ctx.beginPath();
-        ctx.arc(size * 0.3, -size * 0.12, size * 0.17, 0, Math.PI * 2);
-        ctx.arc(-size * 0.18, size * 0.18, size * 0.28, 0, Math.PI * 2);
+        ctx.moveTo(start.x, start.y);
+        ctx.quadraticCurveTo(lerp(start.x, platform.x, 0.5), start.y, platform.x, platform.y);
+        ctx.stroke();
+      });
+      ctx.strokeStyle = 'rgba(213,255,79,.5)';
+      ctx.beginPath();
+      ctx.moveTo(platform.x, platform.y);
+      ctx.lineTo(telegram.x, telegram.y);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(145,186,255,.5)';
+      ctx.beginPath();
+      ctx.moveTo(telegram.x, telegram.y);
+      ctx.lineTo(server.x, server.y);
+      ctx.stroke();
+      this.nodes.clients.forEach((client) => {
+        const end = this.point(client);
+        ctx.strokeStyle = 'rgba(240,238,232,.38)';
+        ctx.beginPath();
+        ctx.moveTo(server.x, server.y);
+        ctx.quadraticCurveTo(lerp(server.x, end.x, 0.5), server.y, end.x, end.y);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    routePoint(packet) {
+      const source = this.point(this.nodes.urls[packet.source]);
+      const platform = this.point(this.nodes.platform);
+      const telegram = this.point(this.nodes.telegram);
+      const server = this.point(this.nodes.server);
+      const client = this.point(this.nodes.clients[packet.client]);
+      const progress = packet.progress;
+      if (progress < 0.25) return this.segmentPoint(source, platform, progress / 0.25, source.y);
+      if (progress < 0.5) return this.segmentPoint(platform, telegram, (progress - 0.25) / 0.25);
+      if (progress < 0.72) return this.segmentPoint(telegram, server, (progress - 0.5) / 0.22);
+      return this.segmentPoint(server, client, (progress - 0.72) / 0.28, server.y);
+    }
+
+    segmentPoint(start, end, progress, curveY) {
+      const amount = clamp(progress, 0, 1);
+      const bend = curveY === undefined ? (start.y + end.y) / 2 : curveY;
+      return {
+        x: lerp(start.x, end.x, amount),
+        y: lerp(start.y, end.y, amount) + Math.sin(amount * Math.PI) * (bend - (start.y + end.y) / 2),
+      };
+    }
+
+    drawTraffic() {
+      const { ctx } = this;
+      this.packets.forEach((packet) => {
+        const point = this.routePoint(packet);
+        const color = packet.progress < 0.25
+          ? this.colors.source
+          : packet.progress < 0.5
+            ? this.colors.platform
+            : packet.progress < 0.72
+              ? this.colors.telegram
+              : this.colors.server;
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 9;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 2.4, 0, TAU);
         ctx.fill();
-        ctx.globalAlpha = 0.8;
-        ctx.strokeStyle = '#f0eee8';
-        ctx.lineWidth = Math.max(1, size * 0.025);
-        ctx.strokeRect(-size * 0.27, -size * 0.27, size * 0.54, size * 0.54);
         ctx.restore();
       });
-
-      const glow = ctx.createRadialGradient(pointer.x * width, pointer.y * height, 0, pointer.x * width, pointer.y * height, width * 0.4);
-      glow.addColorStop(0, 'rgba(213,255,79,.35)');
-      glow.addColorStop(1, 'rgba(213,255,79,0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, width, height);
-      this.drawParticles('#f0eee8', 0.28);
     }
 
-    drawYoutube() {
-      const { ctx, width, height, pointer } = this;
-      const px = (pointer.x - 0.5) * width;
-      const py = (pointer.y - 0.5) * height;
-      const background = ctx.createLinearGradient(0, 0, width, height);
-      background.addColorStop(0, '#481d28');
-      background.addColorStop(0.5, '#171a25');
-      background.addColorStop(1, '#080a0e');
-      ctx.fillStyle = background;
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.save();
-      ctx.translate(width / 2 + px * 0.12, height / 2 + py * 0.12);
-      ctx.rotate(px / width * 0.08);
-      ctx.globalAlpha = 0.14;
-      ctx.strokeStyle = '#ff765c';
-      ctx.lineWidth = 1;
-      for (let index = 0; index < 12; index += 1) {
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(index * 0.52) * width, Math.sin(index * 0.52) * height);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      const buttonWidth = width * 0.46;
-      const buttonHeight = height * 0.3;
-      const buttonX = width / 2 - buttonWidth / 2 + px * 0.1;
-      const buttonY = height / 2 - buttonHeight / 2 + py * 0.1;
-      ctx.save();
-      roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, buttonHeight * 0.28);
-      ctx.fillStyle = '#ff765c';
-      ctx.shadowColor = 'rgba(255,118,92,.65)';
-      ctx.shadowBlur = width * 0.06;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.beginPath();
-      ctx.moveTo(buttonX + buttonWidth * 0.44, buttonY + buttonHeight * 0.27);
-      ctx.lineTo(buttonX + buttonWidth * 0.44, buttonY + buttonHeight * 0.73);
-      ctx.lineTo(buttonX + buttonWidth * 0.7, buttonY + buttonHeight * 0.5);
-      ctx.closePath();
-      ctx.fillStyle = '#f0eee8';
-      ctx.fill();
-      ctx.restore();
-
-      ctx.strokeStyle = 'rgba(213,255,79,.72)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let index = 0; index <= 34; index += 1) {
-        const x = width * 0.12 + (width * 0.76 * index) / 34;
-        const wave = Math.sin(index * 0.9 + this.phase * 3) * height * 0.025;
-        const pulse = Math.cos(index * 0.35 + pointer.x * 4) * height * 0.018;
-        const y = height * 0.84 + wave + pulse + py * 0.025;
-        if (index === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      this.drawParticles('#91baff', 0.62);
-    }
-
-    drawParticles(color, opacity) {
-      const { ctx, width, height, pointer } = this;
-      ctx.save();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = opacity;
-      this.particles.forEach((particle) => {
-        const x = ((particle.x + Math.sin(this.phase * particle.speed + particle.seed) * 0.04 + pointer.x * 0.025) % 1) * width;
-        const y = ((particle.y + Math.cos(this.phase * particle.speed * 0.8 + particle.seed) * 0.04 + pointer.y * 0.018) % 1) * height;
-        ctx.beginPath();
-        ctx.arc(x, y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
+    drawNodes() {
+      const groups = [
+        [this.nodes.urls, this.colors.source, 5],
+        [[this.nodes.platform], this.colors.platform, 8],
+        [[this.nodes.telegram], this.colors.telegram, 8],
+        [[this.nodes.server], this.colors.server, 9],
+        [this.nodes.clients, '#f0eee8', 5],
+      ];
+      groups.forEach(([nodes, color, radius]) => {
+        nodes.forEach((node) => {
+          const point = this.point(node);
+          this.ctx.save();
+          this.ctx.fillStyle = '#0b111c';
+          this.ctx.strokeStyle = color;
+          this.ctx.lineWidth = 2;
+          this.ctx.shadowColor = color;
+          this.ctx.shadowBlur = 10;
+          this.ctx.beginPath();
+          this.ctx.arc(point.x, point.y, radius, 0, TAU);
+          this.ctx.fill();
+          this.ctx.stroke();
+          this.ctx.restore();
+          this.ctx.globalAlpha = 0.24;
+          this.ctx.fillStyle = color;
+          this.ctx.beginPath();
+          this.ctx.arc(point.x, point.y, radius + 5, 0, TAU);
+          this.ctx.fill();
+          this.ctx.globalAlpha = 1;
+        });
       });
+    }
+
+    drawLabels() {
+      const { ctx, width, height } = this;
+      ctx.save();
+      ctx.font = `${Math.max(8, Math.min(10, width / 43))}px 'DM Mono', monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(240,238,232,.68)';
+      ctx.fillText('URL', width * 0.04, height * 0.13);
+      ctx.fillStyle = this.colors.platform;
+      ctx.fillText(this.type.toUpperCase(), width * 0.25, height * 0.13);
+      ctx.fillStyle = this.colors.telegram;
+      ctx.fillText('TELEGRAM', width * 0.44, height * 0.13);
+      ctx.fillStyle = this.colors.server;
+      ctx.fillText('SERVER', width * 0.65, height * 0.13);
+      ctx.fillStyle = 'rgba(240,238,232,.68)';
+      ctx.fillText('CLIENT', width * 0.84, height * 0.13);
       ctx.restore();
     }
   }
