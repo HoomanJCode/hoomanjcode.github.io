@@ -131,7 +131,6 @@
       this.drawRoutes();
       this.drawTraffic();
       this.drawNodes();
-      this.drawLabels();
     }
 
     drawBackground() {
@@ -265,23 +264,6 @@
       });
     }
 
-    drawLabels() {
-      const { ctx, width, height } = this;
-      ctx.save();
-      ctx.font = `${Math.max(8, Math.min(10, width / 43))}px 'DM Mono', monospace`;
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(240,238,232,.68)';
-      ctx.fillText('URL', width * 0.04, height * 0.13);
-      ctx.fillStyle = this.colors.platform;
-      ctx.fillText(this.type.toUpperCase(), width * 0.25, height * 0.13);
-      ctx.fillStyle = this.colors.telegram;
-      ctx.fillText('TELEGRAM', width * 0.44, height * 0.13);
-      ctx.fillStyle = this.colors.server;
-      ctx.fillText('SERVER', width * 0.65, height * 0.13);
-      ctx.fillStyle = 'rgba(240,238,232,.68)';
-      ctx.fillText('CLIENT', width * 0.84, height * 0.13);
-      ctx.restore();
-    }
   }
 
   const lazyObserver = new IntersectionObserver((entries) => {
