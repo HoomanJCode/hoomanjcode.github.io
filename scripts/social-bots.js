@@ -195,18 +195,42 @@
       const server = this.point(this.nodes.server);
       const client = this.point(this.nodes.clients[packet.client]);
       const progress = packet.progress;
-      if (progress < 0.25) return this.segmentPoint(source, platform, progress / 0.25, source.y);
-      if (progress < 0.5) return this.segmentPoint(platform, telegram, (progress - 0.25) / 0.25);
-      if (progress < 0.72) return this.segmentPoint(telegram, server, (progress - 0.5) / 0.22);
-      return this.segmentPoint(server, client, (progress - 0.72) / 0.28, server.y);
+      if (progress < 0.25) {
+        return this.quadraticPoint(
+          source,
+          { x: lerp(source.x, platform.x, 0.5), y: source.y },
+          platform,
+          progress / 0.25,
+        );
+      }
+      if (progress < 0.5) return this.linePoint(platform, telegram, (progress - 0.25) / 0.25);
+      if (progress < 0.72) return this.linePoint(telegram, server, (progress - 0.5) / 0.22);
+      return this.quadraticPoint(
+        server,
+        { x: lerp(server.x, client.x, 0.5), y: server.y },
+        client,
+        (progress - 0.72) / 0.28,
+      );
     }
 
-    segmentPoint(start, end, progress, curveY) {
+    linePoint(start, end, progress) {
       const amount = clamp(progress, 0, 1);
-      const bend = curveY === undefined ? (start.y + end.y) / 2 : curveY;
       return {
         x: lerp(start.x, end.x, amount),
-        y: lerp(start.y, end.y, amount) + Math.sin(amount * Math.PI) * (bend - (start.y + end.y) / 2),
+        y: lerp(start.y, end.y, amount),
+      };
+    }
+
+    quadraticPoint(start, control, end, progress) {
+      const amount = clamp(progress, 0, 1);
+      const inverse = 1 - amount;
+      return {
+        x: inverse * inverse * start.x
+          + 2 * inverse * amount * control.x
+          + amount * amount * end.x,
+        y: inverse * inverse * start.y
+          + 2 * inverse * amount * control.y
+          + amount * amount * end.y,
       };
     }
 
