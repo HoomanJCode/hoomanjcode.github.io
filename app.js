@@ -51,6 +51,7 @@ if ('IntersectionObserver' in window) {
 }
 
 const sections = [...document.querySelectorAll('.scene-section')];
+
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
@@ -89,7 +90,7 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     resumeTimer = window.setTimeout(() => {
       resumeTimer = 0;
       setAnimationState('running');
-    }, 4000);
+    }, 2000);
   };
   const setManualOffset = (delta) => {
     manualOffset += delta;

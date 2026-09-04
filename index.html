@@ -155,12 +155,12 @@
     </section>
 
     <section class="work scene-section" id="work" data-scene="work">
-      <div class="section-number">02 <span>/</span> selected work</div>
+      <div class="section-number">02 <span>/</span> <span class="section-label" id="workModeLabel">selected work</span></div>
       <div class="work-heading reveal">
         <p class="eyebrow">Unity games, software tools & generative art</p>
         <h2>Built with intent.<br><span>Played with feeling.</span></h2>
       </div>
-      <div class="project-list">
+      <div class="project-list" id="projectList">
         <article class="project-card project-one reveal">
           <div class="project-visual visual-impasse" role="img" aria-label="Abstract isometric grid with a floating pixel core"><div class="impasse-ground"><div class="visual-grid"></div><div class="lily-pad lp-1"></div><div class="lily-pad lp-2"></div><div class="lily-pad lp-3"></div><div class="lily-pad lp-4"></div><div class="lily-pad lp-5"></div></div><div class="pixel-core"></div><span class="visual-caption">HOPE / 01</span></div>
           <div class="project-info"><p class="project-index">01 · GAME / UNITY</p><h3>Impasse</h3><p>A 2D isometric puzzle-action game about friendship, coordination, and hope. Winner of the Isfahan University Game Dev Camp Final Jam.</p><a href="https://hoomanj.itch.io/impasse" target="_blank" rel="noreferrer" class="text-link">Play the game <span>↗</span></a></div>
@@ -172,6 +172,50 @@
         <article class="project-card project-three reveal">
           <div class="project-visual visual-planet" role="img" aria-label="Abstract procedurally textured planet with layered noise and a glowing orbital ring"><canvas id="fxPlanetCanvas" class="planet-texture" aria-label="Click to generate a new procedurally generated abstract planet texture"></canvas><div class="planet-ring"></div><div class="planet-spark spark-one"></div><div class="planet-spark spark-two"></div><span class="visual-caption">GENERATIVE / 03</span></div>
           <div class="project-info"><p class="project-index">03 · GENERATIVE ART / FXHASH</p><h3>FxPlanet</h3><p>Two thousand unique planets generated from layers of noise, code, and a little cosmic patience. An interactive NFT collection on Tezos.</p><a href="https://www.fxhash.xyz/generative/slug/fxplanet" target="_blank" rel="noreferrer" class="text-link">Visit the collection <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-gravity" role="img" aria-label="Interactive gravity simulation with colliding balls"><canvas id="gravityCanvas" aria-label="Interactive gravity simulation. Click empty space to add a ball, or click a ball to remove it. Maximum ten balls."></canvas><span class="visual-caption">SIMULATION / 04 · CLICK TO PLAY</span></div>
+          <div class="project-info"><p class="project-index">04 · SIMULATION / UNITY ECS</p><h3>HEcsGravitySim</h3><p>A gravity simulation designed with Unity ECS, exploring orbital motion, forces, and interactive systems in C#.</p><a href="https://github.com/HoomanJCode/HEcsGravitySim" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-rainy" role="img" aria-label="Rainy Cloud game title artwork"><img src="assets/rainy-cloud-title.jpg" alt="Rainy Cloud game title artwork"><span class="visual-caption">PUZZLE / 05 · RAINY CLOUD</span></div>
+          <div class="project-info"><p class="project-index">05 · GAME / PUZZLE</p><h3>Rainy Cloud</h3><p>A 2D puzzle game about a little girl and a magical fox escaping a flood by building a boat.</p><a href="https://hoomanj.itch.io/rainy-cloud" target="_blank" rel="noreferrer" class="text-link">Play the game <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-tools" role="img" aria-label="Generated modular blocks representing developer tools"><span class="visual-caption">TOOLS / 06</span></div>
+          <div class="project-info"><p class="project-index">06 · UNITY PACKAGE / C#</p><h3>ConcurrentTools</h3><p>A reusable software toolkit exploring concurrent workflows and practical utilities for game development.</p><a href="https://github.com/HoomanJCode/ConcurrentTools-Package" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-menu" role="img" aria-label="Generated interface panels representing a menu system"><span class="visual-caption">INTERFACE / 07</span></div>
+          <div class="project-info"><p class="project-index">07 · UNITY PACKAGE / UI</p><h3>MenuView</h3><p>A focused Unity UI package for composing menu views and navigation flows with less repeated setup.</p><a href="https://github.com/HoomanJCode/MenuView-Package" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-portal" role="img" aria-label="Animated V2Portal network routing clients through inbound and outbound proxies"><canvas id="v2PortalCanvas" class="routing-canvas" aria-label="V2Portal routing animation showing client traffic distributed from inbound proxies across outbound proxies."></canvas></div>
+          <div class="project-info"><p class="project-index">08 · SOFTWARE / NETWORKING</p><h3>V2Portal</h3><p>A software experiment around portals, routing, and the space between connected systems.</p><a href="https://github.com/HoomanJCode/V2Portal" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-proxy" role="img" aria-label="Animated ProxyTuner routing one client through a distributor to multiple outbound proxies"><canvas id="proxyTunerCanvas" class="routing-canvas" aria-label="ProxyTuner routing animation showing one client sending traffic through a distributor across multiple outbound proxies."></canvas></div>
+          <div class="project-info"><p class="project-index">09 · SOFTWARE / NETWORKING</p><h3>ProxyTuner</h3><p>A lightweight utility for configuring and tuning proxy connections during network experiments.</p><a href="https://github.com/HoomanJCode/ProxyTuner" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-meeting" role="img" aria-label="OpenStreetMap map of London showing multiple people locations"><div class="meeting-map" aria-hidden="true"><img src="https://tile.openstreetmap.org/13/4094/2724.png" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="map-pin map-pin-one"><i></i></span><span class="map-pin map-pin-two"><i></i></span><span class="map-pin map-pin-three"><i></i></span><span class="map-pin map-pin-four"><i></i></span><span class="map-pin map-pin-five"><i></i></span><small class="map-attribution">© OpenStreetMap contributors</small></div><span class="visual-caption">WEB APP / 10 · PEOPLE MAP</span></div>
+          <div class="project-info"><p class="project-index">10 · WEB APP / SOFTWARE</p><h3>Simple Meeting App</h3><p>A straightforward meeting application experiment for scheduling and joining online sessions.</p><a href="https://github.com/HoomanJCode/SimpleMeetingApp" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-archive" role="img" aria-label="Generated archive blocks representing a Telegram 7z bot"><span class="visual-caption">BOT / 11</span></div>
+          <div class="project-info"><p class="project-index">11 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram 7z Bot</h3><p>A Telegram bot experiment for handling 7z archive workflows through a chat interface.</p><a href="https://github.com/HoomanJCode/Telegram_7z_Bot" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-tunnel" role="img" aria-label="Animated HTTP Tunnel request and webpage response between a user and server"><canvas id="httpTunnelCanvas" class="routing-canvas" aria-label="HTTP Tunnel animation showing a user sending a POST request to a server and receiving a webpage response."></canvas></div>
+          <div class="project-info"><p class="project-index">12 · NETWORKING / HTTP</p><h3>Http-Tunnel</h3><p>A lightweight networking tool for routing HTTP traffic through a tunnel.</p><a href="https://github.com/HoomanJCode/Http-Tunnel" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-instagram" role="img" aria-label="Instagram sending content to Telegram and then to a client"><canvas id="instagramBotCanvas" class="social-bot-canvas" aria-label="Instagram Telegram bot routing animation: Instagram sends content to Telegram, which sends it to a client."></canvas></div>
+          <div class="project-info"><p class="project-index">13 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram Insta Bot</h3><p>A Telegram automation bot experiment for working with Instagram content.</p><a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
+        </article>
+        <article class="project-card project-extra is-extra reveal" hidden>
+          <div class="project-visual project-thumb visual-youtube" role="img" aria-label="YouTube sending content to Telegram and then to a client"><canvas id="youtubeBotCanvas" class="social-bot-canvas" aria-label="YouTube Telegram bot routing animation: YouTube sends content to Telegram, which sends it to a client."></canvas></div>
+          <div class="project-info"><p class="project-index">14 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram YouTube</h3><p>A Telegram automation bot experiment for working with YouTube content.</p><a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" target="_blank" rel="noreferrer" class="text-link">View on GitHub <span>↗</span></a></div>
         </article>
       </div>
       <div class="more-work">
@@ -197,22 +241,24 @@
           </div>
           <div class="ticker-row ticker-row-reverse" data-ticker-row>
             <div class="ticker-track">
-              <a href="https://github.com/HoomanJCode/Telegram_7z_Bot" target="_blank" rel="noreferrer">Telegram_7z_Bot</a><i>·</i>
+              <a href="https://github.com/HoomanJCode/Telegram_7z_Bot" target="_blank" rel="noreferrer">Telegram 7z Bot</a><i>·</i>
               <a href="https://github.com/HoomanJCode/Http-Tunnel" target="_blank" rel="noreferrer">Http-Tunnel</a><i>·</i>
-              <a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" target="_blank" rel="noreferrer">Telegram_Insta_Bot</a><i>·</i>
-              <a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" target="_blank" rel="noreferrer">Telegram_Yt_Bot</a><i>·</i>
+              <a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" target="_blank" rel="noreferrer">Telegram Insta Bot</a><i>·</i>
+              <a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" target="_blank" rel="noreferrer">Telegram YouTube</a><i>·</i>
               <a href="https://github.com/HoomanJCode/V2Portal" target="_blank" rel="noreferrer">V2Portal</a><i>·</i>
               <a href="https://github.com/HoomanJCode/ProxyTuner" target="_blank" rel="noreferrer">ProxyTuner</a><i>·</i>
-              <a href="https://github.com/HoomanJCode/Telegram_7z_Bot" target="_blank" rel="noreferrer">Telegram_7z_Bot</a><i>·</i>
+              <a href="https://github.com/HoomanJCode/Telegram_7z_Bot" target="_blank" rel="noreferrer">Telegram 7z Bot</a><i>·</i>
               <a href="https://github.com/HoomanJCode/Http-Tunnel" target="_blank" rel="noreferrer">Http-Tunnel</a><i>·</i>
-              <a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" target="_blank" rel="noreferrer">Telegram_Insta_Bot</a><i>·</i>
-              <a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" target="_blank" rel="noreferrer">Telegram_Yt_Bot</a><i>·</i>
+              <a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" target="_blank" rel="noreferrer">Telegram Insta Bot</a><i>·</i>
+              <a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" target="_blank" rel="noreferrer">Telegram YouTube</a><i>·</i>
               <a href="https://github.com/HoomanJCode/V2Portal" target="_blank" rel="noreferrer">V2Portal</a><i>·</i>
               <a href="https://github.com/HoomanJCode/ProxyTuner" target="_blank" rel="noreferrer">ProxyTuner</a><i>·</i>
             </div>
           </div>
         </div>
       </div>
+      <button class="view-more-button" type="button" aria-expanded="false" aria-controls="allProjectsList"><span class="view-more-label">View more</span><span aria-hidden="true">↓</span></button>
+      <div class="project-list all-projects-list" id="allProjectsList" hidden></div>
     </section>
 
     <section class="about scene-section" id="about" data-scene="about">
@@ -233,9 +279,17 @@
   <footer class="site-footer"><span>© Hooman Jalalpour</span><span>Designed & built with curiosity</span><a href="#top">Back to top ↑</a></footer>
 
   <script src="app.js" defer></script>
+  <script src="projects.js" defer></script>
   <script src="scene.js" type="module"></script>
   <script src="scripts/fxplanet.js" defer></script>
   <script src="scripts/balls-of-chaos.js" defer></script>
+  <script src="scripts/gravity-sim.js" defer></script>
+  <script src="scripts/social-bots.js" defer></script>
+  <script src="scripts/thumbnail-parallax.js" defer></script>
+  <script src="scripts/v2portal.js" defer></script>
+  <script src="scripts/proxy-tuner.js" defer></script>
+  <script src="scripts/http-tunnel.js" defer></script>
+  <script src="scripts/thumbnail-visibility.js" defer></script>
   <script>
     // Failsafe: if app.js loaded but failed mid-run, or never loaded at all,
     // force all reveal sections visible after a short grace period so the
