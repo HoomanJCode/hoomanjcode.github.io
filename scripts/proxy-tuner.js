@@ -126,7 +126,6 @@
       this.drawRoutes();
       this.drawPackets();
       this.drawNodes();
-      this.drawLabels();
     }
 
     drawBackground() {
@@ -230,20 +229,6 @@
       });
     }
 
-    drawLabels() {
-      const { ctx, width, height } = this;
-      ctx.save();
-      ctx.font = `${Math.max(8, Math.min(10, width / 45))}px 'DM Mono', monospace`;
-      ctx.fillStyle = 'rgba(145,186,255,.86)';
-      ctx.fillText('CLIENT', width * 0.05, height * 0.1);
-      ctx.fillStyle = 'rgba(240,238,232,.86)';
-      ctx.fillText('DISTRIBUTER', width * 0.36, height * 0.1);
-      ctx.fillStyle = 'rgba(213,255,79,.86)';
-      ctx.fillText('OUTBOUNDS', width * 0.73, height * 0.1);
-      ctx.fillStyle = 'rgba(240,238,232,.36)';
-      ctx.fillText('TRAFFIC SPLIT', width * 0.39, height * 0.94);
-      ctx.restore();
-    }
   }
 
   const lazyObserver = new IntersectionObserver((entries) => {
