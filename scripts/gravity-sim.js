@@ -9,6 +9,7 @@
   const GRAVITY = 9000;
   const SOFTENING = 180;
   const RESTITUTION = 0.92;
+  const WATCH_THRESHOLD = 0.35;
   const colors = ['#d5ff4f', '#ff765c', '#91baff', '#f0eee8'];
   const context = canvas.getContext('2d');
   if (!context) return;
@@ -34,9 +35,14 @@
   resizeObserver.observe(container);
 
   const visibilityObserver = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    if (visible) requestFrame();
-  }, { threshold: 0.05 });
+    visible = entry.isIntersecting && entry.intersectionRatio >= WATCH_THRESHOLD;
+    if (visible) {
+      lastTime = 0;
+      requestFrame();
+    } else {
+      stopAnimation();
+    }
+  }, { threshold: [0, WATCH_THRESHOLD] });
   visibilityObserver.observe(container);
 
   document.addEventListener('visibilitychange', () => {
@@ -44,9 +50,8 @@
     if (pageVisible) {
       lastTime = 0;
       requestFrame();
-    } else if (animationFrame) {
-      cancelAnimationFrame(animationFrame);
-      animationFrame = 0;
+    } else {
+      stopAnimation();
     }
   });
 
@@ -234,6 +239,14 @@
       context.stroke();
     }
     context.restore();
+  }
+
+  function stopAnimation() {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+    }
+    lastTime = 0;
   }
 
   function requestFrame() {
