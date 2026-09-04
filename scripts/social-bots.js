@@ -20,8 +20,13 @@
       this.running = false;
       this.frame = 0;
       this.lastTime = 0;
+      this.lastRenderTime = 0;
+      this.frameInterval = 1000 / 30;
       this.width = 0;
       this.height = 0;
+      this.scale = 1;
+      this.backgroundCanvas = document.createElement('canvas');
+      this.backgroundCtx = this.backgroundCanvas.getContext('2d', { alpha: true });
       this.phase = type === 'instagram' ? 0.7 : 2.1;
       this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
       this.colors = type === 'instagram'
@@ -32,8 +37,8 @@
         telegram: { x: 0.5, y: 0.5 },
         client: { x: 0.8, y: 0.5 },
       };
-      this.packets = Array.from({ length: 10 }, (_, index) => ({
-        progress: (index / 10 + 0.02) % 1,
+      this.packets = Array.from({ length: 6 }, (_, index) => ({
+        progress: (index / 6 + 0.02) % 1,
         speed: 0.12 + (index % 4) * 0.014,
       }));
 
@@ -76,13 +81,18 @@
       const bounds = this.visual.getBoundingClientRect();
       const width = Math.max(1, Math.round(bounds.width));
       const height = Math.max(1, Math.round(bounds.height));
-      const scale = Math.min(window.devicePixelRatio || 1, 2);
+      const scale = Math.min(window.devicePixelRatio || 1, 1.25);
+      this.scale = scale;
       this.canvas.width = Math.round(width * scale);
       this.canvas.height = Math.round(height * scale);
       this.canvas.style.aspectRatio = `${width} / ${height}`;
       this.ctx.setTransform(scale, 0, 0, scale, 0, 0);
       this.width = width;
       this.height = height;
+      this.backgroundCanvas.width = Math.round(width * scale);
+      this.backgroundCanvas.height = Math.round(height * scale);
+      this.backgroundCtx?.setTransform(scale, 0, 0, scale, 0, 0);
+      this.prepareBackground();
       this.draw(0);
     }
 
@@ -91,18 +101,25 @@
       if (shouldRun && !this.running) {
         this.running = true;
         this.lastTime = 0;
+        this.lastRenderTime = 0;
         this.frame = requestAnimationFrame((time) => this.tick(time));
       } else if (!shouldRun && this.running) {
         cancelAnimationFrame(this.frame);
         this.running = false;
         this.lastTime = 0;
+        this.lastRenderTime = 0;
       }
     }
 
     tick(time) {
       if (!this.running) return;
+      if (this.lastRenderTime && time - this.lastRenderTime < this.frameInterval) {
+        this.frame = requestAnimationFrame((nextTime) => this.tick(nextTime));
+        return;
+      }
       const delta = this.lastTime ? Math.min((time - this.lastTime) / 1000, 0.05) : 0;
       this.lastTime = time;
+      this.lastRenderTime = time;
       this.draw(delta);
       this.frame = requestAnimationFrame((nextTime) => this.tick(nextTime));
     }
@@ -123,14 +140,17 @@
         packet.progress = (packet.progress + delta * packet.speed) % 1;
       });
       this.ctx.clearRect(0, 0, this.width, this.height);
-      this.drawBackground();
+      this.ctx.drawImage(this.backgroundCanvas, 0, 0, this.width, this.height);
       this.drawRoutes();
       this.drawTraffic();
       this.drawNodes();
     }
 
-    drawBackground() {
-      const { ctx, width, height } = this;
+    prepareBackground() {
+      const { width, height } = this;
+      const ctx = this.backgroundCtx;
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
       const background = ctx.createLinearGradient(0, 0, width, height);
       if (this.type === 'instagram') {
         background.addColorStop(0, '#422348');
