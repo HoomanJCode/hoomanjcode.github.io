@@ -26,13 +26,13 @@
       this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
       this.nodes = {
         clients: [
-          { x: 0.12, y: 0.24 }, { x: 0.1, y: 0.5 }, { x: 0.13, y: 0.76 },
+          { x: 0.17, y: 0.28 }, { x: 0.17, y: 0.5 }, { x: 0.17, y: 0.72 },
         ],
         inbounds: [
-          { x: 0.39, y: 0.34 }, { x: 0.39, y: 0.66 },
+          { x: 0.41, y: 0.36 }, { x: 0.41, y: 0.64 },
         ],
         outbounds: [
-          { x: 0.82, y: 0.2, weight: 0.44 }, { x: 0.87, y: 0.5, weight: 0.34 }, { x: 0.82, y: 0.8, weight: 0.22 },
+          { x: 0.81, y: 0.28, weight: 0.44 }, { x: 0.84, y: 0.5, weight: 0.34 }, { x: 0.81, y: 0.72, weight: 0.22 },
         ],
       };
       this.traffic = Array.from({ length: 18 }, (_, index) => ({
@@ -124,13 +124,12 @@
       this.drawRoutes();
       this.drawTraffic();
       this.drawNodes();
-      this.drawLabels();
     }
 
     point(node) {
       return {
-        x: node.x * this.width + (this.pointer.x - 0.5) * 5,
-        y: node.y * this.height + (this.pointer.y - 0.5) * 4,
+        x: clamp(node.x * this.width + (this.pointer.x - 0.5) * 5, 14, this.width - 14),
+        y: clamp(node.y * this.height + (this.pointer.y - 0.5) * 4, 14, this.height - 14),
       };
     }
 
@@ -259,21 +258,6 @@
       });
     }
 
-    drawLabels() {
-      const { ctx, width, height } = this;
-      ctx.save();
-      ctx.font = `${Math.max(8, Math.min(10, width / 45))}px 'DM Mono', monospace`;
-      ctx.letterSpacing = '0.08em';
-      ctx.fillStyle = 'rgba(240,238,232,.7)';
-      ctx.fillText('CLIENTS', width * 0.05, height * 0.1);
-      ctx.fillStyle = 'rgba(255,118,92,.86)';
-      ctx.fillText('INBOUND', width * 0.32, height * 0.1);
-      ctx.fillStyle = 'rgba(213,255,79,.86)';
-      ctx.fillText('OUTBOUND POOL', width * 0.68, height * 0.1);
-      ctx.fillStyle = 'rgba(240,238,232,.36)';
-      ctx.fillText('TRAFFIC DISTRIBUTION', width * 0.35, height * 0.94);
-      ctx.restore();
-    }
   }
 
   const lazyObserver = new IntersectionObserver((entries) => {
