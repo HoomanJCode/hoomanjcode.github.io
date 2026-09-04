@@ -159,6 +159,11 @@
       return { start, middle, end, controlOneX, controlTwoX, controlY };
     }
 
+    outboundPath(inbound, outbound, inboundIndex, outboundIndex) {
+      const bend = inboundIndex === 0 ? outbound.y - 0.1 : outbound.y + 0.1;
+      return this.routePath(inbound, inbound, outbound, bend);
+    }
+
     clientPath(client, inbound) {
       const start = this.point(client);
       const end = this.point(inbound);
@@ -192,8 +197,7 @@
         this.nodes.outbounds.forEach((outbound, outboundIndex) => {
           const start = this.point(inbound);
           const end = this.point(outbound);
-          const bend = inboundIndex === 0 ? outbound.y - 0.1 : outbound.y + 0.1;
-          const path = this.routePath(inbound, inbound, outbound, bend);
+          const path = this.outboundPath(inbound, outbound, inboundIndex, outboundIndex);
           ctx.strokeStyle = outboundIndex === 1 ? 'rgba(213,255,79,.43)' : 'rgba(255,118,92,.36)';
           ctx.beginPath();
           ctx.moveTo(start.x, start.y);
@@ -225,7 +229,12 @@
           const path = this.clientPath(client, inbound);
           point = this.quadraticPoint(path, inboundProgress);
         } else {
-          const path = this.routePath(inbound, inbound, outbound, inbound.y + (outbound.y - inbound.y) * 0.5);
+          const path = this.outboundPath(
+            inbound,
+            outbound,
+            index % this.nodes.inbounds.length,
+            packet.route,
+          );
           point = this.cubicPoint(path, (packet.progress - 0.5) * 2);
         }
         const color = packet.route === 1 ? '#d5ff4f' : packet.route === 0 ? '#ff765c' : '#91baff';
