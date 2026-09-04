@@ -13,6 +13,7 @@ if (viewMoreButton && projectList && firstExtraProject && moreWork && workModeLa
     viewMoreButton.setAttribute('aria-expanded', String(nextExpanded));
     projectList.classList.toggle('is-expanded', nextExpanded);
     moreWork.hidden = nextExpanded;
+    moreWork.setAttribute('aria-hidden', String(nextExpanded));
     workModeLabel.textContent = nextExpanded ? 'all projects' : 'selected work';
     viewMoreLabel.textContent = nextExpanded ? 'View less' : 'View more';
 
