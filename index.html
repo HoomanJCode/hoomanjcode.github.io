@@ -100,9 +100,8 @@
   }
   </script>
   <script>document.documentElement.classList.add('js');</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" href="vendor/fonts/Manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="vendor/fonts/DM-Mono-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
   <link rel="alternate icon" href="favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -133,9 +132,9 @@
     <section class="hero scene-section" data-scene="hero">
       <canvas id="heroCanvas" aria-label="Animated 3D generative planet"></canvas>
       <div class="hero-copy">
-        <p class="eyebrow"><span class="status-dot"></span> Independent creator · Isfahan / Everywhere</p>
+        <p class="eyebrow"><span class="status-dot"></span> Unity game developer · Isfahan / Everywhere</p>
         <h1>I build <em>worlds</em><br>that stay with you.</h1>
-        <p class="hero-intro">Indie game programmer, software engineer, and generative artist shaping playful systems into emotional experiences.</p>
+        <p class="hero-intro">I’m an indie game programmer and software engineer creating Unity and C# games, generative art, and playful interactive systems.</p>
         <div class="hero-actions">
           <a class="button button-bright" href="#work">Explore the work <span>↓</span></a>
           <a class="text-link" href="https://github.com/HoomanJCode" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
@@ -160,7 +159,7 @@
     <section class="work scene-section" id="work" data-scene="work">
       <div class="section-number">02 <span>/</span> selected work</div>
       <div class="work-heading reveal">
-        <p class="eyebrow">A few things I made</p>
+        <p class="eyebrow">Unity games, software tools & generative art</p>
         <h2>Built with intent.<br><span>Played with feeling.</span></h2>
       </div>
       <div class="project-list">
@@ -222,7 +221,7 @@
       <div class="section-number">03 <span>/</span> the human behind it</div>
       <div class="about-layout">
         <div class="about-title reveal"><p class="eyebrow">A little context</p><h2>Hi, I'm<br><em>Hooman.</em></h2><div class="portrait-orbit"><div class="portrait-sphere">HJ</div><div class="portrait-ring ring-one"></div><div class="portrait-ring ring-two"></div></div></div>
-        <div class="about-copy reveal"><p class="large-copy">I’m an indie game programmer, software engineer, and generative artist with a deep passion for storytelling, creativity, and innovation.</p><p>My journey has taken me from game jams and award-winning prototypes to procedural art and research. I specialize in Unity and C#, while constantly exploring the space where code can make people feel something.</p><p>I hold a Master’s degree in Computer Software Engineering, and my focus is game development. My most recent role was as a game project manager, keeping teams and builds on track from prototype to ship.</p><div class="facts"><div><b>Unity / C#</b><span>game development</span></div><div><b>JS / p5.js</b><span>generative systems</span></div><div><b>MA software eng.</b><span>research & learning</span></div></div></div>
+        <div class="about-copy reveal"><p class="large-copy">I’m an indie game developer, software engineer, and generative artist with a deep passion for storytelling, creativity, and innovation.</p><p>My journey has taken me from game jams and award-winning prototypes to procedural art and research. I specialize in Unity and C#, while constantly exploring the space where code can make people feel something.</p><p>I hold a Master’s degree in Computer Software Engineering, and my focus is game development. My most recent role was as a game project manager, keeping teams and builds on track from prototype to ship.</p><div class="facts"><div><b>Unity / C#</b><span>game development</span></div><div><b>JS / p5.js</b><span>generative systems</span></div><div><b>MA software eng.</b><span>research & learning</span></div></div></div>
       </div>
     </section>
 
@@ -235,7 +234,7 @@
 
   <footer class="site-footer"><span>© Hooman Jalalpour</span><span>Designed & built with curiosity</span><a href="#top">Back to top ↑</a></footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+  <script src="vendor/three/three.min.js" defer></script>
   <script src="app.js" defer></script>
   <script src="scene.js" defer></script>
   <script src="scripts/fxplanet.js" defer></script>

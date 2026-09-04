@@ -1,3 +1,7 @@
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 400 800; font-display: swap; src: url('vendor/fonts/Manrope-latin.woff2') format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('vendor/fonts/DM-Mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('vendor/fonts/DM-Mono-500.woff2') format('woff2'); }
+
 :root {
   --ink: #080a0e;
   --paper: #f0eee8;
