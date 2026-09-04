@@ -71,7 +71,7 @@ window.PROJECTS = {
     facts: [['Type', '2D puzzle game'], ['Characters', 'A girl & a magical fox'], ['Pressure', 'A rising flood']],
     source: 'https://hoomanj.itch.io/rainy-cloud', sourceLabel: 'Play Rainy Cloud', sourceType: 'itch.io',
     media: [
-      { image: '../assets/rainy-cloud-title.jpg', alt: 'Rainy Cloud game title artwork', caption: 'RAINY CLOUD / 05' },
+      { image: '../../assets/rainy-cloud-title.jpg', alt: 'Rainy Cloud game title artwork', caption: 'RAINY CLOUD / 05' },
       { visual: 'art-rainy alt-art', alt: 'Rain and water lines representing the rising flood', caption: 'ESCAPE / PUZZLE' }
     ]
   },
