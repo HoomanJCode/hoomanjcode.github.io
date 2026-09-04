@@ -41,9 +41,9 @@
       this.resizeObserver = new ResizeObserver(() => this.resize());
       this.resizeObserver.observe(this.visual);
       this.visibilityObserver = new IntersectionObserver((entries) => {
-        this.visible = entries[0].isIntersecting;
+        this.visible = entries[0].isIntersecting && entries[0].intersectionRatio >= 0.35;
         this.updateLoop();
-      }, { threshold: 0.2 });
+      }, { threshold: 0.35 });
       this.visibilityObserver.observe(this.visual);
       this.bindEvents();
       this.resize();
@@ -237,7 +237,7 @@
       lazyObserver.unobserve(entry.target);
       new ProxyTunerPreview(entry.target);
     });
-  }, { threshold: 0.2 });
+  }, { threshold: 0.35 });
 
   lazyObserver.observe(canvas);
 })();

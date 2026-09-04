@@ -18,7 +18,7 @@
   const WATCH_THRESHOLD = 0.35;
   let seed = Math.floor(Math.random() * 2147483647);
   const starSeed = seed;
-  let visible = true;
+  let visible = false;
   let timer = 0;
   let currentFrame = 0;
   let manualMode = false;
