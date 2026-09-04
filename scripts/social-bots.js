@@ -25,20 +25,16 @@
       this.phase = type === 'instagram' ? 0.7 : 2.1;
       this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
       this.colors = type === 'instagram'
-        ? { source: '#ff765c', platform: '#d5ff4f', telegram: '#91baff', server: '#f0eee8' }
-        : { source: '#ff765c', platform: '#ff765c', telegram: '#d5ff4f', server: '#91baff' };
+        ? { platform: '#d5ff4f', telegram: '#91baff', client: '#f0eee8' }
+        : { platform: '#ff765c', telegram: '#d5ff4f', client: '#91baff' };
       this.nodes = {
-        urls: [{ x: 0.12, y: 0.27 }, { x: 0.1, y: 0.5 }, { x: 0.12, y: 0.73 }],
-        platform: { x: 0.32, y: 0.5 },
-        telegram: { x: 0.52, y: 0.5 },
-        server: { x: 0.71, y: 0.5 },
-        clients: [{ x: 0.9, y: 0.27 }, { x: 0.92, y: 0.5 }, { x: 0.9, y: 0.73 }],
+        platform: { x: 0.2, y: 0.5 },
+        telegram: { x: 0.5, y: 0.5 },
+        client: { x: 0.8, y: 0.5 },
       };
-      this.packets = Array.from({ length: 18 }, (_, index) => ({
-        progress: (index / 18 + 0.02) % 1,
-        speed: 0.11 + (index % 4) * 0.012,
-        source: index % 3,
-        client: (index * 2) % 3,
+      this.packets = Array.from({ length: 10 }, (_, index) => ({
+        progress: (index / 10 + 0.02) % 1,
+        speed: 0.12 + (index % 4) * 0.014,
       }));
 
       if (!this.ctx || !this.visual) return;
@@ -152,142 +148,104 @@
       for (let y = 10; y < height; y += 24) ctx.fillRect(0, y, width, 1);
     }
 
-    drawRoutes() {
-      const { ctx } = this;
+    routePath(start, end, bend) {
+      const from = this.point(start);
+      const to = this.point(end);
+      return {
+        start: from,
+        end: to,
+        controlX: lerp(from.x, to.x, 0.5),
+        controlY: bend * this.height,
+      };
+    }
+
+    platformPath() {
       const platform = this.point(this.nodes.platform);
       const telegram = this.point(this.nodes.telegram);
-      const server = this.point(this.nodes.server);
+      return this.routePath(this.nodes.platform, this.nodes.telegram, platform.y / this.height);
+    }
+
+    telegramPath() {
+      const telegram = this.point(this.nodes.telegram);
+      const client = this.point(this.nodes.client);
+      return this.routePath(this.nodes.telegram, this.nodes.client, telegram.y / this.height);
+    }
+
+    quadraticPoint(path, progress) {
+      const amount = clamp(progress, 0, 1);
+      const inverse = 1 - amount;
+      return {
+        x: inverse * inverse * path.start.x
+          + 2 * inverse * amount * path.controlX
+          + amount * amount * path.end.x,
+        y: inverse * inverse * path.start.y
+          + 2 * inverse * amount * path.controlY
+          + amount * amount * path.end.y,
+      };
+    }
+
+    drawRoutes() {
+      const { ctx } = this;
+      const paths = [this.platformPath(), this.telegramPath()];
       ctx.save();
-      ctx.lineWidth = 1.2;
-      this.nodes.urls.forEach((url) => {
-        const start = this.point(url);
-        ctx.strokeStyle = 'rgba(255,118,92,.5)';
+      ctx.lineWidth = 1.3;
+      paths.forEach((path, index) => {
+        ctx.strokeStyle = index === 0 ? 'rgba(213,255,79,.48)' : 'rgba(145,186,255,.48)';
         ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.quadraticCurveTo(lerp(start.x, platform.x, 0.5), start.y, platform.x, platform.y);
-        ctx.stroke();
-      });
-      ctx.strokeStyle = 'rgba(213,255,79,.5)';
-      ctx.beginPath();
-      ctx.moveTo(platform.x, platform.y);
-      ctx.lineTo(telegram.x, telegram.y);
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(145,186,255,.5)';
-      ctx.beginPath();
-      ctx.moveTo(telegram.x, telegram.y);
-      ctx.lineTo(server.x, server.y);
-      ctx.stroke();
-      this.nodes.clients.forEach((client) => {
-        const end = this.point(client);
-        ctx.strokeStyle = 'rgba(240,238,232,.38)';
-        ctx.beginPath();
-        ctx.moveTo(server.x, server.y);
-        ctx.quadraticCurveTo(lerp(server.x, end.x, 0.5), server.y, end.x, end.y);
+        ctx.moveTo(path.start.x, path.start.y);
+        ctx.quadraticCurveTo(path.controlX, path.controlY, path.end.x, path.end.y);
         ctx.stroke();
       });
       ctx.restore();
     }
 
-    routePoint(packet) {
-      const source = this.point(this.nodes.urls[packet.source]);
-      const platform = this.point(this.nodes.platform);
-      const telegram = this.point(this.nodes.telegram);
-      const server = this.point(this.nodes.server);
-      const client = this.point(this.nodes.clients[packet.client]);
-      const progress = packet.progress;
-      if (progress < 0.25) {
-        return this.quadraticPoint(
-          source,
-          { x: lerp(source.x, platform.x, 0.5), y: source.y },
-          platform,
-          progress / 0.25,
-        );
-      }
-      if (progress < 0.5) return this.linePoint(platform, telegram, (progress - 0.25) / 0.25);
-      if (progress < 0.72) return this.linePoint(telegram, server, (progress - 0.5) / 0.22);
-      return this.quadraticPoint(
-        server,
-        { x: lerp(server.x, client.x, 0.5), y: server.y },
-        client,
-        (progress - 0.72) / 0.28,
-      );
-    }
-
-    linePoint(start, end, progress) {
-      const amount = clamp(progress, 0, 1);
-      return {
-        x: lerp(start.x, end.x, amount),
-        y: lerp(start.y, end.y, amount),
-      };
-    }
-
-    quadraticPoint(start, control, end, progress) {
-      const amount = clamp(progress, 0, 1);
-      const inverse = 1 - amount;
-      return {
-        x: inverse * inverse * start.x
-          + 2 * inverse * amount * control.x
-          + amount * amount * end.x,
-        y: inverse * inverse * start.y
-          + 2 * inverse * amount * control.y
-          + amount * amount * end.y,
-      };
-    }
-
     drawTraffic() {
       const { ctx } = this;
+      const firstPath = this.platformPath();
+      const secondPath = this.telegramPath();
       this.packets.forEach((packet) => {
-        const point = this.routePoint(packet);
-        const color = packet.progress < 0.25
-          ? this.colors.source
-          : packet.progress < 0.5
-            ? this.colors.platform
-            : packet.progress < 0.72
-              ? this.colors.telegram
-              : this.colors.server;
+        const point = packet.progress < 0.5
+          ? this.quadraticPoint(firstPath, packet.progress * 2)
+          : this.quadraticPoint(secondPath, (packet.progress - 0.5) * 2);
+        const color = packet.progress < 0.5 ? this.colors.platform : this.colors.telegram;
         ctx.save();
         ctx.fillStyle = color;
         ctx.shadowColor = color;
         ctx.shadowBlur = 9;
         ctx.beginPath();
-        ctx.arc(point.x, point.y, 2.4, 0, TAU);
+        ctx.arc(point.x, point.y, 2.5, 0, TAU);
         ctx.fill();
         ctx.restore();
       });
     }
 
     drawNodes() {
-      const groups = [
-        [this.nodes.urls, this.colors.source, 5],
-        [[this.nodes.platform], this.colors.platform, 8],
-        [[this.nodes.telegram], this.colors.telegram, 8],
-        [[this.nodes.server], this.colors.server, 9],
-        [this.nodes.clients, '#f0eee8', 5],
+      const nodes = [
+        [this.nodes.platform, this.colors.platform, 9],
+        [this.nodes.telegram, this.colors.telegram, 9],
+        [this.nodes.client, this.colors.client, 8],
       ];
-      groups.forEach(([nodes, color, radius]) => {
-        nodes.forEach((node) => {
-          const point = this.point(node);
-          this.ctx.save();
-          this.ctx.fillStyle = '#0b111c';
-          this.ctx.strokeStyle = color;
-          this.ctx.lineWidth = 2;
-          this.ctx.shadowColor = color;
-          this.ctx.shadowBlur = 10;
-          this.ctx.beginPath();
-          this.ctx.arc(point.x, point.y, radius, 0, TAU);
-          this.ctx.fill();
-          this.ctx.stroke();
-          this.ctx.restore();
-          this.ctx.globalAlpha = 0.24;
-          this.ctx.fillStyle = color;
-          this.ctx.beginPath();
-          this.ctx.arc(point.x, point.y, radius + 5, 0, TAU);
-          this.ctx.fill();
-          this.ctx.globalAlpha = 1;
-        });
+      nodes.forEach(([node, color, radius]) => {
+        const point = this.point(node);
+        this.ctx.save();
+        this.ctx.fillStyle = '#0b111c';
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 2;
+        this.ctx.shadowColor = color;
+        this.ctx.shadowBlur = 10;
+        this.ctx.beginPath();
+        this.ctx.arc(point.x, point.y, radius, 0, TAU);
+        this.ctx.fill();
+        this.ctx.stroke();
+        this.ctx.restore();
+        this.ctx.globalAlpha = 0.24;
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        this.ctx.arc(point.x, point.y, radius + 5, 0, TAU);
+        this.ctx.fill();
+        this.ctx.globalAlpha = 1;
       });
     }
-
   }
 
   const lazyObserver = new IntersectionObserver((entries) => {
