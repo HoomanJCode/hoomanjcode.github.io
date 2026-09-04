@@ -267,8 +267,18 @@
     }
   }
 
-  canvases.forEach(({ id, type }) => {
+  const lazyObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const config = canvases.find(({ id }) => id === entry.target.id);
+      if (!config) return;
+      lazyObserver.unobserve(entry.target);
+      new SocialBotPreview(entry.target, config.type);
+    });
+  }, { threshold: 0.2 });
+
+  canvases.forEach(({ id }) => {
     const canvas = document.getElementById(id);
-    if (canvas) new SocialBotPreview(canvas, type);
+    if (canvas) lazyObserver.observe(canvas);
   });
 })();
