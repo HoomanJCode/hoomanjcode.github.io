@@ -29,5 +29,10 @@ if (viewMoreButton && selectedProjects && allProjects && moreWork && workModeLab
   viewMoreButton.addEventListener('click', () => {
     const nextExpanded = viewMoreButton.getAttribute('aria-expanded') !== 'true';
     setExpanded(nextExpanded);
+    if (!nextExpanded) {
+      requestAnimationFrame(() => {
+        viewMoreButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
   });
 }
