@@ -1,10 +1,10 @@
 const viewMoreButton = document.querySelector('.view-more-button');
 const projectList = document.querySelector('#projectList');
-const workSection = document.querySelector('#work');
+const firstExtraProject = projectList?.querySelector('.is-extra');
 const workModeLabel = document.querySelector('#workModeLabel');
 const viewMoreLabel = viewMoreButton?.querySelector('.view-more-label');
 
-if (viewMoreButton && projectList && workSection && workModeLabel && viewMoreLabel) {
+if (viewMoreButton && projectList && firstExtraProject && workModeLabel && viewMoreLabel) {
   viewMoreButton.addEventListener('click', () => {
     const nextExpanded = viewMoreButton.getAttribute('aria-expanded') !== 'true';
     const extraProjects = projectList.querySelectorAll('.is-extra');
@@ -21,7 +21,7 @@ if (viewMoreButton && projectList && workSection && workModeLabel && viewMoreLab
 
     if (nextExpanded) {
       requestAnimationFrame(() => {
-        workSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        firstExtraProject.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
   });
