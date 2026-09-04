@@ -219,32 +219,121 @@
       });
     }
 
+    roundedRect(x, y, width, height, radius) {
+      const { ctx } = this;
+      const corner = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + corner, y);
+      ctx.arcTo(x + width, y, x + width, y + height, corner);
+      ctx.arcTo(x + width, y + height, x, y + height, corner);
+      ctx.arcTo(x, y + height, x, y, corner);
+      ctx.arcTo(x, y, x + width, y, corner);
+      ctx.closePath();
+    }
+
+    drawInstagramLogo(point) {
+      const { ctx } = this;
+      const size = Math.max(18, Math.min(27, Math.min(this.width, this.height) * 0.13));
+      const gradient = ctx.createLinearGradient(point.x - size / 2, point.y + size / 2, point.x + size / 2, point.y - size / 2);
+      gradient.addColorStop(0, '#feda75');
+      gradient.addColorStop(0.35, '#fa7e1e');
+      gradient.addColorStop(0.65, '#d62976');
+      gradient.addColorStop(1, '#4f5bd5');
+      ctx.fillStyle = gradient;
+      ctx.shadowColor = '#d62976';
+      ctx.shadowBlur = 12;
+      this.roundedRect(point.x - size / 2, point.y - size / 2, size, size, size * 0.27);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = Math.max(1.5, size * 0.08);
+      this.roundedRect(point.x - size * 0.29, point.y - size * 0.29, size * 0.58, size * 0.58, size * 0.16);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, size * 0.14, 0, TAU);
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(point.x + size * 0.2, point.y - size * 0.2, size * 0.055, 0, TAU);
+      ctx.fill();
+    }
+
+    drawYoutubeLogo(point) {
+      const { ctx } = this;
+      const width = Math.max(25, Math.min(36, Math.min(this.width, this.height) * 0.19));
+      const height = width * 0.68;
+      ctx.fillStyle = '#ff0033';
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 12;
+      this.roundedRect(point.x - width / 2, point.y - height / 2, width, height, height * 0.28);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.moveTo(point.x - width * 0.11, point.y - height * 0.23);
+      ctx.lineTo(point.x + width * 0.22, point.y);
+      ctx.lineTo(point.x - width * 0.11, point.y + height * 0.23);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    drawTelegramLogo(point) {
+      const { ctx } = this;
+      const radius = Math.max(11, Math.min(16, Math.min(this.width, this.height) * 0.075));
+      ctx.fillStyle = '#229ed9';
+      ctx.shadowColor = '#229ed9';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, radius, 0, TAU);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.moveTo(point.x - radius * 0.62, point.y - radius * 0.06);
+      ctx.lineTo(point.x + radius * 0.65, point.y - radius * 0.58);
+      ctx.lineTo(point.x + radius * 0.04, point.y + radius * 0.7);
+      ctx.lineTo(point.x - radius * 0.12, point.y + radius * 0.17);
+      ctx.lineTo(point.x - radius * 0.55, point.y + radius * 0.02);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#229ed9';
+      ctx.beginPath();
+      ctx.moveTo(point.x - radius * 0.1, point.y + radius * 0.15);
+      ctx.lineTo(point.x + radius * 0.36, point.y - radius * 0.3);
+      ctx.lineTo(point.x + radius * 0.02, point.y + radius * 0.46);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    drawClientNode(point) {
+      const { ctx } = this;
+      const radius = 8;
+      ctx.fillStyle = '#0b111c';
+      ctx.strokeStyle = this.colors.client;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = this.colors.client;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, radius, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.24;
+      ctx.fillStyle = this.colors.client;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, radius + 5, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
     drawNodes() {
-      const nodes = [
-        [this.nodes.platform, this.colors.platform, 9],
-        [this.nodes.telegram, this.colors.telegram, 9],
-        [this.nodes.client, this.colors.client, 8],
-      ];
-      nodes.forEach(([node, color, radius]) => {
-        const point = this.point(node);
-        this.ctx.save();
-        this.ctx.fillStyle = '#0b111c';
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = 2;
-        this.ctx.shadowColor = color;
-        this.ctx.shadowBlur = 10;
-        this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, radius, 0, TAU);
-        this.ctx.fill();
-        this.ctx.stroke();
-        this.ctx.restore();
-        this.ctx.globalAlpha = 0.24;
-        this.ctx.fillStyle = color;
-        this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, radius + 5, 0, TAU);
-        this.ctx.fill();
-        this.ctx.globalAlpha = 1;
-      });
+      const platform = this.point(this.nodes.platform);
+      const telegram = this.point(this.nodes.telegram);
+      const client = this.point(this.nodes.client);
+      if (this.type === 'instagram') this.drawInstagramLogo(platform);
+      else this.drawYoutubeLogo(platform);
+      this.drawTelegramLogo(telegram);
+      this.drawClientNode(client);
     }
   }
 
