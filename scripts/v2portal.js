@@ -47,6 +47,9 @@
       this.resizeObserver.observe(this.visual);
       this.visibilityObserver = new IntersectionObserver((entries) => {
         this.visible = entries[0].isIntersecting;
+        if (this.visible) {
+          requestAnimationFrame(() => this.resize());
+        }
         this.updateLoop();
       }, { threshold: 0.2 });
       this.visibilityObserver.observe(this.visual);
