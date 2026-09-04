@@ -15,6 +15,8 @@
   const tags = project.technologies.map((technology) => `<li>${escapeHtml(technology)}</li>`).join('');
   const facts = project.facts.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
   const paragraphs = project.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
+  const storyTitle = (project.storyTitle || ['Rules that', 'make room', 'for feeling.']).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
+  const storyKicker = project.storyKicker || 'The work';
   const canonical = `https://hooman.jlpr.ir/projects/${slug}/`;
 
   document.title = `${project.title} — Hooman Jalalpour`;
@@ -57,7 +59,7 @@
         <div class="detail-orbit detail-orbit-${escapeHtml(project.number)}" aria-hidden="true"><div class="detail-orbit-core"></div><div class="detail-orbit-line"></div><span>PROJECT / ${escapeHtml(project.number)}</span></div>
       </section>
       <section class="detail-facts" aria-label="Project details"><dl>${facts}</dl><ul class="detail-tags">${tags}</ul></section>
-      <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(project.number)} <span>/</span> notes from the build</div><div class="detail-story-grid"><div><p class="eyebrow">The work</p><h2>Rules that<br><em>make room</em><br>for feeling.</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
+      <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(project.number)} <span>/</span> notes from the build</div><div class="detail-story-grid"><div><p class="eyebrow">${escapeHtml(storyKicker)}</p><h2>${storyTitle}</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
       <section class="detail-gallery" aria-label="Project media"><div class="detail-section-label">Selected media <span>/</span> ${escapeHtml(project.sourceType)}</div><div class="detail-media-grid">${media}</div></section>
       <section class="detail-next"><p class="eyebrow">Keep exploring</p><a href="../../#work">See all projects <span>↗</span></a></section>
     </main>

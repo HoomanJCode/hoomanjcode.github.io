@@ -1,6 +1,6 @@
 window.PROJECTS = {
   impasse: {
-    number: '01', category: 'GAME / UNITY', title: 'Impasse', eyebrow: 'A puzzle about moving together',
+    number: '01', category: 'GAME / UNITY', title: 'Impasse', eyebrow: 'A puzzle about moving together', storyKicker: 'The game', storyTitle: ['Together', 'is a', 'mechanic.'],
     description: 'A 2D isometric puzzle-action game about friendship, coordination, and hope. Winner of the Isfahan University Game Dev Camp Final Jam.',
     paragraphs: [
       'Impasse turns cooperation into the central mechanic. Its isometric spaces ask players to read the environment, coordinate movement, and keep going when the path ahead looks blocked.',
@@ -15,7 +15,7 @@ window.PROJECTS = {
     ]
   },
   'balls-of-chaos': {
-    number: '02', category: 'GAME JAM / ARCADE', title: 'Balls of Chaos', eyebrow: 'Survive the swarm',
+    number: '02', category: 'GAME JAM / ARCADE', title: 'Balls of Chaos', eyebrow: 'Survive the swarm', storyKicker: 'The loop', storyTitle: ['Pressure', 'becomes', 'play.'],
     description: 'An arcade bullet-hell survival game where you challenge your sense of survival in a chaotic arena filled with balls. Made in seven days.',
     paragraphs: [
       'Balls of Chaos compresses the pressure of a survival game into a focused arcade loop. The arena keeps moving, the threats keep multiplying, and every second asks for a sharper read of the space around you.',
@@ -30,7 +30,7 @@ window.PROJECTS = {
     ]
   },
   fxplanet: {
-    number: '03', category: 'GENERATIVE ART / FXHASH', title: 'FxPlanet', eyebrow: 'A small universe of variations',
+    number: '03', category: 'GENERATIVE ART / FXHASH', title: 'FxPlanet', eyebrow: 'A small universe of variations', storyKicker: 'The system', storyTitle: ['Difference', 'inside', 'a pattern.'],
     description: 'A collection of 2,000 unique planets generated from layers of noise, code, and a little cosmic patience. An interactive collection on Tezos.',
     paragraphs: [
       'FxPlanet explores how a compact set of rules can produce a wide visual language. Each planet is assembled procedurally, making texture, color, atmosphere, and orbital detail part of the generative system rather than a fixed illustration.',
@@ -45,7 +45,7 @@ window.PROJECTS = {
     ]
   },
   'hecs-gravity-sim': {
-    number: '04', category: 'SIMULATION / UNITY ECS', title: 'HEcsGravitySim', eyebrow: 'One thousand bodies, one frame',
+    number: '04', category: 'SIMULATION / UNITY ECS', title: 'HEcsGravitySim', eyebrow: 'One thousand bodies, one frame', storyKicker: 'The simulation', storyTitle: ['Many bodies.', 'One shared', 'force.'],
     description: 'A Unity gravity simulation using ECS and the Job System to calculate the force of each planet on every other planet in real time.',
     paragraphs: [
       'The simulation is built around the problem of nested calculations. With roughly 1,000 planets, calculating every interaction on a single thread becomes impractical for a real-time experience.',
@@ -61,7 +61,7 @@ window.PROJECTS = {
     ]
   },
   'rainy-cloud': {
-    number: '05', category: 'GAME / PUZZLE', title: 'Rainy Cloud', eyebrow: 'Build a way above the water',
+    number: '05', category: 'GAME / PUZZLE', title: 'Rainy Cloud', eyebrow: 'Build a way above the water', storyKicker: 'The escape', storyTitle: ['Small hands', 'against', 'rising water.'],
     description: 'A 2D puzzle game in which a little girl and a magical fox escape a flood. Collect objects and make a boat before the water reaches the surface.',
     paragraphs: [
       'Rainy Cloud frames a time-sensitive puzzle around resourcefulness. The player searches a flooded world, gathers what is useful, and turns scattered objects into a way forward.',
@@ -76,7 +76,7 @@ window.PROJECTS = {
     ]
   },
   'concurrent-tools': {
-    number: '06', category: 'UNITY PACKAGE / C#', title: 'ConcurrentTools', eyebrow: 'Make asynchronous work feel at home',
+    number: '06', category: 'UNITY PACKAGE / C#', title: 'ConcurrentTools', eyebrow: 'Make asynchronous work feel at home', storyKicker: 'The utility', storyTitle: ['Async work', 'without', 'friction.'],
     description: 'A Unity task-management package for asynchronous, delayed, and concurrent operations while keeping main-thread work compatible with Unity APIs.',
     paragraphs: [
       'ConcurrentTools packages a common game-development need into a small, reusable workflow. It can run simple actions, await asynchronous tasks, schedule delayed work, return results, and apply execution timeouts.',
@@ -92,7 +92,7 @@ window.PROJECTS = {
     ]
   },
   'menu-view': {
-    number: '07', category: 'UNITY PACKAGE / UI', title: 'MenuView', eyebrow: 'A cleaner way through menus',
+    number: '07', category: 'UNITY PACKAGE / UI', title: 'MenuView', eyebrow: 'A cleaner way through menus', storyKicker: 'The interface', storyTitle: ['Every view', 'needs a', 'way forward.'],
     description: 'A Unity menu-management tool for creating views, switching between them, and managing navigation across multiple layers.',
     paragraphs: [
       'MenuView replaces repeated menu wiring with a focused view model. A menu inherits from MenuView, initializes its own controls, and uses shared commands to move to another view or return to the previous one.',
@@ -108,7 +108,7 @@ window.PROJECTS = {
     ]
   },
   v2portal: {
-    number: '08', category: 'SOFTWARE / NETWORKING', title: 'V2Portal', eyebrow: 'Proxy infrastructure from the terminal',
+    number: '08', category: 'SOFTWARE / NETWORKING', title: 'V2Portal', eyebrow: 'Proxy infrastructure from the terminal', storyKicker: 'The network', storyTitle: ['Routes are', 'choices in', 'motion.'],
     description: 'A cross-platform, headless V2Ray CLI client and proxy manager for sing-box and Xray-core.',
     paragraphs: [
       'V2Portal manages the full path from proxy profile to local inbound. It imports subscriptions and share links, supports profiles and groups, runs persistent SOCKS5 or HTTP servers, and exposes rule-based split routing.',
@@ -124,7 +124,7 @@ window.PROJECTS = {
     ]
   },
   'proxy-tuner': {
-    number: '09', category: 'SOFTWARE / NETWORKING', title: 'ProxyTuner', eyebrow: 'Decide where traffic belongs',
+    number: '09', category: 'SOFTWARE / NETWORKING', title: 'ProxyTuner', eyebrow: 'Decide where traffic belongs', storyKicker: 'The policy', storyTitle: ['Intent', 'chooses the', 'outbound.'],
     description: 'An alpha Python CLI that routes connections through multiple SOCKS5, HTTP CONNECT, or direct outbounds using flexible routing rules.',
     paragraphs: [
       'ProxyTuner acts as the policy layer in front of several network paths. Rules can match domains, IPs and CIDR ranges, ports, process names, paths, and regular expressions, with lower priorities evaluated first.',
@@ -140,7 +140,7 @@ window.PROJECTS = {
     ]
   },
   'simple-meeting-app': {
-    number: '10', category: 'WEB APP / SOFTWARE', title: 'Simple Meeting App', eyebrow: 'Make a room for people to meet',
+    number: '10', category: 'WEB APP / SOFTWARE', title: 'Simple Meeting App', eyebrow: 'Make a room for people to meet', storyKicker: 'The product', storyTitle: ['A room', 'becomes a', 'community.'],
     description: 'A real-time Meetup-like web application for creating and joining tech meetings, with authentication, live participant updates, and meeting discovery.',
     paragraphs: [
       'The application combines a searchable meeting list with the social details that make a session feel alive: hosts, participants, tags, calendars, event timelines, and dark mode.',
@@ -156,7 +156,7 @@ window.PROJECTS = {
     ]
   },
   'telegram-7z-bot': {
-    number: '11', category: 'TELEGRAM BOT / AUTOMATION', title: 'Telegram 7z Bot', eyebrow: 'Turn links into useful archives',
+    number: '11', category: 'TELEGRAM BOT / AUTOMATION', title: 'Telegram 7z Bot', eyebrow: 'Turn links into useful archives', storyKicker: 'The workflow', storyTitle: ['Files', 'move at the', 'speed of chat.'],
     description: 'A modular Telegram bot that downloads files from URLs, creates optional password-protected 7z archives, and provides expiring direct download links.',
     paragraphs: [
       'The bot brings a complete file workflow into chat: download one or many URLs, archive them, split large files for Telegram, browse recent hosted files, and clean up expired storage automatically.',
@@ -172,7 +172,7 @@ window.PROJECTS = {
     ]
   },
   'http-tunnel': {
-    number: '12', category: 'NETWORKING / HTTP', title: 'Http-Tunnel', eyebrow: 'A research path through HTTP',
+    number: '12', category: 'NETWORKING / HTTP', title: 'Http-Tunnel', eyebrow: 'A research path through HTTP', storyKicker: 'The experiment', storyTitle: ['Find a path', 'through the', 'narrowest gate.'],
     description: 'An experimental proof-of-concept that tunnels TCP and UDP traffic through HTTP POST requests for restricted networks where only HTTP is allowed.',
     paragraphs: [
       'Http-Tunnel gives applications a local SOCKS5 entry point, wraps traffic in encrypted HTTP POST requests, and returns responses through HTTP bodies. It includes server-side DNS resolution, compression, adaptive keep-alive, connection pooling, session recovery, and UDP support.',
@@ -188,7 +188,7 @@ window.PROJECTS = {
     ]
   },
   'telegram-insta-bot': {
-    number: '13', category: 'TELEGRAM BOT / AUTOMATION', title: 'Telegram Insta Bot', eyebrow: 'Bring social media into a chat workflow',
+    number: '13', category: 'TELEGRAM BOT / AUTOMATION', title: 'Telegram Insta Bot', eyebrow: 'Bring social media into a chat workflow', storyKicker: 'The pipeline', storyTitle: ['Capture.', 'Cache.', 'Deliver.'],
     description: 'An educational Telegram bot that downloads Instagram posts, reels, stories, and profile pictures using gallery-dl, async I/O, caching, and batched media uploads.',
     paragraphs: [
       'The bot turns a pasted Instagram link into a Telegram delivery flow. Carousel posts become media groups, reels become video, and cached downloads can be resent without repeating the work.',
@@ -204,7 +204,7 @@ window.PROJECTS = {
     ]
   },
   'telegram-youtube': {
-    number: '14', category: 'TELEGRAM BOT / AUTOMATION', title: 'Telegram YouTube', eyebrow: 'A media toolbox inside Telegram',
+    number: '14', category: 'TELEGRAM BOT / AUTOMATION', title: 'Telegram YouTube', eyebrow: 'A media toolbox inside Telegram', storyKicker: 'The toolbox', storyTitle: ['More formats.', 'One simple', 'conversation.'],
     description: 'An educational YouTube downloader bot for Telegram, supporting video, audio, thumbnails, subtitles, format selection, caching, and direct links.',
     paragraphs: [
       'Telegram YouTube makes media choices explicit: pick a video quality, an audio format, a thumbnail, or subtitle behavior, then choose whether the result is uploaded to Telegram or served as a download link.',
