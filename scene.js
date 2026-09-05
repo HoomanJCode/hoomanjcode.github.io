@@ -342,6 +342,16 @@ function createScene() {
   const clock = new THREE.Clock();
   let animationFrame = 0;
   let lastFrame = performance.now();
+  // Establishing shot on load: the system eases from a slightly wider viewing
+  // angle down to a composed resting rotation, so the page opens on a nice
+  // 3/4 view of the planet with its rings instead of a head-on frame. The
+  // entrance hands over to drag control the moment the user grabs it.
+  const restYaw = -.6;
+  const restPitch = .3;
+  const startYaw = -1.05;
+  const startPitch = .55;
+  let entrance = 0;
+  let entranceDone = false;
   const render = () => {
     animationFrame = 0;
     if (!isVisible || !isPageVisible) return;
@@ -350,6 +360,22 @@ function createScene() {
     lastFrame = now;
     const t = clock.getElapsedTime();
     const p = scrollProgress * scrollProgress * (3 - 2 * scrollProgress);
+    if (!entranceDone) {
+      if (dragging) {
+        // User took control — settle on the current angle and let the drag
+        // velocities take over from here.
+        entranceDone = true;
+      } else {
+        entrance += dt / 1.6;
+        if (entrance >= 1) {
+          entrance = 1;
+          entranceDone = true;
+        }
+        const ease = 1 - Math.pow(1 - entrance, 3);
+        universe.rotation.y = startYaw + (restYaw - startYaw) * ease;
+        universe.rotation.x = startPitch + (restPitch - startPitch) * ease;
+      }
+    }
     // Momentum: velocities decay gently when released (so it coasts a little)
     // and are damped only lightly while dragged, so turning feels easy.
     const damping = dragging ? Math.pow(.97, dt * 60) : Math.pow(.992, dt * 60);
