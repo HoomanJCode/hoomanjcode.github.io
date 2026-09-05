@@ -19,9 +19,16 @@ function createScene() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmallScreen ? 1.25 : 1.75));
   renderer.setClearColor(0x000000, 0);
 
+  // Vocabulary used in this scene (kept distinct so future edits don't
+  // conflate the two kinds of orbiters):
+  //   - "orbital planets": one small planet per project, riding a ring
+  //     around the main planet (the user's "project planets").
+  //   - "satellites": man-made solar-panel probes with a red beacon, the
+  //     GPS-style fleet whose count is random per calendar day.
   // Everything (the planet system and the starfield) lives inside one
   // container so dragging rotates the whole space together: the planet, its
-  // rings, every satellite, and the stars all turn as one massive body.
+  // rings, every orbital planet, the satellites, and the stars all turn as
+  // one massive body.
   const universe = new THREE.Group();
   universe.position.set(isSmallScreen ? 1.15 : 2.1, 0, 0);
   scene.add(universe);
@@ -97,12 +104,12 @@ function createScene() {
   rim.position.set(3, -2, 2);
   scene.add(rim);
 
-  // One small planet per project, orbiting the main planet like a solar
-  // system. Built from the shared project data, so adding or removing a
-  // project automatically adds or removes its satellite, and its color
+  // One orbital planet per project, riding a ring around the main planet like
+  // a solar system. Built from the shared project data, so adding or removing
+  // a project automatically adds or removes its orbital planet, and its color
   // follows the project's own palette (surface color) like on the project
-  // pages. Every satellite rides one of the rings around the main planet:
-  // each project gets its own ring at its own distance, all sharing a
+  // pages. Every orbital planet rides one of the rings around the main
+  // planet: each project gets its own ring at its own distance, all sharing a
   // ring-plane tilt like the main planet's decorative rings.
   const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
   const slugs = window.PROJECTS ? Object.keys(window.PROJECTS) : [];
@@ -136,8 +143,8 @@ function createScene() {
   addRing(ring, group);
   addRing(ringTwo, group);
 
-  // Carrier groups that copy each main ring's orientation, so a satellite
-  // placed in one of them orbits exactly inside that ring's own plane.
+  // Carrier groups that copy each main ring's orientation, so an orbital
+  // planet placed in one of them orbits exactly inside that ring's own plane.
   const mainRingCarriers = [ring, ringTwo].map((ringMesh) => {
     const carrier = new THREE.Group();
     carrier.rotation.set(ringMesh.rotation.x, ringMesh.rotation.y, ringMesh.rotation.z);
@@ -145,7 +152,7 @@ function createScene() {
     return carrier;
   });
 
-  const satellites = slugs.map((slug, index) => {
+  const orbitalPlanets = slugs.map((slug, index) => {
     const palette = window.PROJECTS[slug]?.palette || [null, [232, 236, 245], [213, 255, 79], [255, 118, 92]];
     // The first two projects ride the main planet's existing rings (radii
     // 2.12 / 2.43); the rest get their own ring at their own distance.
@@ -174,7 +181,8 @@ function createScene() {
       orbitGroup.add(orbit);
       addRing(orbit, orbitGroup);
     } else {
-      // Riding a main ring: that ring is the hover target for this satellite.
+      // Riding a main ring: that ring is the hover target for this orbital
+      // planet.
       const mainRingMesh = [ring, ringTwo][index];
       orbit = mainRingMesh;
     }
@@ -202,17 +210,17 @@ function createScene() {
     return mesh;
   });
 
-  // Man-made satellites (solar-panel probes with a red beacon) orbit the main
+  // Man-made satellites (solar-panel craft with a red beacon) orbit the main
   // planet, like the GPS fleet around Earth. How many appear is random per
   // calendar day: a seeded roll between -5 and 10 (any value below 1 means
   // none that day), so every day brings a different fleet and reloading never
   // reshuffles it.
-  const probes = [];
+  const satellites = [];
   // Phones skip the fleet entirely: the satellite mesh overhead isn't worth it
   // on low-end mobile GPUs, so small screens keep only the orbital planets.
   if (!isSmallScreen) {
-  const probeParent = new THREE.Group();
-  group.add(probeParent);
+  const satelliteParent = new THREE.Group();
+  group.add(satelliteParent);
   {
     const now = new Date();
     const seedKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-main`;
@@ -228,22 +236,22 @@ function createScene() {
       return (seed >>> 0) / 4294967296;
     };
     const roll = Math.floor(rand() * 16) - 5; // uniform -5..10
-    const probeCount = Math.max(0, roll);
-    if (probeCount > 0) {
-      // Craft sized relative to the planet so proportions stay sane (GPS sats
-      // are small next to the body they circle).
+    const satelliteCount = Math.max(0, roll);
+    if (satelliteCount > 0) {
+      // Craft sized relative to the planet so proportions stay sane (GPS
+      // satellites are small next to the body they circle).
       const s = 1.48;
       const bodyMat = new THREE.MeshStandardMaterial({ color: 0xc3ccda, metalness: .6, roughness: .35 });
       const panelMat = new THREE.MeshStandardMaterial({ color: 0x1e3a63, metalness: .35, roughness: .5 });
       const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff5540 });
-      for (let i = 0; i < probeCount; i += 1) {
-        // Each probe has its own tilted orbital plane, like the ring system,
-        // so the fleet doesn't all travel in one flat disc.
+      for (let i = 0; i < satelliteCount; i += 1) {
+        // Each satellite has its own tilted orbital plane, like the ring
+        // system, so the fleet doesn't all travel in one flat disc.
         const plane = new THREE.Group();
         plane.rotation.x = (rand() - .5) * 1.1;
         plane.rotation.y = rand() * Math.PI * 2;
         plane.rotation.z = (rand() - .5) * .6;
-        probeParent.add(plane);
+        satelliteParent.add(plane);
 
         const craft = new THREE.Group();
         const body = new THREE.Mesh(
@@ -276,11 +284,11 @@ function createScene() {
         const phase = rand() * Math.PI * 2;
         // Spread the fleet across the band between the planet's atmosphere and
         // the inner ring, with a touch of jitter so they're not evenly spaced.
-        const spread = probeCount > 1 ? i / (probeCount - 1) : .5;
+        const spread = satelliteCount > 1 ? i / (satelliteCount - 1) : .5;
         const radius = 1.74 + (2.03 - 1.74) * spread + (rand() - .5) * .02;
         const angle = phase;
         craft.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-        probes.push({
+        satellites.push({
           craft,
           radius,
           speed: (.05 + rand() * .11) * (rand() < .5 ? -1 : 1),
@@ -299,11 +307,11 @@ function createScene() {
     pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    // Satellites get priority: each planet sits right on its ring, whose fat
+    // Orbital planets get priority: each one sits right on its ring, whose fat
     // invisible hover-twin would otherwise be picked first and swallow the
     // planet's hand cursor. Only fall back to rings when no planet is hit.
-    const satelliteHits = raycaster.intersectObjects(satellites);
-    if (satelliteHits.length) return satelliteHits[0].object;
+    const orbitalPlanetHits = raycaster.intersectObjects(orbitalPlanets);
+    if (orbitalPlanetHits.length) return orbitalPlanetHits[0].object;
     const ringHitsResult = raycaster.intersectObjects(ringHitMeshes);
     return ringHitsResult.length ? ringHitsResult[0].object : null;
   };
@@ -321,7 +329,7 @@ function createScene() {
   const applyHover = (hit) => {
     let ring = null;
     if (hit?.userData?.slug) {
-      // Hovering a satellite highlights its own orbit ring.
+      // Hovering an orbital planet highlights its own orbit ring.
       ring = hit.userData.orbit;
     } else if (hit) {
       const entry = ringHits.find(({ hit: h }) => h === hit);
@@ -336,9 +344,10 @@ function createScene() {
     }
   };
 
-  // Dragging rotates the whole universe (planet, rings, satellites, stars)
-  // with heavy inertia: the body resists quick motion, keeps gliding after you
-  // release, and gradually slows — like turning a massive object.
+  // Dragging rotates the whole universe (planet, rings, orbital planets,
+  // satellites, stars) with heavy inertia: the body resists quick motion,
+  // keeps gliding after you release, and gradually slows — like turning a
+  // massive object.
   let dragging = false;
   let downX = 0;
   let downY = 0;
@@ -371,8 +380,8 @@ function createScene() {
       return;
     }
     const hit = pickAt(event.clientX, event.clientY);
-    // Only satellites navigate, so only they get the pointer cursor — rings
-    // just highlight, they don't click anywhere.
+    // Only orbital planets navigate (they link to their project page), so only
+    // they get the pointer cursor — rings just highlight, they don't click.
     canvas.style.cursor = hit?.userData?.slug ? 'pointer' : '';
     applyHover(hit);
   }, { passive: true });
@@ -480,21 +489,21 @@ function createScene() {
     ring.rotation.z = t * .03 - p * .5;
     ringTwo.rotation.z = -t * .02 + p * .35;
     stars.rotation.y = t * .008 + p * .12;
-    satellites.forEach((satellite) => {
-      const { radius, speed, offset, tilt, ellipse } = satellite.userData;
+    orbitalPlanets.forEach((orbitalPlanet) => {
+      const { radius, speed, offset, tilt, ellipse } = orbitalPlanet.userData;
       const angle = t * speed + offset;
-      satellite.position.set(
+      orbitalPlanet.position.set(
         Math.cos(angle) * radius,
         Math.sin(angle) * radius * ellipse + tilt,
         0
       );
     });
-    probes.forEach((probe) => {
-      const angle = t * probe.speed + probe.phase;
-      // Orbit inside the probe's own tilted plane (circle in its local XZ),
-      // plus a slow self-spin so the solar panels catch the light.
-      probe.craft.position.set(Math.cos(angle) * probe.radius, 0, Math.sin(angle) * probe.radius);
-      probe.craft.rotation.y = t * .6 + probe.phase;
+    satellites.forEach((satellite) => {
+      const angle = t * satellite.speed + satellite.phase;
+      // Orbit inside the satellite's own tilted plane (circle in its local
+      // XZ), plus a slow self-spin so the solar panels catch the light.
+      satellite.craft.position.set(Math.cos(angle) * satellite.radius, 0, Math.sin(angle) * satellite.radius);
+      satellite.craft.rotation.y = t * .6 + satellite.phase;
     });
     stars.position.y = -p * 4;
     stars.material.size = .025 + p * .045;
