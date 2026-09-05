@@ -204,14 +204,19 @@ function createScene() {
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  const pickables = [...satellites, ...ringHits.map(({ hit }) => hit)];
+  const ringHitMeshes = ringHits.map(({ hit }) => hit);
   const pickAt = (clientX, clientY) => {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(pickables);
-    return hits.length ? hits[0].object : null;
+    // Satellites get priority: each planet sits right on its ring, whose fat
+    // invisible hover-twin would otherwise be picked first and swallow the
+    // planet's hand cursor. Only fall back to rings when no planet is hit.
+    const satelliteHits = raycaster.intersectObjects(satellites);
+    if (satelliteHits.length) return satelliteHits[0].object;
+    const ringHitsResult = raycaster.intersectObjects(ringHitMeshes);
+    return ringHitsResult.length ? ringHitsResult[0].object : null;
   };
 
   let hoveredRing = null;
