@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three/three.module.js';
+import * as THREE from '../vendor/three/three.module.js';
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
