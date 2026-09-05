@@ -10,7 +10,8 @@
   // Color roles per project: [0] ambient/base tint, [1] planet surface,
   // [2] primary ring, [3] secondary ring. Projects with local cover art or
   // screenshots take their colors from those images; the rest follow their
-  // artwork palette.
+  // artwork palette. Palettes live in the shared project data; the map below
+  // is only a fallback if the data ever fails to load.
   const palettes = {
     // cover amber + teal gameplay + coral accent
     impasse: [[18, 44, 40], [235, 180, 70], [58, 190, 175], [255, 118, 92]],
@@ -32,7 +33,7 @@
     'telegram-insta-bot': [[32, 26, 44], [255, 140, 180], [190, 110, 220], [90, 140, 255]],
     'telegram-youtube': [[36, 22, 28], [255, 120, 120], [255, 70, 90], [145, 186, 255]],
   };
-  const palette = palettes[slug] || [[30, 40, 55], [213, 255, 79], [145, 186, 255], [255, 118, 92]];
+  const palette = window.PROJECTS?.[slug]?.palette || palettes[slug] || [[30, 40, 55], [213, 255, 79], [145, 186, 255], [255, 118, 92]];
 
   // Stable but different light directions per project.
   const lightVariants = [

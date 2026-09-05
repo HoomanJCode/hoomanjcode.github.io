@@ -88,6 +88,52 @@ function createScene() {
   rim.position.set(3, -2, 2);
   scene.add(rim);
 
+  // One small planet per project, orbiting the main planet like a solar
+  // system. Built from the shared project data, so adding or removing a
+  // project automatically adds or removes its satellite, and its color
+  // follows the project's own palette (surface color) like on the project
+  // pages.
+  const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+  const slugs = window.PROJECTS ? Object.keys(window.PROJECTS) : [];
+  const satellites = slugs.map((slug, index) => {
+    const palette = window.PROJECTS[slug]?.palette || [null, [232, 236, 245]];
+    const size = .055 + (index % 5) * .008;
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(size, 16, 12),
+      new THREE.MeshBasicMaterial({ color: palette[1] ? hex(palette[1]) : 0xe8ecf5 })
+    );
+    mesh.userData = {
+      slug,
+      radius: 2.62 + (index % 4) * .26,
+      speed: .16 + (index % 6) * .025,
+      offset: (index / Math.max(1, slugs.length)) * Math.PI * 2,
+      tilt: (index % 3) * .09,
+    };
+    group.add(mesh);
+    return mesh;
+  });
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let hovered = null;
+  const pickSatellite = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const hits = raycaster.intersectObjects(satellites);
+    return hits.length ? hits[0].object : null;
+  };
+  canvas.addEventListener('pointermove', (event) => {
+    const hit = pickSatellite(event);
+    canvas.style.cursor = hit ? 'pointer' : '';
+    hovered = hit;
+  }, { passive: true });
+  canvas.addEventListener('click', (event) => {
+    const hit = pickSatellite(event);
+    if (hit?.userData?.slug) window.location.href = `projects/${hit.userData.slug}/`;
+  });
+
   const resize = () => {
     const width = canvas.clientWidth || window.innerWidth;
     const height = canvas.clientHeight || window.innerHeight;
@@ -135,6 +181,15 @@ function createScene() {
     ring.rotation.z = t * .03 - p * .5;
     ringTwo.rotation.z = -t * .02 + p * .35;
     stars.rotation.y = t * .008 + p * .12;
+    satellites.forEach((satellite) => {
+      const { radius, speed, offset, tilt } = satellite.userData;
+      const angle = t * speed + offset;
+      satellite.position.set(
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius * .42 + tilt,
+        Math.sin(angle) * radius * .12
+      );
+    });
     stars.position.y = -p * 4;
     stars.material.size = .025 + p * .045;
     stars.material.opacity = .8 - p * .25;
