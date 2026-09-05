@@ -4,6 +4,7 @@ const moreWork = document.querySelector('.more-work');
 const workModeLabel = document.querySelector('#workModeLabel');
 const viewMoreLabel = viewMoreButton?.querySelector('.view-more-label');
 const extraProjects = [...projectList?.querySelectorAll('.is-extra') || []];
+const firstRevealed = extraProjects[0];
 
 if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel && extraProjects.length) {
   const setExpanded = (expanded) => {
@@ -16,8 +17,14 @@ if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel 
     moreWork.setAttribute('aria-hidden', String(expanded));
     workModeLabel.textContent = expanded ? 'all projects' : 'selected work';
     viewMoreLabel.textContent = expanded ? 'View less' : 'View more';
-    if (expanded) projectList.after(viewMoreButton);
-    else moreWork.after(viewMoreButton);
+    if (expanded) {
+      projectList.after(viewMoreButton);
+      requestAnimationFrame(() => {
+        firstRevealed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    } else {
+      moreWork.after(viewMoreButton);
+    }
   };
 
   setExpanded(false);
