@@ -31,6 +31,18 @@
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     })();
   </script>
+  <script>
+    // Apply the language and text direction before any CSS paints so the
+    // page never flashes the wrong language. 'lang' in localStorage is
+    // 'en' or 'fa' (defaults to 'en').
+    (function () {
+      var lang = null;
+      try { lang = localStorage.getItem('lang'); } catch (error) {}
+      lang = lang === 'fa' ? 'fa' : 'en';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+    })();
+  </script>
   <link rel="stylesheet" href="../../styles.css">
   <link rel="stylesheet" href="../../project-page.css">
 </head>
@@ -38,7 +50,9 @@
   <div class="grain" aria-hidden="true"></div>
   <div id="projectPage"></div>
   <script src="../../project-data.js"></script>
+  <script src="../../translations.js"></script>
   <script src="../../theme.js" defer></script>
+  <script src="../../lang.js" defer></script>
   <script src="../../project-page.js"></script>
   <script src="../../scripts/detail-orbit.js"></script>
 </body>

@@ -32,6 +32,11 @@ const writeCachedExpanded = (expanded) => {
 };
 
 if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel && extraProjects.length) {
+  const t = (key) => window.I18N?.[document.documentElement.lang === 'fa' ? 'fa' : 'en']?.[key] ?? '';
+  const setLabels = (expanded) => {
+    workModeLabel.textContent = expanded ? t('workModeAll') : t('workModeSelected');
+    viewMoreLabel.textContent = expanded ? t('viewLess') : t('viewMore');
+  };
   // scroll: false on the initial restore so a returning user who left the
   // page expanded is not yanked down to the work section on first paint.
   const setExpanded = (expanded, { scroll = true } = {}) => {
@@ -42,8 +47,7 @@ if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel 
     });
     moreWork.hidden = expanded;
     moreWork.setAttribute('aria-hidden', String(expanded));
-    workModeLabel.textContent = expanded ? 'all projects' : 'selected work';
-    viewMoreLabel.textContent = expanded ? 'View less' : 'View more';
+    setLabels(expanded);
     if (expanded) {
       projectList.after(viewMoreButton);
       if (scroll) {
@@ -62,6 +66,8 @@ if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel 
   };
 
   setExpanded(readCachedExpanded() === true, { scroll: false });
+  // Keep the toggle labels in sync when the language switches.
+  document.addEventListener('langchange', () => setLabels(viewMoreButton.getAttribute('aria-expanded') === 'true'));
   viewMoreButton.addEventListener('click', () => {
     const nextExpanded = viewMoreButton.getAttribute('aria-expanded') !== 'true';
     setExpanded(nextExpanded);
