@@ -11,7 +11,7 @@
     }
     return `<div class="media-fallback ${escapeHtml(media.visual || 'art-generic')}" role="img" aria-label="${escapeHtml(media.alt)}"></div>`;
   };
-  const media = project.media.map((item, index) => `<figure class="detail-media reveal"><div class="detail-media-frame">${visualMarkup(item, index)}<span class="media-number">0${index + 1}</span></div><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join('');
+  const media = project.media.map((item, index) => `<figure class="detail-media reveal"><div class="detail-media-frame">${visualMarkup(item, index)}<button class="detail-media-trigger" type="button" data-media-index="${index}" aria-label="Open ${escapeHtml(item.caption)} in a larger view"></button><span class="media-number">0${index + 1}</span></div><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join('');
   const tags = project.technologies.map((technology) => `<li>${escapeHtml(technology)}</li>`).join('');
   const facts = project.facts.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
   const paragraphs = project.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
@@ -68,4 +68,84 @@
 
   const observer = 'IntersectionObserver' in window ? new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('is-visible')), { threshold: .12 }) : null;
   document.querySelectorAll('.reveal').forEach((element) => observer ? observer.observe(element) : element.classList.add('is-visible'));
+
+  const lightbox = document.createElement('div');
+  lightbox.className = 'media-lightbox';
+  lightbox.hidden = true;
+  lightbox.setAttribute('role', 'dialog');
+  lightbox.setAttribute('aria-modal', 'true');
+  lightbox.setAttribute('aria-labelledby', 'mediaLightboxCaption');
+  lightbox.innerHTML = `<div class="media-lightbox-panel"><button class="media-lightbox-close" type="button" aria-label="Close larger media view">×</button><button class="media-lightbox-nav media-lightbox-prev" type="button" aria-label="Previous project media">←</button><div class="media-lightbox-stage"><img class="media-lightbox-image" alt=""><div class="media-lightbox-art" role="img" aria-hidden="true"></div></div><button class="media-lightbox-nav media-lightbox-next" type="button" aria-label="Next project media">→</button><div class="media-lightbox-meta"><span id="mediaLightboxCaption"></span><span class="media-lightbox-counter" aria-live="polite"></span></div></div>`;
+  document.body.appendChild(lightbox);
+
+  const triggers = [...document.querySelectorAll('.detail-media-trigger')];
+  const closeButton = lightbox.querySelector('.media-lightbox-close');
+  const previousButton = lightbox.querySelector('.media-lightbox-prev');
+  const nextButton = lightbox.querySelector('.media-lightbox-next');
+  const image = lightbox.querySelector('.media-lightbox-image');
+  const artwork = lightbox.querySelector('.media-lightbox-art');
+  const caption = lightbox.querySelector('#mediaLightboxCaption');
+  const counter = lightbox.querySelector('.media-lightbox-counter');
+  let activeIndex = 0;
+  let previouslyFocused = null;
+
+  const showMedia = (index) => {
+    activeIndex = (index + project.media.length) % project.media.length;
+    const item = project.media[activeIndex];
+    const frame = triggers[activeIndex]?.closest('.detail-media-frame');
+    const source = frame?.querySelector('.detail-media-image img');
+    const fallback = frame?.querySelector('.media-fallback');
+    const fallbackClasses = fallback?.className.replace('media-fallback', '').trim() || 'art-generic';
+
+    artwork.className = `media-lightbox-art ${fallbackClasses}`;
+    artwork.setAttribute('aria-label', item.alt || 'Project media');
+    artwork.hidden = Boolean(source && !source.hidden);
+    image.hidden = !source || source.hidden;
+    image.alt = item.alt || '';
+    image.onerror = () => {
+      image.hidden = true;
+      artwork.hidden = false;
+    };
+    if (source && !source.hidden) image.src = source.currentSrc || source.src;
+    caption.textContent = item.caption || '';
+    counter.textContent = `${String(activeIndex + 1).padStart(2, '0')} / ${String(project.media.length).padStart(2, '0')}`;
+  };
+
+  const openLightbox = (index) => {
+    previouslyFocused = document.activeElement;
+    showMedia(index);
+    lightbox.hidden = false;
+    document.body.classList.add('media-lightbox-open');
+    closeButton.focus();
+  };
+  const closeLightbox = () => {
+    lightbox.hidden = true;
+    document.body.classList.remove('media-lightbox-open');
+    image.removeAttribute('src');
+    if (previouslyFocused && typeof previouslyFocused.focus === 'function') previouslyFocused.focus();
+  };
+  triggers.forEach((trigger) => trigger.addEventListener('click', () => openLightbox(Number(trigger.dataset.mediaIndex))));
+  closeButton.addEventListener('click', closeLightbox);
+  previousButton.addEventListener('click', () => showMedia(activeIndex - 1));
+  nextButton.addEventListener('click', () => showMedia(activeIndex + 1));
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightbox.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeLightbox();
+    if (event.key === 'ArrowLeft') showMedia(activeIndex - 1);
+    if (event.key === 'ArrowRight') showMedia(activeIndex + 1);
+    if (event.key === 'Tab') {
+      const focusable = [closeButton, previousButton, nextButton];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  });
 })();
