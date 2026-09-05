@@ -105,7 +105,7 @@ python3 -m http.server 4173
 
 Then open **http://localhost:4173** 🎉
 
-> 📡 *The 3D scene requires an internet connection (loads Three.js from CDN)*
+> 📡 *Three.js is vendored locally (vendor/three), so the 3D scene works offline.*
 
 ---
 
@@ -114,26 +114,35 @@ Then open **http://localhost:4173** 🎉
 ```
 hoomanjcode.github.io/
 │
-├── 🎨 styles/
-│   ├── impasse.css          ← Isometric grid + lily pads
-│   ├── balls-of-chaos.css   ← Physics balls visual
-│   └── fxplanet.css         ← Generative planet ring & sparkles
+├── 🌐 index.html            ← Homepage
+├── 📄 projects/             ← 14 project detail pages
 │
-├── 🚀 scripts/
-│   ├── fxplanet.js          ← Procedural planet generator (280 stars!)
-│   ├── balls-of-chaos.js    ← Real-time physics simulation
+├── 🎨 css/
+│   ├── main.css             ← Global design system (light + dark)
+│   ├── project-page.css     ← Project detail page styles
+│   └── projects/            ← Per-project visuals (impasse, chaos, fxplanet)
+│
+├── ⚡ js/
+│   ├── app.js               ← Homepage logic (scroll, reveals, theme colors)
+│   ├── scene.js             ← Three.js hero planet
+│   ├── project-page.js      ← Project page renderer
+│   ├── theme.js · lang.js   ← Shared theme & language handling
+│   ├── translations.js      ← EN / FA dictionaries
+│   ├── projects.js          ← Homepage project list logic
+│   ├── project-data.js      ← All project content
+│   └── components/          ← Per-project canvas animations
+│
+├── 🛠️ tools/                ← Node build scripts
 │   ├── generate-favicons.js ← SVG → PNG favicon generator
-│   └── generate-og-image.js ← Open Graph image generator
+│   ├── generate-og-image.js ← Open Graph image generator
+│   └── lib/png.js           ← Shared PNG encoder
 │
-├── 🌐 index.html            ← Page structure
-├── 🎨 styles.css            ← Global design system
-├── ⚡ app.js                 ← Scroll, reveals, theme colors
-├── 🌍 scene.js              ← Three.js hero planet
+├── 🖼️ assets/
+│   ├── images/              ← favicons, og-image, map tile
+│   └── projects/            ← Project media
 │
-└── 🖼️ Assets
-    ├── favicon.svg          ← Planet + ring logo
-    ├── og-image.png         ← Social preview card
-    └── site.webmanifest     ← PWA manifest
+├── 📦 vendor/               ← Third-party (fonts, three.js)
+└── 📦 site.webmanifest     ← PWA manifest
 ```
 
 ---
