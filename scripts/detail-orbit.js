@@ -9,6 +9,8 @@
   // canvas.
   let generation = 0;
 
+  const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+
   const start = () => {
     const id = ++generation;
     const canvas = document.querySelector('.detail-orbit-canvas');
@@ -60,25 +62,25 @@
   for (let i = 0; i < slug.length; i += 1) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
   const lights = lightVariants[hash % lightVariants.length];
 
-  const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-
   import('../../vendor/three/three.module.js').then((THREE) => {
     if (id !== generation || !canvas.isConnected) return;
     if (!window.WebGLRenderingContext) return;
     let scene;
     try {
-      scene = buildScene(THREE);
+      scene = buildScene(THREE, canvas, isSmallScreen, palette, lights);
     } catch (error) {
-      // The planet is decorative — skip silently when WebGL is unavailable.
+      // The planet is decorative — skip when WebGL is unavailable.
+      console.warn('Planet artwork skipped:', error);
       return;
     }
-    wireUp(THREE, scene);
-  }).catch(() => {
+    wireUp(THREE, scene, canvas, orbit, reducedMotion);
+  }).catch((error) => {
     // Three.js failed to load — the hero still works without the planet.
+    console.warn('Planet artwork skipped (three.js failed to load):', error);
   });
   };
 
-  function buildScene(THREE) {
+  function buildScene(THREE, canvas, isSmallScreen, palette, lights) {
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -226,7 +228,7 @@
     return { renderer, scene, camera, group, planet, ring, ringTwo, satellites, clock: new THREE.Clock() };
   }
 
-  function wireUp(THREE, handle) {
+  function wireUp(THREE, handle, canvas, orbit, reducedMotion) {
     const { renderer, scene, camera, group, planet, ring, ringTwo, satellites, clock } = handle;
 
     const resize = () => {
