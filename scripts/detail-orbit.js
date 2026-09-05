@@ -4,13 +4,15 @@
   if (!canvas || !slug) return;
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
   const orbit = canvas.closest('.detail-orbit');
   if (!orbit) return;
 
   // Color roles per project: [0] ambient/base tint, [1] planet surface,
   // [2] primary ring, [3] secondary ring. Projects with local cover art or
   // screenshots take their colors from those images; the rest follow their
-  // artwork palette.
+  // artwork palette. Palettes live in the shared project data; the map below
+  // is only a fallback if the data ever fails to load.
   const palettes = {
     // cover amber + teal gameplay + coral accent
     impasse: [[18, 44, 40], [235, 180, 70], [58, 190, 175], [255, 118, 92]],
@@ -32,7 +34,7 @@
     'telegram-insta-bot': [[32, 26, 44], [255, 140, 180], [190, 110, 220], [90, 140, 255]],
     'telegram-youtube': [[36, 22, 28], [255, 120, 120], [255, 70, 90], [145, 186, 255]],
   };
-  const palette = palettes[slug] || [[30, 40, 55], [213, 255, 79], [145, 186, 255], [255, 118, 92]];
+  const palette = window.PROJECTS?.[slug]?.palette || palettes[slug] || [[30, 40, 55], [213, 255, 79], [145, 186, 255], [255, 118, 92]];
 
   // Stable but different light directions per project.
   const lightVariants = [
@@ -112,31 +114,6 @@
     ringTwo.rotation.set(-.25, .7, .4);
     group.add(ringTwo);
 
-    const starCount = 340;
-    const positions = new Float32Array(starCount * 3);
-    const colors = new Float32Array(starCount * 3);
-    const color = new THREE.Color();
-    for (let i = 0; i < starCount; i += 1) {
-      const radius = 3.3 + Math.random() * 5.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      positions[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
-      positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius;
-      positions[i * 3 + 2] = Math.cos(phi) * radius - 2;
-      color.setHSL(Math.random() > .8 ? .18 : .6, .7, .55 + Math.random() * .35);
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-    }
-    const starsGeometry = new THREE.BufferGeometry();
-    starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const stars = new THREE.Points(
-      starsGeometry,
-      new THREE.PointsMaterial({ size: .025, vertexColors: true, transparent: true, opacity: .8, sizeAttenuation: true })
-    );
-    scene.add(stars);
-
     const ambient = new THREE.AmbientLight(hex(palette[0]), 1.5);
     scene.add(ambient);
     const key = new THREE.DirectionalLight(0xd5ffcf, 3.2);
@@ -146,11 +123,98 @@
     rim.position.set(...lights.rim);
     scene.add(rim);
 
-    return { renderer, scene, camera, group, planet, ring, ringTwo, stars, clock: new THREE.Clock() };
+    // Man-made satellites (solar-panel craft with a red beacon) orbit this
+    // project's planet like a GPS fleet. (These are the "satellites" — as
+    // opposed to the homepage, this page has no small orbital planets.) The
+    // count is random per calendar day: a seeded roll between -5 and 5 (any
+    // value below 1 means none today), so each day brings a different fleet
+    // and it never reshuffles on reload.
+    const satellites = [];
+    // Phones skip the satellite fleet for performance — project pages on
+    // small screens keep just the planet and its rings.
+    if (!isSmallScreen) {
+    const satelliteParent = new THREE.Group();
+    group.add(satelliteParent);
+    {
+      const now = new Date();
+      const seedKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${slug}`;
+      let seed = 1779033703 ^ seedKey.length;
+      for (let i = 0; i < seedKey.length; i += 1) {
+        seed = Math.imul(seed ^ seedKey.charCodeAt(i), 3432918353);
+        seed = (seed << 13) | (seed >>> 19);
+      }
+      const rand = () => {
+        seed = Math.imul(seed ^ (seed >>> 16), 2246822507);
+        seed = Math.imul(seed ^ (seed >>> 13), 3266489909);
+        seed ^= seed >>> 16;
+        return (seed >>> 0) / 4294967296;
+      };
+      const roll = Math.floor(rand() * 11) - 5; // uniform -5..5
+      const satelliteCount = Math.max(0, roll);
+      if (satelliteCount > 0) {
+        const s = .58;
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xc3ccda, metalness: .6, roughness: .35 });
+        const panelMat = new THREE.MeshStandardMaterial({ color: 0x1e3a63, metalness: .35, roughness: .5 });
+        const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff5540 });
+        for (let i = 0; i < satelliteCount; i += 1) {
+          // Each satellite orbits in its own tilted plane, like a fleet.
+          const plane = new THREE.Group();
+          plane.rotation.x = (rand() - .5) * 1.1;
+          plane.rotation.y = rand() * Math.PI * 2;
+          plane.rotation.z = (rand() - .5) * .6;
+          satelliteParent.add(plane);
+
+          const craft = new THREE.Group();
+          const body = new THREE.Mesh(
+            new THREE.BoxGeometry(s * .03, s * .035, s * .05),
+            bodyMat
+          );
+          craft.add(body);
+          const wingL = new THREE.Mesh(
+            new THREE.BoxGeometry(s * .08, s * .004, s * .045),
+            panelMat
+          );
+          wingL.position.x = -s * .055;
+          craft.add(wingL);
+          const wingR = new THREE.Mesh(
+            new THREE.BoxGeometry(s * .08, s * .004, s * .045),
+            panelMat
+          );
+          wingR.position.x = s * .055;
+          craft.add(wingR);
+          const beacon = new THREE.Mesh(
+            new THREE.SphereGeometry(s * .012, 6, 6),
+            beaconMat
+          );
+          beacon.position.y = s * .035;
+          craft.add(beacon);
+          craft.rotation.x = (rand() - .5) * .7;
+          craft.rotation.z = (rand() - .5) * .4;
+          plane.add(craft);
+
+          const phase = rand() * Math.PI * 2;
+          // Spread the fleet between the planet's atmosphere and the first big
+          // decorative ring, with a touch of jitter so they're not uniform.
+          const spread = satelliteCount > 1 ? i / (satelliteCount - 1) : .5;
+          const radius = .95 + (1.95 - .95) * spread + (rand() - .5) * .03;
+          const angle = phase;
+          craft.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+          satellites.push({
+            craft,
+            radius,
+            speed: (.05 + rand() * .11) * (rand() < .5 ? -1 : 1),
+            phase,
+          });
+        }
+      }
+    }
+    }
+
+    return { renderer, scene, camera, group, planet, ring, ringTwo, satellites, clock: new THREE.Clock() };
   }
 
   function wireUp(THREE, handle) {
-    const { renderer, scene, camera, group, planet, ring, ringTwo, stars, clock } = handle;
+    const { renderer, scene, camera, group, planet, ring, ringTwo, satellites, clock } = handle;
 
     const resize = () => {
       const width = canvas.clientWidth || orbit.clientWidth;
@@ -163,20 +227,71 @@
     window.addEventListener('resize', resize, { passive: true });
     resize();
 
+    // Like the homepage hero, the planet can be turned by dragging, with a
+    // little momentum so it keeps coasting after release.
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    let yawVel = 0;
+    let pitchVel = 0;
+    const clampPitch = (v) => Math.max(-1.1, Math.min(1.1, v));
+    canvas.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      canvas.setPointerCapture?.(event.pointerId);
+    });
+    canvas.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      yawVel += dx * .0022;
+      pitchVel += dy * .0016;
+      yawVel *= .93;
+      pitchVel *= .93;
+      canvas.style.cursor = 'grabbing';
+    }, { passive: true });
+    const endDrag = () => {
+      dragging = false;
+      canvas.style.cursor = '';
+    };
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+
     let isVisible = true;
     let isPageVisible = !document.hidden;
     let animationFrame = 0;
+    let lastFrame = performance.now();
+    let userYaw = 0;
+    let userPitch = 0;
 
     const render = () => {
       animationFrame = 0;
       if (!isVisible || !isPageVisible) return;
+      const now = performance.now();
+      const dt = Math.min(.05, Math.max(0, (now - lastFrame) / 1000)) || 1 / 60;
+      lastFrame = now;
       const t = clock.getElapsedTime();
-      group.rotation.y = t * .09;
-      group.rotation.x = Math.sin(t * .17) * .08;
+      // Momentum: decay gently when released, lightly while dragged.
+      const damping = dragging ? Math.pow(.97, dt * 60) : Math.pow(.992, dt * 60);
+      yawVel *= damping;
+      pitchVel *= damping;
+      // Integrate the drag velocity into a persistent offset on top of the
+      // idle spin, so it keeps coasting a moment after release.
+      userYaw += yawVel * dt;
+      userPitch += pitchVel * dt;
+      group.rotation.y = t * .09 + userYaw;
+      group.rotation.x = Math.sin(t * .17) * .08 + clampPitch(userPitch);
       planet.rotation.y = t * .12;
       ring.rotation.z = t * .03;
       ringTwo.rotation.z = -t * .02;
-      stars.rotation.y = t * .008;
+      satellites.forEach((satellite) => {
+        const angle = t * satellite.speed + satellite.phase;
+        satellite.craft.position.set(Math.cos(angle) * satellite.radius, 0, Math.sin(angle) * satellite.radius);
+        satellite.craft.rotation.y = t * .6 + satellite.phase;
+      });
       group.position.y = Math.sin(t * .35) * .08;
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(render);
