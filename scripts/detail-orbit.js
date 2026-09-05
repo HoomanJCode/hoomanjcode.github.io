@@ -112,31 +112,6 @@
     ringTwo.rotation.set(-.25, .7, .4);
     group.add(ringTwo);
 
-    const starCount = 340;
-    const positions = new Float32Array(starCount * 3);
-    const colors = new Float32Array(starCount * 3);
-    const color = new THREE.Color();
-    for (let i = 0; i < starCount; i += 1) {
-      const radius = 3.3 + Math.random() * 5.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      positions[i * 3] = Math.sin(phi) * Math.cos(theta) * radius;
-      positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * radius;
-      positions[i * 3 + 2] = Math.cos(phi) * radius - 2;
-      color.setHSL(Math.random() > .8 ? .18 : .6, .7, .55 + Math.random() * .35);
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-    }
-    const starsGeometry = new THREE.BufferGeometry();
-    starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const stars = new THREE.Points(
-      starsGeometry,
-      new THREE.PointsMaterial({ size: .025, vertexColors: true, transparent: true, opacity: .8, sizeAttenuation: true })
-    );
-    scene.add(stars);
-
     const ambient = new THREE.AmbientLight(hex(palette[0]), 1.5);
     scene.add(ambient);
     const key = new THREE.DirectionalLight(0xd5ffcf, 3.2);
@@ -146,11 +121,11 @@
     rim.position.set(...lights.rim);
     scene.add(rim);
 
-    return { renderer, scene, camera, group, planet, ring, ringTwo, stars, clock: new THREE.Clock() };
+    return { renderer, scene, camera, group, planet, ring, ringTwo, clock: new THREE.Clock() };
   }
 
   function wireUp(THREE, handle) {
-    const { renderer, scene, camera, group, planet, ring, ringTwo, stars, clock } = handle;
+    const { renderer, scene, camera, group, planet, ring, ringTwo, clock } = handle;
 
     const resize = () => {
       const width = canvas.clientWidth || orbit.clientWidth;
@@ -176,7 +151,6 @@
       planet.rotation.y = t * .12;
       ring.rotation.z = t * .03;
       ringTwo.rotation.z = -t * .02;
-      stars.rotation.y = t * .008;
       group.position.y = Math.sin(t * .35) * .08;
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(render);
