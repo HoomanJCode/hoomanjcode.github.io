@@ -364,6 +364,11 @@ function createScene() {
     lastY = event.clientY;
     canvas.setPointerCapture?.(event.pointerId);
   });
+  // A drag on the scene must never trigger the browser's native selection or
+  // drag behavior — otherwise a grab that sweeps over the hero title leaves
+  // blue text highlights behind.
+  canvas.addEventListener('selectstart', (event) => event.preventDefault());
+  canvas.addEventListener('dragstart', (event) => event.preventDefault());
   canvas.addEventListener('pointermove', (event) => {
     if (dragging) {
       const dx = event.clientX - lastX;

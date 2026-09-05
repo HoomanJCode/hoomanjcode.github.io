@@ -241,6 +241,10 @@
       lastY = event.clientY;
       canvas.setPointerCapture?.(event.pointerId);
     });
+    // Same as the homepage: a drag on the planet must never start a native
+    // text selection, which would highlight the hero title in blue.
+    canvas.addEventListener('selectstart', (event) => event.preventDefault());
+    canvas.addEventListener('dragstart', (event) => event.preventDefault());
     canvas.addEventListener('pointermove', (event) => {
       if (!dragging) return;
       const dx = event.clientX - lastX;
