@@ -20,7 +20,11 @@ if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel 
     if (expanded) {
       projectList.after(viewMoreButton);
       requestAnimationFrame(() => {
-        firstRevealed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Stop at the end edge of the last featured row so the grid gap
+        // gives the first newly revealed project breathing room.
+        const rowGap = parseFloat(getComputedStyle(projectList).rowGap) || 0;
+        const firstRowBottom = firstRevealed.getBoundingClientRect().top + window.scrollY - rowGap;
+        window.scrollTo({ top: Math.max(0, firstRowBottom), behavior: 'smooth' });
       });
     } else {
       moreWork.after(viewMoreButton);
