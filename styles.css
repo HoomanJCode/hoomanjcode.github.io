@@ -7,6 +7,7 @@
   --ink: #080a0e;
   --paper: #f0eee8;
   --muted: #9a9b9e;
+  --prose: #d7d8d4;
   --line: rgba(240, 238, 232, .16);
   --acid: #d5ff4f;
   --coral: #ff765c;
@@ -22,6 +23,7 @@ html[data-theme="light"] {
   --ink: #f2f1ec;
   --paper: #16181d;
   --muted: #5f646b;
+  --prose: #3a3f47;
   --line: rgba(22, 24, 29, .14);
   --acid: #5a7a00;
   --coral: #cc4b30;
