@@ -17,6 +17,10 @@
   const paragraphs = project.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
   const storyTitle = (project.storyTitle || ['Rules that', 'make room', 'for feeling.']).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
   const storyKicker = project.storyKicker || 'The work';
+  const techTitle = (project.techTitle || ['Under', 'the', 'hood.']).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
+  const techKicker = project.techKicker || 'Technical notes';
+  const techParagraphs = (project.technical || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
+  const techPoints = (project.techPoints || []).map((point) => `<li>${escapeHtml(point)}</li>`).join('');
   const related = (project.related || []).map((item) => `<a class="detail-related-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer"><span>${escapeHtml(item.type || 'Related')}</span>${escapeHtml(item.label)} <b>↗</b></a>`).join('');
   const canonical = `https://hooman.jlpr.ir/projects/${slug}/`;
 
@@ -61,6 +65,7 @@
       </section>
       <section class="detail-facts" aria-label="Project details"><dl>${facts}</dl><ul class="detail-tags">${tags}</ul></section>
       <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(project.number)} <span>/</span> notes from the build</div><div class="detail-story-grid"><div><p class="eyebrow">${escapeHtml(storyKicker)}</p><h2>${storyTitle}</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
+      ${project.technical ? `<section class="detail-tech" aria-label="Technical breakdown"><div class="detail-section-label">${escapeHtml(project.number)} <span>/</span> under the hood</div><div class="detail-tech-grid"><div><p class="eyebrow">${escapeHtml(techKicker)}</p><h2>${techTitle}</h2></div><div class="detail-prose">${techParagraphs}</div></div>${techPoints ? `<ul class="detail-tech-list">${techPoints}</ul>` : ''}</section>` : ''}
       <section class="detail-gallery" aria-label="Project media"><div class="detail-section-label">Selected media <span>/</span> ${escapeHtml(project.sourceType)}</div><div class="detail-media-grid">${media}</div>${related ? `<div class="detail-related"><div class="detail-section-label">Related <span>/</span> watch & explore</div>${related}</div>` : ''}</section>
       <section class="detail-next"><p class="eyebrow">Keep exploring</p><a href="../../#work">See all projects <span>↗</span></a></section>
     </main>
