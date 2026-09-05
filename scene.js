@@ -251,7 +251,8 @@ function createScene() {
   // with heavy inertia: the body resists quick motion, keeps gliding after you
   // release, and gradually slows — like turning a massive object.
   let dragging = false;
-  let dragMoved = 0;
+  let downX = 0;
+  let downY = 0;
   let lastX = 0;
   let lastY = 0;
   let yawVel = 0;
@@ -259,7 +260,8 @@ function createScene() {
   const clampPitch = (v) => Math.max(-1.1, Math.min(1.1, v));
   canvas.addEventListener('pointerdown', (event) => {
     dragging = true;
-    dragMoved = 0;
+    downX = event.clientX;
+    downY = event.clientY;
     lastX = event.clientX;
     lastY = event.clientY;
     canvas.setPointerCapture?.(event.pointerId);
@@ -268,7 +270,6 @@ function createScene() {
     if (dragging) {
       const dx = event.clientX - lastX;
       const dy = event.clientY - lastY;
-      dragMoved += Math.abs(dx) + Math.abs(dy);
       lastX = event.clientX;
       lastY = event.clientY;
       // Impulse from the pointer: still softened so it never snaps, but
@@ -293,7 +294,10 @@ function createScene() {
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
   canvas.addEventListener('click', (event) => {
-    if (dragging || dragMoved > 6) return;
+    // A click is a press with (almost) no travel — ignore anything that
+    // actually dragged the scene. Net displacement, not accumulated jitter.
+    const traveled = Math.hypot(event.clientX - downX, event.clientY - downY);
+    if (dragging || traveled > 6) return;
     const hit = pickAt(event.clientX, event.clientY);
     if (hit?.userData?.slug) window.location.href = `projects/${hit.userData.slug}/`;
   });
