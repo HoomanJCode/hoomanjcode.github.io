@@ -33,7 +33,7 @@
     const dark = choice === 'dark' || (choice === 'system' && media.matches);
     root.dataset.theme = dark ? 'dark' : 'light';
     // Keep browser chrome tint in sync on pages without app.js scene colors.
-    if (pageThemeMeta) pageThemeMeta.setAttribute('content', dark ? '#080a0e' : '#f2f1ec');
+    if (pageThemeMeta) pageThemeMeta.setAttribute('content', dark ? '#080a0e' : '#e9e7e0');
     document.dispatchEvent(new CustomEvent('themechange', { detail: { dark } }));
     return dark;
   };

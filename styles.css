@@ -20,10 +20,10 @@
 /* Light palette: the variables flip, so most of the site restyles itself.
    The brighter accents swap for deeper, readable-on-light versions. */
 html[data-theme="light"] {
-  --ink: #f2f1ec;
-  --paper: #16181d;
-  --muted: #5f646b;
-  --prose: #3a3f47;
+  --ink: #e9e7e0;
+  --paper: #26292e;
+  --muted: #6b7179;
+  --prose: #3f444c;
   --line: rgba(22, 24, 29, .14);
   --acid: #5a7a00;
   --coral: #cc4b30;
@@ -57,8 +57,8 @@ a { color: inherit; text-decoration: none; }
 /* Light theme: sections whose backgrounds were hardcoded dark flip to light
    surfaces so the page reads as a coherent light theme. */
 html[data-theme="light"] .statement { background: #e9e7df; color: var(--paper); }
-html[data-theme="light"] .contact { background: #e6e7ea; }
-html[data-theme="light"] .project-list.is-expanded .project-card { background: #ffffff; border-color: rgba(22, 24, 29, .12); }
+html[data-theme="light"] .contact { background: #dfe0e4; }
+html[data-theme="light"] .project-list.is-expanded .project-card { background: #f4f3ee; border-color: rgba(22, 24, 29, .16); }
 /* Persian / RTL: Vazirmatn for connected script, mirrored physical offsets,
    and neutral letter-spacing (tracking breaks the joined Persian letters).
    The font stack falls back to system fonts where Vazirmatn isn't bundled. */

@@ -21,11 +21,11 @@ const setThemeColor = (content) => {
   if (pageTheme) pageTheme.setAttribute('content', content);
 };
 const sceneColors = (dark) => ({
-  hero: dark ? '#07090d' : '#f2f1ec',
+  hero: dark ? '#07090d' : '#e9e7e0',
   statement: '#f0eee8',
-  work: dark ? '#07090d' : '#f2f1ec',
+  work: dark ? '#07090d' : '#e9e7e0',
   about: '#bdcce9',
-  contact: dark ? '#17191e' : '#e6e7ea',
+  contact: dark ? '#17191e' : '#dfe0e4',
 });
 if (loadingTheme && pageTheme) {
   requestAnimationFrame(() => loadingTheme.remove()); // leave the loading tint once painted
