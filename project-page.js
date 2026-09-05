@@ -50,6 +50,11 @@
   document.querySelector('#projectPage').innerHTML = `
     <header class="detail-header">
       <a class="brand" href="../../" aria-label="Hooman Jalalpour home"><span class="brand-mark">HJ</span><span>Hooman<br><b>Jalalpour</b></span></a>
+      <div class="theme-switch" role="group" aria-label="Theme">
+        <button type="button" data-theme-choice="system" aria-pressed="false">System</button>
+        <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+      </div>
       <a class="back-link" href="../../#work">Back to work <span>↗</span></a>
     </header>
     <main>

@@ -100,6 +100,16 @@
   }
   </script>
   <script>document.documentElement.classList.add('js');</script>
+  <script>
+    // Apply the theme before any CSS paints so the page never flashes the
+    // wrong one. 'theme' in localStorage is 'light', 'dark', or 'system'.
+    (function () {
+      var choice = null;
+      try { choice = localStorage.getItem('theme'); } catch (error) {}
+      var dark = choice !== 'light' && choice !== 'dark' ? window.matchMedia('(prefers-color-scheme: dark)').matches : choice === 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    })();
+  </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
   <link rel="alternate icon" href="favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -123,6 +133,11 @@
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
     </nav>
+    <div class="theme-switch" role="group" aria-label="Theme">
+      <button type="button" data-theme-choice="system" aria-pressed="false">System</button>
+      <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+    </div>
     <a class="header-link" href="mailto:hooman.jalalpoor@gmail.com">Let's talk <span>↗</span></a>
   </header>
 
@@ -277,6 +292,7 @@
 
   <footer class="site-footer"><span>© Hooman Jalalpour</span><span>Designed & built with curiosity</span><a href="#top">Back to top ↑</a></footer>
 
+  <script src="theme.js" defer></script>
   <script src="app.js" defer></script>
   <script src="projects.js" defer></script>
   <script src="project-data.js" defer></script>

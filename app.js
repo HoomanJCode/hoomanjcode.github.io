@@ -20,21 +20,25 @@ const pageTheme = document.querySelector('meta[data-meta="theme-color-page"]');
 const setThemeColor = (content) => {
   if (pageTheme) pageTheme.setAttribute('content', content);
 };
-const SCENE_COLORS = {
-  hero: '#07090d',
+const sceneColors = (dark) => ({
+  hero: dark ? '#07090d' : '#f2f1ec',
   statement: '#f0eee8',
-  work: '#07090d',
+  work: dark ? '#07090d' : '#f2f1ec',
   about: '#bdcce9',
-  contact: '#17191e',
-};
+  contact: dark ? '#17191e' : '#e6e7ea',
+});
 if (loadingTheme && pageTheme) {
   requestAnimationFrame(() => loadingTheme.remove()); // leave the loading tint once painted
 }
 const applySceneTheme = (scene) => {
-  if (SCENE_COLORS[scene]) setThemeColor(SCENE_COLORS[scene]);
+  const colors = sceneColors(document.documentElement.dataset.theme !== 'light');
+  if (colors[scene]) setThemeColor(colors[scene]);
 };
 applySceneTheme(document.body.dataset.scene || 'hero');
 window.addEventListener('pageshow', () => {
+  if (document.body.dataset.scene) applySceneTheme(document.body.dataset.scene);
+});
+document.addEventListener('themechange', () => {
   if (document.body.dataset.scene) applySceneTheme(document.body.dataset.scene);
 });
 

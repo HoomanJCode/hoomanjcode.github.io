@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080a0e">
+  <meta name="theme-color" content="#080a0e" data-theme-page>
   <meta name="description" content="A collection of 2,000 unique planets generated from layers of noise and code by Hooman Jalalpour.">
   <meta name="author" content="Hooman Jalalpour">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -21,6 +21,16 @@
   <meta name="twitter:image" content="https://hooman.jlpr.ir/og-image.png?v=2">
   <title>FxPlanet — Hooman Jalalpour</title>
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml" sizes="any">
+  <script>
+    // Apply the theme before any CSS paints so the page never flashes the
+    // wrong one. 'theme' in localStorage is 'light', 'dark', or 'system'.
+    (function () {
+      var choice = null;
+      try { choice = localStorage.getItem('theme'); } catch (error) {}
+      var dark = choice !== 'light' && choice !== 'dark' ? window.matchMedia('(prefers-color-scheme: dark)').matches : choice === 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    })();
+  </script>
   <link rel="stylesheet" href="../../styles.css">
   <link rel="stylesheet" href="../../project-page.css">
 </head>
@@ -28,6 +38,7 @@
   <div class="grain" aria-hidden="true"></div>
   <div id="projectPage"></div>
   <script src="../../project-data.js"></script>
+  <script src="../../theme.js" defer></script>
   <script src="../../project-page.js"></script>
   <script src="../../scripts/detail-orbit.js"></script>
 </body>
