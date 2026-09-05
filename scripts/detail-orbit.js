@@ -7,19 +7,26 @@
   const orbit = canvas.closest('.detail-orbit');
   if (!orbit) return;
 
-  // Curated color roles per project:
-  // [0] ambient/base tint, [1] planet surface, [2] primary ring, [3] secondary ring.
+  // Color roles per project: [0] ambient/base tint, [1] planet surface,
+  // [2] primary ring, [3] secondary ring. Projects with local cover art or
+  // screenshots take their colors from those images; the rest follow their
+  // artwork palette.
   const palettes = {
-    impasse: [[38, 66, 61], [213, 255, 79], [145, 186, 255], [255, 118, 92]],
-    'balls-of-chaos': [[28, 36, 48], [240, 238, 232], [213, 255, 79], [255, 118, 92]],
+    // cover amber + teal gameplay + coral accent
+    impasse: [[18, 44, 40], [235, 180, 70], [58, 190, 175], [255, 118, 92]],
+    // yellow balls, red and acid-green accents from the arena screenshots
+    'balls-of-chaos': [[30, 22, 40], [248, 202, 33], [200, 70, 68], [160, 205, 75]],
     fxplanet: [[42, 74, 128], [143, 190, 255], [213, 190, 120], [83, 175, 140]],
-    'hecs-gravity-sim': [[16, 22, 40], [213, 255, 79], [145, 186, 255], [255, 118, 92]],
-    'rainy-cloud': [[18, 40, 72], [129, 207, 244], [96, 120, 200], [255, 214, 150]],
+    // the capture is grayscale, so a moon-silver surface with its artwork rings
+    'hecs-gravity-sim': [[12, 16, 26], [205, 210, 220], [150, 200, 255], [200, 255, 110]],
+    // muted teal scene with pale-cream light and moss tones from the cover
+    'rainy-cloud': [[22, 38, 32], [86, 146, 120], [225, 221, 175], [112, 142, 84]],
     'concurrent-tools': [[21, 45, 42], [102, 224, 173], [213, 255, 79], [255, 118, 92]],
     'menu-view': [[28, 33, 54], [150, 160, 230], [213, 255, 79], [255, 118, 92]],
     v2portal: [[20, 34, 40], [213, 255, 79], [145, 186, 255], [255, 118, 92]],
     'proxy-tuner': [[30, 38, 52], [160, 190, 240], [120, 150, 190], [213, 255, 79]],
-    'simple-meeting-app': [[18, 42, 48], [85, 200, 190], [213, 255, 79], [90, 130, 230]],
+    // indigo UI with blue and violet accents from the app screens
+    'simple-meeting-app': [[14, 20, 34], [101, 112, 240], [86, 168, 250], [160, 120, 225]],
     'telegram-7z-bot': [[34, 26, 48], [190, 160, 255], [213, 255, 79], [255, 118, 92]],
     'http-tunnel': [[21, 24, 34], [255, 118, 92], [145, 186, 255], [213, 255, 79]],
     'telegram-insta-bot': [[32, 26, 44], [255, 140, 180], [190, 110, 220], [90, 140, 255]],
