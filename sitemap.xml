@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://hooman.jlpr.ir/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
+  <url><loc>https://hooman.jlpr.ir/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/impasse/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/balls-of-chaos/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/fxplanet/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/hecs-gravity-sim/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/rainy-cloud/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/concurrent-tools/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/menu-view/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/v2portal/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/proxy-tuner/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/simple-meeting-app/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/telegram-7z-bot/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/http-tunnel/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/telegram-insta-bot/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hooman.jlpr.ir/projects/telegram-youtube/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>
