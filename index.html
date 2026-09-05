@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ff765c" data-meta="theme-color-loading">
   <meta name="theme-color" content="#07090d" data-meta="theme-color-page" data-theme-scene="hero">
-  <meta name="theme-color" content="#f0eee8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#e9e7e0" media="(prefers-color-scheme: light)">
   <meta name="description" content="Portfolio of Hooman Jalalpour, an indie game programmer and software engineer creating Unity games, generative art, and playful interactive systems.">
   <meta name="author" content="Hooman Jalalpour">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -100,14 +100,36 @@
   }
   </script>
   <script>document.documentElement.classList.add('js');</script>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
-  <link rel="alternate icon" href="favicon-32.png" type="image/png" sizes="32x32">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // Apply the theme before any CSS paints so the page never flashes the
+    // wrong one. 'theme' in localStorage is 'light', 'dark', or 'system'.
+    (function () {
+      var choice = null;
+      try { choice = localStorage.getItem('theme'); } catch (error) {}
+      var dark = choice !== 'light' && choice !== 'dark' ? window.matchMedia('(prefers-color-scheme: dark)').matches : choice === 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    })();
+  </script>
+  <script>
+    // Apply the language and text direction before any CSS paints so the
+    // page never flashes the wrong language. 'lang' in localStorage is
+    // 'en' or 'fa' (defaults to 'en').
+    (function () {
+      var lang = null;
+      try { lang = localStorage.getItem('lang'); } catch (error) {}
+      lang = lang === 'fa' ? 'fa' : 'en';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+    })();
+  </script>
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" sizes="any">
+  <link rel="alternate icon" href="assets/images/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="styles/impasse.css">
-  <link rel="stylesheet" href="styles/balls-of-chaos.css">
-  <link rel="stylesheet" href="styles/fxplanet.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/projects/impasse.css">
+  <link rel="stylesheet" href="css/projects/balls-of-chaos.css">
+  <link rel="stylesheet" href="css/projects/fxplanet.css">
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
@@ -119,107 +141,116 @@
       <span>Hooman<br><b>Jalalpour</b></span>
     </a>
     <nav class="nav" aria-label="Main navigation">
-      <a href="#work">Work</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
+      <a href="#work" data-i18n="nav.work">Work</a>
+      <a href="#about" data-i18n="nav.about">About</a>
+      <a href="#contact" data-i18n="nav.contact">Contact</a>
     </nav>
-    <a class="header-link" href="mailto:hooman.jalalpoor@gmail.com">Let's talk <span>↗</span></a>
+    <div class="theme-switch" role="group" aria-label="Theme">
+      <button type="button" data-theme-choice="system" aria-pressed="false">System</button>
+      <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+    </div>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang-choice="en" aria-pressed="false">EN</button>
+      <button type="button" data-lang-choice="fa" aria-pressed="false">FA</button>
+    </div>
+    <a class="header-link" href="mailto:hooman.jalalpoor@gmail.com"><span data-i18n="header.talk">Let's talk</span> <span>↗</span></a>
   </header>
 
   <main id="top">
     <section class="hero scene-section" data-scene="hero">
       <canvas id="heroCanvas" aria-label="Animated 3D generative planet"></canvas>
       <div class="hero-copy">
-        <p class="eyebrow"><span class="status-dot"></span> Unity game developer · Isfahan / Everywhere</p>
-        <h1>I build <em>worlds</em><br>that stay with you.</h1>
-        <p class="hero-intro">I’m an indie game programmer and software engineer creating Unity and C# games, generative art, and playful interactive systems.</p>
+        <p class="eyebrow"><span class="status-dot"></span> <span data-i18n="hero.eyebrow">Unity game developer · Isfahan / Everywhere</span></p>
+        <h1 data-i18n-html="hero.title">I build <em>worlds</em><br>that stay with you.</h1>
+        <p class="hero-intro" data-i18n="hero.intro">I’m an indie game programmer and software engineer creating Unity and C# games, generative art, and playful interactive systems.</p>
         <div class="hero-actions">
-          <a class="button button-bright" href="#work">Explore the work <span>↓</span></a>
+          <a class="button button-bright" href="#work"><span data-i18n="hero.explore">Explore the work</span> <span>↓</span></a>
           <a class="text-link" href="https://github.com/HoomanJCode" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
         </div>
       </div>
-      <div class="hero-meta meta-left"><span>Scroll down</span><i></i></div>
-      <div class="hero-meta meta-right"><span>01 / 05</span><span>PORTFOLIO 2025</span></div>
+      <div class="hero-meta meta-left"><span data-i18n="hero.scroll">Scroll down</span><i></i></div>
+      <div class="hero-meta meta-right"><span>01 / 05</span><span data-i18n="hero.portfolio">PORTFOLIO 2025</span></div>
     </section>
 
     <section class="statement scene-section" data-scene="statement">
-      <div class="section-number">01 <span>/</span> perspective</div>
+      <div class="section-number">01 <span>/</span> <span data-i18n="stmt.numLabel">perspective</span></div>
       <div class="statement-content reveal">
-        <p class="eyebrow">A practice in curiosity</p>
-        <h2>Technology is my<br><span>raw material.</span></h2>
-        <p class="statement-text">From a single line of code to a whole universe of rules, I look for the point where engineering becomes expression. My work lives between games, systems, and art.</p>
+        <p class="eyebrow" data-i18n="stmt.eyebrow">A practice in curiosity</p>
+        <h2 data-i18n-html="stmt.title">Technology is my<br><span>raw material.</span></h2>
+        <p class="statement-text" data-i18n="stmt.text">From a single line of code to a whole universe of rules, I look for the point where engineering becomes expression. My work lives between games, systems, and art.</p>
       </div>
-      <div class="orbit-label label-a">01 — SYSTEMS</div>
-      <div class="orbit-label label-b">02 — STORIES</div>
-      <div class="orbit-label label-c">03 — WONDER</div>
+      <div class="orbit-label label-a" data-i18n="stmt.labelA">01 — SYSTEMS</div>
+      <div class="orbit-label label-b" data-i18n="stmt.labelB">02 — STORIES</div>
+      <div class="orbit-label label-c" data-i18n="stmt.labelC">03 — WONDER</div>
     </section>
 
     <section class="work scene-section" id="work" data-scene="work">
       <div class="section-number">02 <span>/</span> <span class="section-label" id="workModeLabel">selected work</span></div>
       <div class="work-heading reveal">
-        <p class="eyebrow">Unity games, software tools & generative art</p>
-        <h2>Built with intent.<br><span>Played with feeling.</span></h2>
+        <p class="eyebrow" data-i18n="work.eyebrow">Unity games, software tools & generative art</p>
+        <h2 data-i18n-html="work.title">Built with intent.<br><span>Played with feeling.</span></h2>
       </div>
       <div class="project-list" id="projectList">
         <article class="project-card project-one reveal">
           <div class="project-visual visual-impasse" role="img" aria-label="Abstract isometric grid with a floating pixel core"><div class="impasse-ground"><div class="visual-grid"></div><div class="lily-pad lp-1"></div><div class="lily-pad lp-2"></div><div class="lily-pad lp-3"></div><div class="lily-pad lp-4"></div><div class="lily-pad lp-5"></div></div><div class="pixel-core"></div><span class="visual-caption">HOPE / 01</span></div>
-          <div class="project-info"><p class="project-index">01 · GAME / UNITY</p><h3>Impasse</h3><p>A 2D isometric puzzle-action game about friendship, coordination, and hope. Winner of the Isfahan University Game Dev Camp Final Jam.</p><div class="project-links"><a href="projects/impasse/" class="text-link">Read more <span>↗</span></a><a href="https://hoomanj.itch.io/impasse" class="text-link" target="_blank" rel="noreferrer">Play Impasse <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.impasse.index">01 · GAME / UNITY</p><h3>Impasse</h3><p data-i18n="proj.impasse.desc">A 2D isometric puzzle-action game about friendship, coordination, and hope. Winner of the Isfahan University Game Dev Camp Final Jam.</p><div class="project-links"><a href="projects/impasse/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://hoomanj.itch.io/impasse" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.impasse.play">Play Impasse</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-two reveal">
-          <div class="project-info"><p class="project-index">02 · GAME JAM / ARCADE</p><h3>Balls<br>of Chaos</h3><p>A bullet-hell survival game compressed into 100 seconds of escalating mayhem. Seven days, four creators, one endless swarm.</p><div class="project-links"><a href="projects/balls-of-chaos/" class="text-link">Read more <span>↗</span></a><a href="https://madzaa.itch.io/balls-of-chaos" class="text-link" target="_blank" rel="noreferrer">Play Balls of Chaos <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.balls-of-chaos.index">02 · GAME JAM / ARCADE</p><h3>Balls<br>of Chaos</h3><p data-i18n="proj.balls-of-chaos.desc">A bullet-hell survival game compressed into 100 seconds of escalating mayhem. Seven days, four creators, one endless swarm.</p><div class="project-links"><a href="projects/balls-of-chaos/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://madzaa.itch.io/balls-of-chaos" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.balls-of-chaos.play">Play Balls of Chaos</span> <span>↗</span></a></div></div>
           <div class="project-visual visual-chaos" role="img" aria-label="Abstract composition of chaotic orbiting balls"><div class="chaos-ball ball-one"></div><div class="chaos-ball ball-two"></div><span class="visual-caption">CHAOS / 02</span></div>
         </article>
         <article class="project-card project-three reveal">
           <div class="project-visual visual-planet" role="img" aria-label="Abstract procedurally textured planet with layered noise and a glowing orbital ring"><canvas id="fxPlanetCanvas" class="planet-texture" aria-label="Click to generate a new procedurally generated abstract planet texture"></canvas><div class="planet-ring"></div><div class="planet-spark spark-one"></div><div class="planet-spark spark-two"></div><span class="visual-caption">GENERATIVE / 03</span></div>
-          <div class="project-info"><p class="project-index">03 · GENERATIVE ART / FXHASH</p><h3>FxPlanet</h3><p>Two thousand unique planets generated from layers of noise, code, and a little cosmic patience. An interactive NFT collection on Tezos.</p><div class="project-links"><a href="projects/fxplanet/" class="text-link">Read more <span>↗</span></a><a href="https://www.fxhash.xyz/generative/slug/fxplanet" class="text-link" target="_blank" rel="noreferrer">View FxPlanet <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.fxplanet.index">03 · GENERATIVE ART / FXHASH</p><h3>FxPlanet</h3><p data-i18n="proj.fxplanet.desc">Two thousand unique planets generated from layers of noise, code, and a little cosmic patience. An interactive NFT collection on Tezos.</p><div class="project-links"><a href="projects/fxplanet/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://www.fxhash.xyz/generative/slug/fxplanet" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.fxplanet.view">View FxPlanet</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-gravity" role="img" aria-label="Interactive gravity simulation with colliding balls"><canvas id="gravityCanvas" aria-label="Interactive gravity simulation. Click empty space to add a ball, or click a ball to remove it. Maximum ten balls."></canvas><span class="visual-caption">SIMULATION / 04 · CLICK TO PLAY</span></div>
-          <div class="project-info"><p class="project-index">04 · SIMULATION / UNITY ECS</p><h3>HEcsGravitySim</h3><p>A gravity simulation designed with Unity ECS, exploring orbital motion, forces, and interactive systems in C#.</p><div class="project-links"><a href="projects/hecs-gravity-sim/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/HEcsGravitySim" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.hecs-gravity-sim.index">04 · SIMULATION / UNITY ECS</p><h3>HEcsGravitySim</h3><p data-i18n="proj.hecs-gravity-sim.desc">A gravity simulation designed with Unity ECS, exploring orbital motion, forces, and interactive systems in C#.</p><div class="project-links"><a href="projects/hecs-gravity-sim/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/HEcsGravitySim" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-rainy" role="img" aria-label="Rainy Cloud game title artwork"><img src="assets/projects/rainy-cloud/cover.jpg" alt="Rainy Cloud game title artwork"><span class="visual-caption">PUZZLE / 05 · RAINY CLOUD</span></div>
-          <div class="project-info"><p class="project-index">05 · GAME / PUZZLE</p><h3>Rainy Cloud</h3><p>A 2D puzzle game about a little girl and a magical fox escaping a flood by building a boat.</p><div class="project-links"><a href="projects/rainy-cloud/" class="text-link">Read more <span>↗</span></a><a href="https://hoomanj.itch.io/rainy-cloud" class="text-link" target="_blank" rel="noreferrer">Play Rainy Cloud <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.rainy-cloud.index">05 · GAME / PUZZLE</p><h3>Rainy Cloud</h3><p data-i18n="proj.rainy-cloud.desc">A 2D puzzle game about a little girl and a magical fox escaping a flood by building a boat.</p><div class="project-links"><a href="projects/rainy-cloud/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://hoomanj.itch.io/rainy-cloud" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.rainy-cloud.play">Play Rainy Cloud</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-tools" role="img" aria-label="Generated modular blocks representing developer tools"><span class="visual-caption">TOOLS / 06</span></div>
-          <div class="project-info"><p class="project-index">06 · UNITY PACKAGE / C#</p><h3>ConcurrentTools</h3><p>A reusable software toolkit exploring concurrent workflows and practical utilities for game development.</p><div class="project-links"><a href="projects/concurrent-tools/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/ConcurrentTools-Package" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.concurrent-tools.index">06 · UNITY PACKAGE / C#</p><h3>ConcurrentTools</h3><p data-i18n="proj.concurrent-tools.desc">A reusable software toolkit exploring concurrent workflows and practical utilities for game development.</p><div class="project-links"><a href="projects/concurrent-tools/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/ConcurrentTools-Package" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-menu" role="img" aria-label="Generated interface panels representing a menu system"><span class="visual-caption">INTERFACE / 07</span></div>
-          <div class="project-info"><p class="project-index">07 · UNITY PACKAGE / UI</p><h3>MenuView</h3><p>A focused Unity UI package for composing menu views and navigation flows with less repeated setup.</p><div class="project-links"><a href="projects/menu-view/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/MenuView-Package" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.menu-view.index">07 · UNITY PACKAGE / UI</p><h3>MenuView</h3><p data-i18n="proj.menu-view.desc">A focused Unity UI package for composing menu views and navigation flows with less repeated setup.</p><div class="project-links"><a href="projects/menu-view/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/MenuView-Package" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-portal" role="img" aria-label="Animated V2Portal network routing clients through inbound and outbound proxies"><canvas id="v2PortalCanvas" class="routing-canvas" aria-label="V2Portal routing animation showing client traffic distributed from inbound proxies across outbound proxies."></canvas></div>
-          <div class="project-info"><p class="project-index">08 · SOFTWARE / NETWORKING</p><h3>V2Portal</h3><p>A software experiment around portals, routing, and the space between connected systems.</p><div class="project-links"><a href="projects/v2portal/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/V2Portal" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.v2portal.index">08 · SOFTWARE / NETWORKING</p><h3>V2Portal</h3><p data-i18n="proj.v2portal.desc">A software experiment around portals, routing, and the space between connected systems.</p><div class="project-links"><a href="projects/v2portal/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/V2Portal" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-proxy" role="img" aria-label="Animated ProxyTuner routing one client through a distributor to multiple outbound proxies"><canvas id="proxyTunerCanvas" class="routing-canvas" aria-label="ProxyTuner routing animation showing one client sending traffic through a distributor across multiple outbound proxies."></canvas></div>
-          <div class="project-info"><p class="project-index">09 · SOFTWARE / NETWORKING</p><h3>ProxyTuner</h3><p>A lightweight utility for configuring and tuning proxy connections during network experiments.</p><div class="project-links"><a href="projects/proxy-tuner/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/ProxyTuner" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.proxy-tuner.index">09 · SOFTWARE / NETWORKING</p><h3>ProxyTuner</h3><p data-i18n="proj.proxy-tuner.desc">A lightweight utility for configuring and tuning proxy connections during network experiments.</p><div class="project-links"><a href="projects/proxy-tuner/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/ProxyTuner" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
-          <div class="project-visual project-thumb visual-meeting" role="img" aria-label="OpenStreetMap map of London showing multiple people locations"><div class="meeting-map" aria-hidden="true"><img src="assets/london-map-tile.png" alt="" loading="lazy" decoding="async" ><span class="map-pin map-pin-one"><i></i></span><span class="map-pin map-pin-two"><i></i></span><span class="map-pin map-pin-three"><i></i></span><span class="map-pin map-pin-four"><i></i></span><span class="map-pin map-pin-five"><i></i></span><small class="map-attribution">© OpenStreetMap contributors</small></div><span class="visual-caption">WEB APP / 10 · PEOPLE MAP</span></div>
-          <div class="project-info"><p class="project-index">10 · WEB APP / SOFTWARE</p><h3>Simple Meeting App</h3><p>A straightforward meeting application experiment for scheduling and joining online sessions.</p><div class="project-links"><a href="projects/simple-meeting-app/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/SimpleMeetingApp" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-visual project-thumb visual-meeting" role="img" aria-label="OpenStreetMap map of London showing multiple people locations"><div class="meeting-map" aria-hidden="true"><img src="assets/images/london-map-tile.png" alt="" loading="lazy" decoding="async" ><span class="map-pin map-pin-one"><i></i></span><span class="map-pin map-pin-two"><i></i></span><span class="map-pin map-pin-three"><i></i></span><span class="map-pin map-pin-four"><i></i></span><span class="map-pin map-pin-five"><i></i></span><small class="map-attribution">© OpenStreetMap contributors</small></div><span class="visual-caption">WEB APP / 10 · PEOPLE MAP</span></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.simple-meeting-app.index">10 · WEB APP / SOFTWARE</p><h3>Simple Meeting App</h3><p data-i18n="proj.simple-meeting-app.desc">A straightforward meeting application experiment for scheduling and joining online sessions.</p><div class="project-links"><a href="projects/simple-meeting-app/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/SimpleMeetingApp" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-archive" role="img" aria-label="Generated archive blocks representing a Telegram 7z bot"><span class="visual-caption">BOT / 11</span></div>
-          <div class="project-info"><p class="project-index">11 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram 7z Bot</h3><p>A Telegram bot experiment for handling 7z archive workflows through a chat interface.</p><div class="project-links"><a href="projects/telegram-7z-bot/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/Telegram_7z_Bot" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.telegram-7z-bot.index">11 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram 7z Bot</h3><p data-i18n="proj.telegram-7z-bot.desc">A Telegram bot experiment for handling 7z archive workflows through a chat interface.</p><div class="project-links"><a href="projects/telegram-7z-bot/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/Telegram_7z_Bot" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-tunnel" role="img" aria-label="Animated HTTP Tunnel request and webpage response between a user and server"><canvas id="httpTunnelCanvas" class="routing-canvas" aria-label="HTTP Tunnel animation showing a user sending a POST request to a server and receiving a webpage response."></canvas></div>
-          <div class="project-info"><p class="project-index">12 · NETWORKING / HTTP</p><h3>Http-Tunnel</h3><p>A lightweight networking tool for routing HTTP traffic through a tunnel.</p><div class="project-links"><a href="projects/http-tunnel/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/Http-Tunnel" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.http-tunnel.index">12 · NETWORKING / HTTP</p><h3>Http-Tunnel</h3><p data-i18n="proj.http-tunnel.desc">A lightweight networking tool for routing HTTP traffic through a tunnel.</p><div class="project-links"><a href="projects/http-tunnel/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/Http-Tunnel" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-instagram" role="img" aria-label="Instagram sending content to Telegram and then to a client"><canvas id="instagramBotCanvas" class="social-bot-canvas" aria-label="Instagram Telegram bot routing animation: Instagram sends content to Telegram, which sends it to a client."></canvas></div>
-          <div class="project-info"><p class="project-index">13 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram Insta Bot</h3><p>A Telegram automation bot experiment for working with Instagram content.</p><div class="project-links"><a href="projects/telegram-insta-bot/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.telegram-insta-bot.index">13 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram Insta Bot</h3><p data-i18n="proj.telegram-insta-bot.desc">A Telegram automation bot experiment for working with Instagram content.</p><div class="project-links"><a href="projects/telegram-insta-bot/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/Telegram_Insta_Bot" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
         <article class="project-card project-extra is-extra reveal" hidden>
           <div class="project-visual project-thumb visual-youtube" role="img" aria-label="YouTube sending content to Telegram and then to a client"><canvas id="youtubeBotCanvas" class="social-bot-canvas" aria-label="YouTube Telegram bot routing animation: YouTube sends content to Telegram, which sends it to a client."></canvas></div>
-          <div class="project-info"><p class="project-index">14 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram YouTube</h3><p>A Telegram automation bot experiment for working with YouTube content.</p><div class="project-links"><a href="projects/telegram-youtube/" class="text-link">Read more <span>↗</span></a><a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" class="text-link" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div>
+          <div class="project-info"><p class="project-index" data-i18n="proj.telegram-youtube.index">14 · TELEGRAM BOT / AUTOMATION</p><h3>Telegram YouTube</h3><p data-i18n="proj.telegram-youtube.desc">A Telegram automation bot experiment for working with YouTube content.</p><div class="project-links"><a href="projects/telegram-youtube/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a><a href="https://github.com/HoomanJCode/Telegram_Yt_Bot" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.viewGithub">View on GitHub</span> <span>↗</span></a></div></div>
         </article>
       </div>
       <div class="more-work">
-        <div class="archive-heading"><span>Other projects</span><p>More experiments, tools, and playable worlds</p></div>
+        <div class="archive-heading"><span data-i18n="more.title">Other projects</span><p data-i18n="more.sub">More experiments, tools, and playable worlds</p></div>
         <div class="archive-ticker" data-ticker aria-label="Other projects">
           <div class="ticker-row ticker-row-forward" data-ticker-row>
             <div class="ticker-track">
@@ -261,35 +292,38 @@
     </section>
 
     <section class="about scene-section" id="about" data-scene="about">
-      <div class="section-number">03 <span>/</span> the human behind it</div>
+      <div class="section-number">03 <span>/</span> <span data-i18n="about.numLabel">the human behind it</span></div>
       <div class="about-layout">
-        <div class="about-title reveal"><p class="eyebrow">A little context</p><h2>Hi, I'm<br><em>Hooman.</em></h2><div class="portrait-orbit"><div class="portrait-sphere">HJ</div><div class="portrait-ring ring-one"></div><div class="portrait-ring ring-two"></div></div></div>
-        <div class="about-copy reveal"><p class="large-copy">I’m an indie game developer, software engineer, and generative artist with a deep passion for storytelling, creativity, and innovation.</p><p>My journey has taken me from game jams and award-winning prototypes to procedural art and research. I specialize in Unity and C#, while constantly exploring the space where code can make people feel something.</p><p>I hold a Master’s degree in Computer Software Engineering, and my focus is game development. My most recent role was as a game project manager, keeping teams and builds on track from prototype to ship.</p><div class="facts"><div><b>Unity / C#</b><span>game development</span></div><div><b>JS / p5.js</b><span>generative systems</span></div><div><b>MA software eng.</b><span>research & learning</span></div></div></div>
+        <div class="about-title reveal"><p class="eyebrow" data-i18n="about.eyebrow">A little context</p><h2 data-i18n-html="about.title">Hi, I'm<br><em>Hooman.</em></h2><div class="portrait-orbit"><div class="portrait-sphere">HJ</div><div class="portrait-ring ring-one"></div><div class="portrait-ring ring-two"></div></div></div>
+        <div class="about-copy reveal"><p class="large-copy" data-i18n="about.intro">I’m an indie game developer, software engineer, and generative artist with a deep passion for storytelling, creativity, and innovation.</p><p data-i18n="about.p1">My journey has taken me from game jams and award-winning prototypes to procedural art and research. I specialize in Unity and C#, while constantly exploring the space where code can make people feel something.</p><p data-i18n="about.p2">I hold a Master’s degree in Computer Software Engineering, and my focus is game development. My most recent role was as a game project manager, keeping teams and builds on track from prototype to ship.</p><div class="facts"><div><b data-i18n="about.fact1b">Unity / C#</b><span data-i18n="about.fact1s">game development</span></div><div><b data-i18n="about.fact2b">JS / p5.js</b><span data-i18n="about.fact2s">generative systems</span></div><div><b data-i18n="about.fact3b">MA software eng.</b><span data-i18n="about.fact3s">research & learning</span></div></div></div>
       </div>
     </section>
 
     <section class="contact scene-section" id="contact" data-scene="contact">
-      <div class="section-number">04 <span>/</span> make something</div>
-      <div class="contact-inner reveal"><p class="eyebrow">Have an idea?</p><h2>Let’s make<br><em>the strange</em> real.</h2><a class="contact-email" href="mailto:hooman.jalalpoor@gmail.com">hooman.jalalpoor@gmail.com <span>↗</span></a><div class="socials"><a href="https://github.com/HoomanJCode" target="_blank" rel="noreferrer">GitHub</a><a href="https://www.linkedin.com/in/hooman-jalalpoor/" target="_blank" rel="noreferrer">LinkedIn</a><a href="https://hoomanj.itch.io/" target="_blank" rel="noreferrer">itch.io</a><a href="https://www.fxhash.xyz/u/Parallax%20Rendering" target="_blank" rel="noreferrer">fxhash</a></div></div>
+      <div class="section-number">04 <span>/</span> <span data-i18n="contact.numLabel">make something</span></div>
+      <div class="contact-inner reveal"><p class="eyebrow" data-i18n="contact.eyebrow">Have an idea?</p><h2 data-i18n-html="contact.title">Let’s make<br><em>the strange</em> real.</h2><a class="contact-email" href="mailto:hooman.jalalpoor@gmail.com">hooman.jalalpoor@gmail.com <span>↗</span></a><div class="socials"><a href="https://github.com/HoomanJCode" target="_blank" rel="noreferrer">GitHub</a><a href="https://www.linkedin.com/in/hooman-jalalpoor/" target="_blank" rel="noreferrer">LinkedIn</a><a href="https://hoomanj.itch.io/" target="_blank" rel="noreferrer">itch.io</a><a href="https://www.fxhash.xyz/u/Parallax%20Rendering" target="_blank" rel="noreferrer">fxhash</a></div></div>
       <div class="contact-orbit" aria-hidden="true"><div class="contact-dot"></div><div class="contact-ring"></div></div>
     </section>
   </main>
 
-  <footer class="site-footer"><span>© Hooman Jalalpour</span><span>Designed & built with curiosity</span><a href="#top">Back to top ↑</a></footer>
+  <footer class="site-footer"><span>© Hooman Jalalpour</span><span data-i18n="footer.note">Designed & built with curiosity</span><a href="#top"><span data-i18n="footer.top">Back to top</span> ↑</a></footer>
 
-  <script src="app.js" defer></script>
-  <script src="projects.js" defer></script>
-  <script src="project-data.js" defer></script>
-  <script src="scene.js" type="module"></script>
-  <script src="scripts/fxplanet.js" defer></script>
-  <script src="scripts/balls-of-chaos.js" defer></script>
-  <script src="scripts/gravity-sim.js" defer></script>
-  <script src="scripts/social-bots.js" defer></script>
-  <script src="scripts/thumbnail-parallax.js" defer></script>
-  <script src="scripts/v2portal.js" defer></script>
-  <script src="scripts/proxy-tuner.js" defer></script>
-  <script src="scripts/http-tunnel.js" defer></script>
-  <script src="scripts/thumbnail-visibility.js" defer></script>
+  <script src="js/translations.js" defer></script>
+  <script src="js/lang.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/projects.js" defer></script>
+  <script src="js/project-data.js" defer></script>
+  <script src="js/scene.js" type="module"></script>
+  <script src="js/components/fxplanet.js" defer></script>
+  <script src="js/components/balls-of-chaos.js" defer></script>
+  <script src="js/components/gravity-sim.js" defer></script>
+  <script src="js/components/social-bots.js" defer></script>
+  <script src="js/components/thumbnail-parallax.js" defer></script>
+  <script src="js/components/v2portal.js" defer></script>
+  <script src="js/components/proxy-tuner.js" defer></script>
+  <script src="js/components/http-tunnel.js" defer></script>
+  <script src="js/components/thumbnail-visibility.js" defer></script>
   <script>
     // Failsafe: if app.js loaded but failed mid-run, or never loaded at all,
     // force all reveal sections visible after a short grace period so the

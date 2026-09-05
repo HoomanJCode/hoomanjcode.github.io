@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three/three.module.js';
+import * as THREE from '../vendor/three/three.module.js';
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
@@ -187,14 +187,15 @@ function createScene() {
       orbit = mainRingMesh;
     }
 
-    // Lit sphere so shading reveals the planet's 3D form (flat Basic material
-    // made these read as flat circles).
+    // Low-poly icosahedron like the main planet, so the tiny orbiters share
+    // the same faceted character (a smooth sphere broke the visual family).
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(size, 24, 18),
+      new THREE.IcosahedronGeometry(size, 1),
       new THREE.MeshStandardMaterial({
         color: palette[1] ? hex(palette[1]) : 0xe8ecf5,
         roughness: .45,
         metalness: .1,
+        flatShading: true,
       })
     );
     mesh.userData = {
@@ -364,6 +365,11 @@ function createScene() {
     lastY = event.clientY;
     canvas.setPointerCapture?.(event.pointerId);
   });
+  // A drag on the scene must never trigger the browser's native selection or
+  // drag behavior — otherwise a grab that sweeps over the hero title leaves
+  // blue text highlights behind.
+  canvas.addEventListener('selectstart', (event) => event.preventDefault());
+  canvas.addEventListener('dragstart', (event) => event.preventDefault());
   canvas.addEventListener('pointermove', (event) => {
     if (dragging) {
       const dx = event.clientX - lastX;

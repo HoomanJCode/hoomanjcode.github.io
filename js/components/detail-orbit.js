@@ -1,12 +1,25 @@
 (() => {
-  const canvas = document.querySelector('.detail-orbit-canvas');
   const slug = document.body.dataset.project;
-  if (!canvas || !slug) return;
+  if (!slug) return;
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
-  const orbit = canvas.closest('.detail-orbit');
-  if (!orbit) return;
+  // The project page re-renders its content on language change, replacing the
+  // canvas. A generation token abandons any pending import or running loop
+  // from an older render (the old canvas also stops itself via its
+  // IntersectionObserver once detached), then the orbit is rebuilt on the new
+  // canvas.
+  let generation = 0;
+
+  const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+
+  const start = () => {
+    const id = ++generation;
+    const canvas = document.querySelector('.detail-orbit-canvas');
+    if (!canvas) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
+    const orbit = canvas.closest('.detail-orbit');
+    if (!orbit) return;
 
   // Color roles per project: [0] ambient/base tint, [1] planet surface,
   // [2] primary ring, [3] secondary ring. Projects with local cover art or
@@ -49,23 +62,25 @@
   for (let i = 0; i < slug.length; i += 1) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
   const lights = lightVariants[hash % lightVariants.length];
 
-  const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-
   import('../../vendor/three/three.module.js').then((THREE) => {
+    if (id !== generation || !canvas.isConnected) return;
     if (!window.WebGLRenderingContext) return;
     let scene;
     try {
-      scene = buildScene(THREE);
+      scene = buildScene(THREE, canvas, isSmallScreen, palette, lights);
     } catch (error) {
-      // The planet is decorative — skip silently when WebGL is unavailable.
+      // The planet is decorative — skip when WebGL is unavailable.
+      console.warn('Planet artwork skipped:', error);
       return;
     }
-    wireUp(THREE, scene);
-  }).catch(() => {
+    wireUp(THREE, scene, canvas, orbit, reducedMotion);
+  }).catch((error) => {
     // Three.js failed to load — the hero still works without the planet.
+    console.warn('Planet artwork skipped (three.js failed to load):', error);
   });
+  };
 
-  function buildScene(THREE) {
+  function buildScene(THREE, canvas, isSmallScreen, palette, lights) {
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -213,7 +228,7 @@
     return { renderer, scene, camera, group, planet, ring, ringTwo, satellites, clock: new THREE.Clock() };
   }
 
-  function wireUp(THREE, handle) {
+  function wireUp(THREE, handle, canvas, orbit, reducedMotion) {
     const { renderer, scene, camera, group, planet, ring, ringTwo, satellites, clock } = handle;
 
     const resize = () => {
@@ -224,7 +239,11 @@
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
-    window.addEventListener('resize', resize, { passive: true });
+    // Drop the previous render's listener so a language switch (which
+    // rebuilds the canvas) does not pile up stale resize handlers.
+    if (activeResize) window.removeEventListener('resize', activeResize);
+    activeResize = resize;
+    window.addEventListener('resize', activeResize, { passive: true });
     resize();
 
     // Like the homepage hero, the planet can be turned by dragging, with a
@@ -241,6 +260,10 @@
       lastY = event.clientY;
       canvas.setPointerCapture?.(event.pointerId);
     });
+    // Same as the homepage: a drag on the planet must never start a native
+    // text selection, which would highlight the hero title in blue.
+    canvas.addEventListener('selectstart', (event) => event.preventDefault());
+    canvas.addEventListener('dragstart', (event) => event.preventDefault());
     canvas.addEventListener('pointermove', (event) => {
       if (!dragging) return;
       const dx = event.clientX - lastX;
@@ -326,4 +349,8 @@
     }
     requestRender();
   }
+
+  let activeResize = null;
+  start();
+  document.addEventListener('langchange', start);
 })();
