@@ -54,9 +54,10 @@ window.PROJECTS = {
     technologies: ['Unity', 'C#', 'ECS', 'Job System', 'Unity Physics'],
     facts: [['Scale', '1,000 planets'], ['Pattern', 'Data-oriented programming'], ['Focus', 'Multithreaded simulation']],
     source: 'https://github.com/HoomanJCode/HEcsGravitySim', sourceLabel: 'View on GitHub', sourceType: 'GitHub',
+    related: [{ url: 'https://www.aparat.com/v/GpcBv', label: 'Watch rendered video', type: 'Aparat' }],
     image: 'https://opengraph.githubassets.com/1/HoomanJCode/HEcsGravitySim',
     media: [
-      { image: 'https://opengraph.githubassets.com/1/HoomanJCode/HEcsGravitySim', alt: 'HEcsGravitySim GitHub project preview', caption: 'SIMULATION / 04' },
+      { image: '../../assets/projects/hecs-gravity-sim/capture.png', alt: 'HEcsGravitySim Unity screenshot showing a field of simulated planets', caption: 'CAPTURE / 04' },
       { visual: 'art-gravity alt-art', alt: 'Orbital paths representing ECS gravity calculations', caption: 'FORCES / FRAME' }
     ]
   },
@@ -151,8 +152,13 @@ window.PROJECTS = {
     source: 'https://github.com/HoomanJCode/SimpleMeetingApp', sourceLabel: 'View on GitHub', sourceType: 'GitHub',
     image: 'https://opengraph.githubassets.com/1/HoomanJCode/SimpleMeetingApp',
     media: [
-      { image: 'https://opengraph.githubassets.com/1/HoomanJCode/SimpleMeetingApp', alt: 'Simple Meeting App GitHub project preview', caption: 'MEETINGS / 10' },
-      { visual: 'art-meeting alt-art', alt: 'Connected people and meeting rooms', caption: 'REALTIME / ROOMS' }
+      { image: '../../assets/projects/simple-meeting-app/home.png', alt: 'Simple Meeting App home screen with meeting list and filters', caption: 'HOME / 10' },
+      { image: '../../assets/projects/simple-meeting-app/home-dark.png', alt: 'Simple Meeting App home screen in dark mode', caption: 'DARK MODE / 10' },
+      { image: '../../assets/projects/simple-meeting-app/meeting-detail.png', alt: 'Simple Meeting App meeting detail screen with participants', caption: 'MEETING DETAIL / 10' },
+      { image: '../../assets/projects/simple-meeting-app/create-meeting.png', alt: 'Simple Meeting App create meeting form', caption: 'CREATE / 10' },
+      { image: '../../assets/projects/simple-meeting-app/calendar.png', alt: 'Simple Meeting App calendar view', caption: 'CALENDAR / 10' },
+      { image: '../../assets/projects/simple-meeting-app/timeline.png', alt: 'Simple Meeting App event timeline', caption: 'TIMELINE / 10' },
+      { image: '../../assets/projects/simple-meeting-app/my-meetings.png', alt: 'Simple Meeting App my meetings view', caption: 'MY MEETINGS / 10' }
     ]
   },
   'telegram-7z-bot': {
