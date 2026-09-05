@@ -20,11 +20,12 @@ if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel 
     if (expanded) {
       projectList.after(viewMoreButton);
       requestAnimationFrame(() => {
-        // Stop at the end edge of the last featured row so the grid gap
-        // gives the first newly revealed project breathing room.
+        // End the scroll above the first newly revealed project, keeping a
+        // strip of the last featured project visible for context and letting
+        // the grid gap act as margin before the new projects begin.
         const rowGap = parseFloat(getComputedStyle(projectList).rowGap) || 0;
         const firstRowBottom = firstRevealed.getBoundingClientRect().top + window.scrollY - rowGap;
-        window.scrollTo({ top: Math.max(0, firstRowBottom), behavior: 'smooth' });
+        window.scrollTo({ top: Math.max(0, firstRowBottom - 150), behavior: 'smooth' });
       });
     } else {
       moreWork.after(viewMoreButton);
