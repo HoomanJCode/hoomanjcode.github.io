@@ -276,7 +276,9 @@ function createScene() {
       return;
     }
     const hit = pickAt(event.clientX, event.clientY);
-    canvas.style.cursor = hit?.userData?.slug || ringHits.some(({ hit: h }) => h === hit) ? 'pointer' : '';
+    // Only satellites navigate, so only they get the pointer cursor — rings
+    // just highlight, they don't click anywhere.
+    canvas.style.cursor = hit?.userData?.slug ? 'pointer' : '';
     applyHover(hit);
   }, { passive: true });
   const endDrag = () => {
