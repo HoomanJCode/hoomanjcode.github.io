@@ -101,7 +101,7 @@ function createScene() {
   const slugs = window.PROJECTS ? Object.keys(window.PROJECTS) : [];
   // Vertical flattening of the orbit ellipses. Chosen so the closest approach
   // (radius * orbitEllipse) stays well outside the main planet's sphere.
-  const orbitEllipse = .72;
+  const orbitEllipse = .78;
   // Shared ring-plane tilt, echoing the main planet's rings, so the orbits
   // read as rings around the planet instead of flat target circles.
   const orbitGroup = new THREE.Group();
@@ -143,10 +143,15 @@ function createScene() {
     // The first two projects ride the main planet's existing rings (radii
     // 2.12 / 2.43); the rest get their own ring at their own distance.
     const onMainRing = index < 2;
-    const radius = onMainRing ? [2.12, 2.43][index] : 2.62 + (index % 4) * .26;
+    // Unique ring per planet: the first two ride the main rings, the rest get
+    // their own lane spread evenly from 2.62 out to ~3.95, so no two planets
+    // share a ring and every ring has generous air around it.
+    const outerCount = Math.max(1, slugs.length - 2);
+    const step = outerCount > 1 ? 1.33 / (outerCount - 1) : 0;
+    const radius = onMainRing ? [2.12, 2.43][index] : 2.62 + (index - 2) * step;
     const tilt = onMainRing ? 0 : (index % 3) * .09;
     const ellipse = onMainRing ? 1 : orbitEllipse;
-    const size = .055 + (index % 5) * .008;
+    const size = .06 + (index % 5) * .01;
     const parent = onMainRing ? mainRingCarriers[index] : orbitGroup;
 
     let orbit = null;
@@ -167,9 +172,15 @@ function createScene() {
       orbit = mainRingMesh;
     }
 
+    // Lit sphere so shading reveals the planet's 3D form (flat Basic material
+    // made these read as flat circles).
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(size, 16, 12),
-      new THREE.MeshBasicMaterial({ color: palette[1] ? hex(palette[1]) : 0xe8ecf5 })
+      new THREE.SphereGeometry(size, 24, 18),
+      new THREE.MeshStandardMaterial({
+        color: palette[1] ? hex(palette[1]) : 0xe8ecf5,
+        roughness: .45,
+        metalness: .1,
+      })
     );
     mesh.userData = {
       slug,
