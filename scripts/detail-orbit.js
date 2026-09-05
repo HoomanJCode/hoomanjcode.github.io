@@ -74,20 +74,20 @@
     scene.add(group);
 
     const planet = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(1.48, 4),
+      new THREE.IcosahedronGeometry(.58, 4),
       new THREE.MeshStandardMaterial({ color: hex(palette[1]), roughness: .52, metalness: .12, flatShading: true })
     );
     group.add(planet);
 
     const wire = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(1.53, 1),
-      new THREE.MeshBasicMaterial({ color: 0xe8ecf5, wireframe: true, transparent: true, opacity: .22 })
+      new THREE.IcosahedronGeometry(.66, 1),
+      new THREE.MeshBasicMaterial({ color: 0xe8ecf5, wireframe: true, transparent: true, opacity: .2 })
     );
     group.add(wire);
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.63, 24, 16),
-      new THREE.MeshBasicMaterial({ color: hex(palette[1]), transparent: true, opacity: .07, side: THREE.BackSide })
+      new THREE.SphereGeometry(.82, 24, 16),
+      new THREE.MeshBasicMaterial({ color: hex(palette[1]), transparent: true, opacity: .09, side: THREE.BackSide })
     );
     group.add(atmosphere);
 
