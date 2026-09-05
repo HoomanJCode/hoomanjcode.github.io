@@ -266,12 +266,12 @@ function createScene() {
       dragMoved += Math.abs(dx) + Math.abs(dy);
       lastX = event.clientX;
       lastY = event.clientY;
-      // Impulse from the pointer, softened: heavy bodies don't follow the hand
-      // 1:1 — the velocity builds gradually instead of snapping.
-      yawVel += dx * .0011;
-      pitchVel += dy * .0008;
-      yawVel *= .86;
-      pitchVel *= .86;
+      // Impulse from the pointer: still softened so it never snaps, but
+      // responsive enough that the space turns with the hand comfortably.
+      yawVel += dx * .0022;
+      pitchVel += dy * .0016;
+      yawVel *= .93;
+      pitchVel *= .93;
       canvas.style.cursor = 'grabbing';
       return;
     }
@@ -339,9 +339,9 @@ function createScene() {
     lastFrame = now;
     const t = clock.getElapsedTime();
     const p = scrollProgress * scrollProgress * (3 - 2 * scrollProgress);
-    // Heavy momentum: velocities decay slowly when released, faster while
-    // actively dragged, so the space turns with weight instead of snapping.
-    const damping = dragging ? Math.pow(.84, dt * 60) : Math.pow(.985, dt * 60);
+    // Momentum: velocities decay gently when released (so it coasts a little)
+    // and are damped only lightly while dragged, so turning feels easy.
+    const damping = dragging ? Math.pow(.97, dt * 60) : Math.pow(.992, dt * 60);
     yawVel *= damping;
     pitchVel *= damping;
     let yaw = universe.rotation.y + yawVel * dt;
