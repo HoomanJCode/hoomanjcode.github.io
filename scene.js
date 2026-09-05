@@ -92,24 +92,47 @@ function createScene() {
   // system. Built from the shared project data, so adding or removing a
   // project automatically adds or removes its satellite, and its color
   // follows the project's own palette (surface color) like on the project
-  // pages.
+  // pages. Every satellite rides one of the rings around the main planet:
+  // each project gets its own ring at its own distance, all sharing a
+  // ring-plane tilt like the main planet's decorative rings.
   const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
   const slugs = window.PROJECTS ? Object.keys(window.PROJECTS) : [];
+  // Vertical flattening of the orbit ellipses. Chosen so the closest approach
+  // (radius * orbitEllipse) stays well outside the main planet's sphere.
+  const orbitEllipse = .72;
+  // Shared ring-plane tilt, echoing the main planet's rings, so the orbits
+  // read as rings around the planet instead of flat target circles.
+  const orbitGroup = new THREE.Group();
+  orbitGroup.rotation.set(.5, -.3, -.15);
+  group.add(orbitGroup);
+
   const satellites = slugs.map((slug, index) => {
-    const palette = window.PROJECTS[slug]?.palette || [null, [232, 236, 245]];
+    const palette = window.PROJECTS[slug]?.palette || [null, [232, 236, 245], [213, 255, 79], [255, 118, 92]];
+    const radius = 2.62 + (index % 4) * .26;
+    const tilt = (index % 3) * .09;
     const size = .055 + (index % 5) * .008;
+
+    // This project's ring around the main planet, styled like the main rings.
+    const orbit = new THREE.Mesh(
+      new THREE.TorusGeometry(radius, .012, 6, 96),
+      new THREE.MeshBasicMaterial({ color: palette[2] ? hex(palette[2]) : 0x9db4e0, transparent: true, opacity: .3, side: THREE.DoubleSide })
+    );
+    orbit.scale.y = orbitEllipse;
+    orbit.position.y = tilt;
+    orbitGroup.add(orbit);
+
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(size, 16, 12),
       new THREE.MeshBasicMaterial({ color: palette[1] ? hex(palette[1]) : 0xe8ecf5 })
     );
     mesh.userData = {
       slug,
-      radius: 2.62 + (index % 4) * .26,
+      radius,
       speed: .16 + (index % 6) * .025,
       offset: (index / Math.max(1, slugs.length)) * Math.PI * 2,
-      tilt: (index % 3) * .09,
+      tilt,
     };
-    group.add(mesh);
+    orbitGroup.add(mesh);
     return mesh;
   });
 
@@ -186,8 +209,8 @@ function createScene() {
       const angle = t * speed + offset;
       satellite.position.set(
         Math.cos(angle) * radius,
-        Math.sin(angle) * radius * .42 + tilt,
-        Math.sin(angle) * radius * .12
+        Math.sin(angle) * radius * orbitEllipse + tilt,
+        0
       );
     });
     stars.position.y = -p * 4;
