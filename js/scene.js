@@ -187,14 +187,15 @@ function createScene() {
       orbit = mainRingMesh;
     }
 
-    // Lit sphere so shading reveals the planet's 3D form (flat Basic material
-    // made these read as flat circles).
+    // Low-poly icosahedron like the main planet, so the tiny orbiters share
+    // the same faceted character (a smooth sphere broke the visual family).
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(size, 24, 18),
+      new THREE.IcosahedronGeometry(size, 1),
       new THREE.MeshStandardMaterial({
         color: palette[1] ? hex(palette[1]) : 0xe8ecf5,
         roughness: .45,
         metalness: .1,
+        flatShading: true,
       })
     );
     mesh.userData = {
