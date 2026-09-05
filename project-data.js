@@ -10,10 +10,10 @@ window.PROJECTS = {
     facts: [['Type', 'Final jam game'], ['Award', 'Isfahan University Game Dev Camp'], ['Focus', 'Cooperation & hope']],
     source: 'https://hoomanj.itch.io/impasse', sourceLabel: 'Play Impasse', sourceType: 'itch.io',
     media: [
-      { image: '../../assets/projects/impasse/cover.png', alt: 'Impasse cover artwork', caption: 'COVER / 01' },
+      { image: '../../assets/projects/impasse/cover.webp', alt: 'Impasse cover artwork', caption: 'COVER / 01' },
       { image: '../../assets/projects/impasse/gameplay-1.gif', alt: 'Impasse gameplay animation', caption: 'GAMEPLAY / 02' },
       { image: '../../assets/projects/impasse/gameplay-2.gif', alt: 'Impasse gameplay animation', caption: 'GAMEPLAY / 03' },
-      { image: '../../assets/projects/impasse/screen-1.png', alt: 'Impasse in-game screenshot', caption: 'SCREEN / 04' },
+      { image: '../../assets/projects/impasse/screen-1.webp', alt: 'Impasse in-game screenshot', caption: 'SCREEN / 04' },
       { image: '../../assets/projects/impasse/gameplay-3.gif', alt: 'Impasse gameplay animation', caption: 'GAMEPLAY / 05' }
     ]
   },
@@ -30,9 +30,9 @@ window.PROJECTS = {
     media: [
       { image: '../../assets/projects/balls-of-chaos/cover.gif', alt: 'Balls of Chaos animated cover artwork', caption: 'COVER / 01' },
       { image: '../../assets/projects/balls-of-chaos/gameplay-1.gif', alt: 'Balls of Chaos gameplay animation', caption: 'GAMEPLAY / 02' },
-      { image: '../../assets/projects/balls-of-chaos/screen-1.png', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 03' },
-      { image: '../../assets/projects/balls-of-chaos/screen-2.png', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 04' },
-      { image: '../../assets/projects/balls-of-chaos/screen-3.png', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 05' }
+      { image: '../../assets/projects/balls-of-chaos/screen-1.webp', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 03' },
+      { image: '../../assets/projects/balls-of-chaos/screen-2.webp', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 04' },
+      { image: '../../assets/projects/balls-of-chaos/screen-3.webp', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 05' }
     ]
   },
   fxplanet: {
@@ -63,7 +63,7 @@ window.PROJECTS = {
     related: [{ url: 'https://www.aparat.com/v/GpcBv', label: 'Watch rendered video', type: 'Aparat' }],
     image: 'https://opengraph.githubassets.com/1/HoomanJCode/HEcsGravitySim',
     media: [
-      { image: '../../assets/projects/hecs-gravity-sim/capture.png', alt: 'HEcsGravitySim Unity screenshot showing a field of simulated planets', caption: 'CAPTURE / 04' },
+      { image: '../../assets/projects/hecs-gravity-sim/capture.webp', alt: 'HEcsGravitySim Unity screenshot showing a field of simulated planets', caption: 'CAPTURE / 04' },
       { visual: 'art-gravity alt-art', alt: 'Orbital paths representing ECS gravity calculations', caption: 'FORCES / FRAME' }
     ]
   },
@@ -79,12 +79,12 @@ window.PROJECTS = {
     source: 'https://hoomanj.itch.io/rainy-cloud', sourceLabel: 'Play Rainy Cloud', sourceType: 'itch.io',
     media: [
       { image: '../../assets/projects/rainy-cloud/cover.jpg', alt: 'Rainy Cloud game title artwork', caption: 'COVER / 01' },
-      { image: '../../assets/projects/rainy-cloud/screen-1.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 02' },
-      { image: '../../assets/projects/rainy-cloud/screen-2.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 03' },
-      { image: '../../assets/projects/rainy-cloud/screen-3.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 04' },
-      { image: '../../assets/projects/rainy-cloud/screen-4.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 05' },
-      { image: '../../assets/projects/rainy-cloud/screen-5.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 06' },
-      { image: '../../assets/projects/rainy-cloud/screen-6.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 07' }
+      { image: '../../assets/projects/rainy-cloud/screen-1.webp', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 02' },
+      { image: '../../assets/projects/rainy-cloud/screen-2.webp', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 03' },
+      { image: '../../assets/projects/rainy-cloud/screen-3.webp', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 04' },
+      { image: '../../assets/projects/rainy-cloud/screen-4.webp', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 05' },
+      { image: '../../assets/projects/rainy-cloud/screen-5.webp', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 06' },
+      { image: '../../assets/projects/rainy-cloud/screen-6.webp', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 07' }
     ]
   },
   'concurrent-tools': {
@@ -163,13 +163,13 @@ window.PROJECTS = {
     source: 'https://github.com/HoomanJCode/SimpleMeetingApp', sourceLabel: 'View on GitHub', sourceType: 'GitHub',
     image: 'https://opengraph.githubassets.com/1/HoomanJCode/SimpleMeetingApp',
     media: [
-      { image: '../../assets/projects/simple-meeting-app/home.png', alt: 'Simple Meeting App home screen with meeting list and filters', caption: 'HOME / 10' },
-      { image: '../../assets/projects/simple-meeting-app/home-dark.png', alt: 'Simple Meeting App home screen in dark mode', caption: 'DARK MODE / 10' },
-      { image: '../../assets/projects/simple-meeting-app/meeting-detail.png', alt: 'Simple Meeting App meeting detail screen with participants', caption: 'MEETING DETAIL / 10' },
-      { image: '../../assets/projects/simple-meeting-app/create-meeting.png', alt: 'Simple Meeting App create meeting form', caption: 'CREATE / 10' },
-      { image: '../../assets/projects/simple-meeting-app/calendar.png', alt: 'Simple Meeting App calendar view', caption: 'CALENDAR / 10' },
-      { image: '../../assets/projects/simple-meeting-app/timeline.png', alt: 'Simple Meeting App event timeline', caption: 'TIMELINE / 10' },
-      { image: '../../assets/projects/simple-meeting-app/my-meetings.png', alt: 'Simple Meeting App my meetings view', caption: 'MY MEETINGS / 10' }
+      { image: '../../assets/projects/simple-meeting-app/home.webp', alt: 'Simple Meeting App home screen with meeting list and filters', caption: 'HOME / 10' },
+      { image: '../../assets/projects/simple-meeting-app/home-dark.webp', alt: 'Simple Meeting App home screen in dark mode', caption: 'DARK MODE / 10' },
+      { image: '../../assets/projects/simple-meeting-app/meeting-detail.webp', alt: 'Simple Meeting App meeting detail screen with participants', caption: 'MEETING DETAIL / 10' },
+      { image: '../../assets/projects/simple-meeting-app/create-meeting.webp', alt: 'Simple Meeting App create meeting form', caption: 'CREATE / 10' },
+      { image: '../../assets/projects/simple-meeting-app/calendar.webp', alt: 'Simple Meeting App calendar view', caption: 'CALENDAR / 10' },
+      { image: '../../assets/projects/simple-meeting-app/timeline.webp', alt: 'Simple Meeting App event timeline', caption: 'TIMELINE / 10' },
+      { image: '../../assets/projects/simple-meeting-app/my-meetings.webp', alt: 'Simple Meeting App my meetings view', caption: 'MY MEETINGS / 10' }
     ]
   },
   'telegram-7z-bot': {
