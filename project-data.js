@@ -10,8 +10,11 @@ window.PROJECTS = {
     facts: [['Type', 'Final jam game'], ['Award', 'Isfahan University Game Dev Camp'], ['Focus', 'Cooperation & hope']],
     source: 'https://hoomanj.itch.io/impasse', sourceLabel: 'Play Impasse', sourceType: 'itch.io',
     media: [
-      { visual: 'art-impasse', alt: 'Isometric grid and glowing core representing Impasse', caption: 'HOPE / 01' },
-      { visual: 'art-impasse alt-art', alt: 'Abstract isometric puzzle space', caption: 'COORDINATION / DETAIL' }
+      { image: '../../assets/projects/impasse/cover.png', alt: 'Impasse cover artwork', caption: 'COVER / 01' },
+      { image: '../../assets/projects/impasse/gameplay-1.gif', alt: 'Impasse gameplay animation', caption: 'GAMEPLAY / 02' },
+      { image: '../../assets/projects/impasse/gameplay-2.gif', alt: 'Impasse gameplay animation', caption: 'GAMEPLAY / 03' },
+      { image: '../../assets/projects/impasse/screen-1.png', alt: 'Impasse in-game screenshot', caption: 'SCREEN / 04' },
+      { image: '../../assets/projects/impasse/gameplay-3.gif', alt: 'Impasse gameplay animation', caption: 'GAMEPLAY / 05' }
     ]
   },
   'balls-of-chaos': {
@@ -25,8 +28,11 @@ window.PROJECTS = {
     facts: [['Type', '7-day game jam'], ['Team', 'MadZaa · HoomanJ · CrispyOnion · hesamjalalpoor'], ['Focus', 'Survival & escalation']],
     source: 'https://madzaa.itch.io/balls-of-chaos', sourceLabel: 'Play Balls of Chaos', sourceType: 'itch.io',
     media: [
-      { visual: 'art-chaos', alt: 'Orbiting glowing balls representing a bullet-hell arena', caption: 'CHAOS / 02' },
-      { visual: 'art-chaos alt-art', alt: 'Abstract arcade arena with incoming threats', caption: 'SURVIVAL / LOOP' }
+      { image: '../../assets/projects/balls-of-chaos/cover.gif', alt: 'Balls of Chaos animated cover artwork', caption: 'COVER / 01' },
+      { image: '../../assets/projects/balls-of-chaos/gameplay-1.gif', alt: 'Balls of Chaos gameplay animation', caption: 'GAMEPLAY / 02' },
+      { image: '../../assets/projects/balls-of-chaos/screen-1.png', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 03' },
+      { image: '../../assets/projects/balls-of-chaos/screen-2.png', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 04' },
+      { image: '../../assets/projects/balls-of-chaos/screen-3.png', alt: 'Balls of Chaos in-game screenshot', caption: 'SCREEN / 05' }
     ]
   },
   fxplanet: {
@@ -72,8 +78,13 @@ window.PROJECTS = {
     facts: [['Type', '2D puzzle game'], ['Characters', 'A girl & a magical fox'], ['Pressure', 'A rising flood']],
     source: 'https://hoomanj.itch.io/rainy-cloud', sourceLabel: 'Play Rainy Cloud', sourceType: 'itch.io',
     media: [
-      { image: '../../assets/rainy-cloud-title.jpg', alt: 'Rainy Cloud game title artwork', caption: 'RAINY CLOUD / 05' },
-      { visual: 'art-rainy alt-art', alt: 'Rain and water lines representing the rising flood', caption: 'ESCAPE / PUZZLE' }
+      { image: '../../assets/projects/rainy-cloud/cover.jpg', alt: 'Rainy Cloud game title artwork', caption: 'COVER / 01' },
+      { image: '../../assets/projects/rainy-cloud/screen-1.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 02' },
+      { image: '../../assets/projects/rainy-cloud/screen-2.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 03' },
+      { image: '../../assets/projects/rainy-cloud/screen-3.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 04' },
+      { image: '../../assets/projects/rainy-cloud/screen-4.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 05' },
+      { image: '../../assets/projects/rainy-cloud/screen-5.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 06' },
+      { image: '../../assets/projects/rainy-cloud/screen-6.png', alt: 'Rainy Cloud gameplay screenshot', caption: 'SCREEN / 07' }
     ]
   },
   'concurrent-tools': {
