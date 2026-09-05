@@ -57,7 +57,7 @@
           <p class="detail-lede">${escapeHtml(project.description)}</p>
           <div class="detail-actions"><a class="button button-bright" href="${escapeHtml(project.source)}" target="_blank" rel="noreferrer">${escapeHtml(project.sourceLabel)} <span>↗</span></a><a class="text-link" href="#story">Read the story <span>↓</span></a></div>
         </div>
-        <div class="detail-orbit detail-orbit-${escapeHtml(project.number)}" aria-hidden="true"><div class="detail-orbit-core"></div><div class="detail-orbit-line"></div><span>PROJECT / ${escapeHtml(project.number)}</span></div>
+        <div class="detail-orbit" aria-hidden="true"><canvas class="detail-orbit-canvas" aria-hidden="true"></canvas></div>
       </section>
       <section class="detail-facts" aria-label="Project details"><dl>${facts}</dl><ul class="detail-tags">${tags}</ul></section>
       <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(project.number)} <span>/</span> notes from the build</div><div class="detail-story-grid"><div><p class="eyebrow">${escapeHtml(storyKicker)}</p><h2>${storyTitle}</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
