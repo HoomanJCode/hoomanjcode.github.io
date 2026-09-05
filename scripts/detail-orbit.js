@@ -139,16 +139,63 @@
     window.addEventListener('resize', resize, { passive: true });
     resize();
 
+    // Like the homepage hero, the planet can be turned by dragging, with a
+    // little momentum so it keeps coasting after release.
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    let yawVel = 0;
+    let pitchVel = 0;
+    const clampPitch = (v) => Math.max(-1.1, Math.min(1.1, v));
+    canvas.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      canvas.setPointerCapture?.(event.pointerId);
+    });
+    canvas.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      yawVel += dx * .0022;
+      pitchVel += dy * .0016;
+      yawVel *= .93;
+      pitchVel *= .93;
+      canvas.style.cursor = 'grabbing';
+    }, { passive: true });
+    const endDrag = () => {
+      dragging = false;
+      canvas.style.cursor = '';
+    };
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+
     let isVisible = true;
     let isPageVisible = !document.hidden;
     let animationFrame = 0;
+    let lastFrame = performance.now();
+    let userYaw = 0;
+    let userPitch = 0;
 
     const render = () => {
       animationFrame = 0;
       if (!isVisible || !isPageVisible) return;
+      const now = performance.now();
+      const dt = Math.min(.05, Math.max(0, (now - lastFrame) / 1000)) || 1 / 60;
+      lastFrame = now;
       const t = clock.getElapsedTime();
-      group.rotation.y = t * .09;
-      group.rotation.x = Math.sin(t * .17) * .08;
+      // Momentum: decay gently when released, lightly while dragged.
+      const damping = dragging ? Math.pow(.97, dt * 60) : Math.pow(.992, dt * 60);
+      yawVel *= damping;
+      pitchVel *= damping;
+      // Integrate the drag velocity into a persistent offset on top of the
+      // idle spin, so it keeps coasting a moment after release.
+      userYaw += yawVel * dt;
+      userPitch += pitchVel * dt;
+      group.rotation.y = t * .09 + userYaw;
+      group.rotation.x = Math.sin(t * .17) * .08 + clampPitch(userPitch);
       planet.rotation.y = t * .12;
       ring.rotation.z = t * .03;
       ringTwo.rotation.z = -t * .02;
