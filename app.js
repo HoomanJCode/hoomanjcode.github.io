@@ -69,6 +69,7 @@ const ticker = document.querySelector('[data-ticker]');
 if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const rows = [...ticker.querySelectorAll('[data-ticker-row]')];
   let pointerId = null;
+  let downX = 0;
   let lastX = 0;
   let moved = false;
   let manualOffset = 0;
@@ -120,17 +121,27 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     cancelResume();
     setAnimationState('paused');
     pointerId = event.pointerId;
+    downX = event.clientX;
     lastX = event.clientX;
     moved = false;
-    ticker.classList.add('is-dragging');
-    ticker.setPointerCapture(pointerId);
+    // No pointer capture on press: capturing makes the browser route the
+    // click to the ticker instead of the project link, so a plain mouse
+    // click on a link would never open its page. The pointer is captured
+    // only once the press turns into a real drag (see pointermove).
   });
 
   ticker.addEventListener('pointermove', (event) => {
     if (event.pointerId !== pointerId) return;
-    const delta = event.clientX - lastX;
-    if (Math.abs(delta) > 0) moved = true;
-    setManualOffset(delta);
+    if (!moved && Math.abs(event.clientX - downX) > 6) {
+      // Real drag: take over the pointer and apply the full offset
+      // accumulated so far, so the strip doesn't jump.
+      moved = true;
+      ticker.classList.add('is-dragging');
+      ticker.setPointerCapture(pointerId);
+      setManualOffset(event.clientX - downX);
+    } else if (moved) {
+      setManualOffset(event.clientX - lastX);
+    }
     setAnimationState('paused');
     lastX = event.clientX;
   });
@@ -153,5 +164,9 @@ if (ticker && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     }
     moved = false;
   }, true);
+  // Pressing on a project link and dragging must drag the strip, not start a
+  // native browser link drag (which would cancel the pointer and freeze the
+  // marquee mid-grab).
+  ticker.addEventListener('dragstart', (event) => event.preventDefault());
 }
 sections.forEach((section) => sectionObserver.observe(section));
