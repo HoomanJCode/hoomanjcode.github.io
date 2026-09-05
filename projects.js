@@ -25,7 +25,7 @@ if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel 
         // the grid gap act as margin before the new projects begin.
         const rowGap = parseFloat(getComputedStyle(projectList).rowGap) || 0;
         const firstRowBottom = firstRevealed.getBoundingClientRect().top + window.scrollY - rowGap;
-        window.scrollTo({ top: Math.max(0, firstRowBottom - 150), behavior: 'smooth' });
+        window.scrollTo({ top: Math.max(0, firstRowBottom - 50), behavior: 'smooth' });
       });
     } else {
       moreWork.after(viewMoreButton);
