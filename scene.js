@@ -19,9 +19,16 @@ function createScene() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmallScreen ? 1.25 : 1.75));
   renderer.setClearColor(0x000000, 0);
 
+  // Everything (the planet system and the starfield) lives inside one
+  // container so dragging rotates the whole space together: the planet, its
+  // rings, every satellite, and the stars all turn as one massive body.
+  const universe = new THREE.Group();
+  universe.position.set(isSmallScreen ? 1.15 : 2.1, 0, 0);
+  scene.add(universe);
+
   const group = new THREE.Group();
-  group.position.set(isSmallScreen ? 1.15 : 2.1, 0.05, 0);
-  scene.add(group);
+  group.position.set(0, .05, 0);
+  universe.add(group);
 
   const planet = new THREE.Mesh(
     new THREE.IcosahedronGeometry(1.48, isSmallScreen ? 3 : 4),
@@ -80,7 +87,7 @@ function createScene() {
     starsGeometry,
     new THREE.PointsMaterial({ size: .025, vertexColors: true, transparent: true, opacity: .8, sizeAttenuation: true })
   );
-  scene.add(stars);
+  universe.add(stars);
 
   scene.add(new THREE.AmbientLight(0x7f98c9, 1.5));
   const key = new THREE.DirectionalLight(0xd5ffcf, 3.2);
@@ -158,7 +165,7 @@ function createScene() {
     if (!onMainRing) {
       // This project's ring around the main planet, styled like the main rings.
       orbit = new THREE.Mesh(
-        new THREE.TorusGeometry(radius, .012, 6, 96),
+        new THREE.TorusGeometry(radius, .005, 6, 96),
         new THREE.MeshBasicMaterial({ color: palette[2] ? hex(palette[2]) : 0x9db4e0, transparent: true, opacity: baseOpacity.orbit, side: THREE.DoubleSide })
       );
       orbit.scale.y = ellipse;
@@ -235,13 +242,16 @@ function createScene() {
     }
   };
 
-  // Mouse drag rotates the main planet (and its ring system) around.
+  // Dragging rotates the whole universe (planet, rings, satellites, stars)
+  // with heavy inertia: the body resists quick motion, keeps gliding after you
+  // release, and gradually slows — like turning a massive object.
   let dragging = false;
   let dragMoved = 0;
   let lastX = 0;
   let lastY = 0;
-  let yaw = 0;
-  let pitch = 0;
+  let yawVel = 0;
+  let pitchVel = 0;
+  const clampPitch = (v) => Math.max(-1.1, Math.min(1.1, v));
   canvas.addEventListener('pointerdown', (event) => {
     dragging = true;
     dragMoved = 0;
@@ -256,8 +266,12 @@ function createScene() {
       dragMoved += Math.abs(dx) + Math.abs(dy);
       lastX = event.clientX;
       lastY = event.clientY;
-      yaw += dx * .008;
-      pitch = Math.max(-1.1, Math.min(1.1, pitch + dy * .006));
+      // Impulse from the pointer, softened: heavy bodies don't follow the hand
+      // 1:1 — the velocity builds gradually instead of snapping.
+      yawVel += dx * .0011;
+      pitchVel += dy * .0008;
+      yawVel *= .86;
+      pitchVel *= .86;
       canvas.style.cursor = 'grabbing';
       return;
     }
@@ -316,13 +330,26 @@ function createScene() {
 
   const clock = new THREE.Clock();
   let animationFrame = 0;
+  let lastFrame = performance.now();
   const render = () => {
     animationFrame = 0;
     if (!isVisible || !isPageVisible) return;
+    const now = performance.now();
+    const dt = Math.min(.05, Math.max(0, (now - lastFrame) / 1000)) || 1 / 60;
+    lastFrame = now;
     const t = clock.getElapsedTime();
     const p = scrollProgress * scrollProgress * (3 - 2 * scrollProgress);
-    group.rotation.y = t * .09 + yaw;
-    group.rotation.x = Math.sin(t * .17) * .08 - p * .25 + pitch;
+    // Heavy momentum: velocities decay slowly when released, faster while
+    // actively dragged, so the space turns with weight instead of snapping.
+    const damping = dragging ? Math.pow(.84, dt * 60) : Math.pow(.985, dt * 60);
+    yawVel *= damping;
+    pitchVel *= damping;
+    let yaw = universe.rotation.y + yawVel * dt;
+    let pitch = clampPitch(universe.rotation.x + pitchVel * dt);
+    universe.rotation.y = yaw;
+    universe.rotation.x = pitch;
+    group.rotation.y = t * .09;
+    group.rotation.x = Math.sin(t * .17) * .08 - p * .25;
     planet.rotation.y = t * .12;
     ring.rotation.z = t * .03 - p * .5;
     ringTwo.rotation.z = -t * .02 + p * .35;
