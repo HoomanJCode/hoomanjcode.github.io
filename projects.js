@@ -1,27 +1,22 @@
 const viewMoreButton = document.querySelector('.view-more-button');
-const selectedProjects = document.querySelector('#projectList');
-const allProjects = document.querySelector('#allProjectsList');
+const projectList = document.querySelector('#projectList');
 const moreWork = document.querySelector('.more-work');
 const workModeLabel = document.querySelector('#workModeLabel');
 const viewMoreLabel = viewMoreButton?.querySelector('.view-more-label');
-const extraProjects = [...selectedProjects?.querySelectorAll('.is-extra') || []];
+const extraProjects = [...projectList?.querySelectorAll('.is-extra') || []];
 
-if (viewMoreButton && selectedProjects && allProjects && moreWork && workModeLabel && viewMoreLabel && extraProjects.length) {
-  extraProjects.forEach((project) => {
-    project.hidden = false;
-    allProjects.appendChild(project);
-  });
-
+if (viewMoreButton && projectList && moreWork && workModeLabel && viewMoreLabel && extraProjects.length) {
   const setExpanded = (expanded) => {
     viewMoreButton.setAttribute('aria-expanded', String(expanded));
-    selectedProjects.classList.toggle('is-selected', !expanded);
-    allProjects.hidden = !expanded;
-    allProjects.classList.toggle('is-expanded', expanded);
+    projectList.classList.toggle('is-expanded', expanded);
+    extraProjects.forEach((project) => {
+      project.hidden = !expanded;
+    });
     moreWork.hidden = expanded;
     moreWork.setAttribute('aria-hidden', String(expanded));
     workModeLabel.textContent = expanded ? 'all projects' : 'selected work';
     viewMoreLabel.textContent = expanded ? 'View less' : 'View more';
-    if (expanded) allProjects.after(viewMoreButton);
+    if (expanded) projectList.after(viewMoreButton);
     else moreWork.after(viewMoreButton);
   };
 
