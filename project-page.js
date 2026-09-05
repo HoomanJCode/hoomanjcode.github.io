@@ -88,7 +88,6 @@
     const paragraphs = data.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
     const storyTitle = (data.storyTitle || (lang() === 'fa' ? ['قوانینی', 'که جا می‌گذارند', 'برای حس.'] : ['Rules that', 'make room', 'for feeling.'])).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
     const storyKicker = data.storyKicker || 'The work';
-    const techTitle = (data.techTitle || (lang() === 'fa' ? ['زیر', 'پوست.', ''] : ['Under', 'the', 'hood.'])).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
     const techKicker = data.techKicker || t('techNotes');
     const techParagraphs = (data.technical || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
     const techPoints = (data.techPoints || []).map((point) => `<li>${escapeHtml(point)}</li>`).join('');
@@ -147,7 +146,7 @@
         </section>
         <section class="detail-facts" aria-label="Project details"><dl>${facts}</dl><ul class="detail-tags">${tags}</ul></section>
         <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> ${t('storyLabel')}</div><div class="detail-story-grid"><div><p class="eyebrow">${escapeHtml(storyKicker)}</p><h2>${storyTitle}</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
-        ${data.technical ? `<section class="detail-tech" aria-label="Technical breakdown"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> ${t('techLabel')}</div><div class="detail-tech-grid"><div><p class="eyebrow">${escapeHtml(techKicker)}</p><h2>${techTitle}</h2></div><div class="detail-prose">${techParagraphs}</div></div>${techPoints ? `<ul class="detail-tech-list">${techPoints}</ul>` : ''}</section>` : ''}
+        ${data.technical ? `<section class="detail-tech" aria-label="Technical breakdown"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> ${t('techLabel')}</div><div class="detail-tech-grid"><div><p class="eyebrow">${escapeHtml(techKicker)}</p></div><div class="detail-prose">${techParagraphs}</div></div>${techPoints ? `<ul class="detail-tech-list">${techPoints}</ul>` : ''}</section>` : ''}
         <section class="detail-gallery" aria-label="Project media"><div class="detail-section-label">${t('selectedMedia')} <span>/</span> ${escapeHtml(data.sourceType)}</div><div class="detail-media-grid">${media}</div>${related ? `<div class="detail-related"><div class="detail-section-label">${t('related')} <span>/</span> ${t('watchExplore')}</div>${related}</div>` : ''}</section>
         <section class="detail-next"><p class="eyebrow">${t('keepExploring')}</p><a href="../../#work">${t('seeAllProjects')} <span>↗</span></a></section>
       </main>
