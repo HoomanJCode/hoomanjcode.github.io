@@ -43,16 +43,18 @@ function createScene() {
 
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(2.12, .012, 6, isSmallScreen ? 48 : 80),
-    new THREE.MeshBasicMaterial({ color: 0xd5ff4f, transparent: true, opacity: .42, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0xd5ff4f, transparent: true, opacity: .2, side: THREE.DoubleSide })
   );
   ring.rotation.set(.52, -.34, -.17);
+  ring.userData.kind = 'ring';
   group.add(ring);
 
   const ringTwo = new THREE.Mesh(
     new THREE.TorusGeometry(2.43, .006, 6, isSmallScreen ? 48 : 80),
-    new THREE.MeshBasicMaterial({ color: 0xff765c, transparent: true, opacity: .26, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0xff765c, transparent: true, opacity: .12, side: THREE.DoubleSide })
   );
   ringTwo.rotation.set(-.25, .7, .4);
+  ringTwo.userData.kind = 'ringTwo';
   group.add(ringTwo);
 
   const starCount = isSmallScreen ? 260 : 650;
@@ -106,20 +108,64 @@ function createScene() {
   orbitGroup.rotation.set(.5, -.3, -.15);
   group.add(orbitGroup);
 
+  // Every ring (accent orbit rings + the two main rings) gets an invisible
+  // wider twin used only for hover detection, so a passing cursor can pick it
+  // up without needing pixel-perfect precision on a hair-thin torus.
+  const ringHits = [];
+  const baseOpacity = { ring: .2, ringTwo: .12, orbit: .15 };
+  const addRing = (mesh, parent) => {
+    const hit = new THREE.Mesh(
+      new THREE.TorusGeometry(mesh.geometry.parameters.radius, .28, 6, 48),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide })
+    );
+    hit.rotation.copy(mesh.rotation);
+    hit.scale.copy(mesh.scale);
+    hit.position.copy(mesh.position);
+    parent.add(hit);
+    ringHits.push({ hit, ring: mesh });
+    return mesh;
+  };
+  // The two main decorative rings are hoverable too.
+  addRing(ring, group);
+  addRing(ringTwo, group);
+
+  // Carrier groups that copy each main ring's orientation, so a satellite
+  // placed in one of them orbits exactly inside that ring's own plane.
+  const mainRingCarriers = [ring, ringTwo].map((ringMesh) => {
+    const carrier = new THREE.Group();
+    carrier.rotation.set(ringMesh.rotation.x, ringMesh.rotation.y, ringMesh.rotation.z);
+    group.add(carrier);
+    return carrier;
+  });
+
   const satellites = slugs.map((slug, index) => {
     const palette = window.PROJECTS[slug]?.palette || [null, [232, 236, 245], [213, 255, 79], [255, 118, 92]];
-    const radius = 2.62 + (index % 4) * .26;
-    const tilt = (index % 3) * .09;
+    // The first two projects ride the main planet's existing rings (radii
+    // 2.12 / 2.43); the rest get their own ring at their own distance.
+    const onMainRing = index < 2;
+    const radius = onMainRing ? [2.12, 2.43][index] : 2.62 + (index % 4) * .26;
+    const tilt = onMainRing ? 0 : (index % 3) * .09;
+    const ellipse = onMainRing ? 1 : orbitEllipse;
     const size = .055 + (index % 5) * .008;
+    const parent = onMainRing ? mainRingCarriers[index] : orbitGroup;
 
-    // This project's ring around the main planet, styled like the main rings.
-    const orbit = new THREE.Mesh(
-      new THREE.TorusGeometry(radius, .012, 6, 96),
-      new THREE.MeshBasicMaterial({ color: palette[2] ? hex(palette[2]) : 0x9db4e0, transparent: true, opacity: .3, side: THREE.DoubleSide })
-    );
-    orbit.scale.y = orbitEllipse;
-    orbit.position.y = tilt;
-    orbitGroup.add(orbit);
+    let orbit = null;
+    if (!onMainRing) {
+      // This project's ring around the main planet, styled like the main rings.
+      orbit = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, .012, 6, 96),
+        new THREE.MeshBasicMaterial({ color: palette[2] ? hex(palette[2]) : 0x9db4e0, transparent: true, opacity: baseOpacity.orbit, side: THREE.DoubleSide })
+      );
+      orbit.scale.y = ellipse;
+      orbit.position.y = tilt;
+      orbit.userData.kind = 'orbit';
+      orbitGroup.add(orbit);
+      addRing(orbit, orbitGroup);
+    } else {
+      // Riding a main ring: that ring is the hover target for this satellite.
+      const mainRingMesh = [ring, ringTwo][index];
+      orbit = mainRingMesh;
+    }
 
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(size, 16, 12),
@@ -131,30 +177,96 @@ function createScene() {
       speed: .16 + (index % 6) * .025,
       offset: (index / Math.max(1, slugs.length)) * Math.PI * 2,
       tilt,
+      ellipse,
+      orbit,
     };
-    orbitGroup.add(mesh);
+    parent.add(mesh);
     return mesh;
   });
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  let hovered = null;
-  const pickSatellite = (event) => {
+  const pickables = [...satellites, ...ringHits.map(({ hit }) => hit)];
+  const pickAt = (clientX, clientY) => {
     const rect = canvas.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(satellites);
+    const hits = raycaster.intersectObjects(pickables);
     return hits.length ? hits[0].object : null;
   };
+
+  let hoveredRing = null;
+  const setRingOpacity = (mesh, opacity) => {
+    if (mesh?.material) mesh.material.opacity = opacity;
+  };
+  const clearHover = () => {
+    if (hoveredRing) {
+      setRingOpacity(hoveredRing, baseOpacity[hoveredRing.userData.kind] ?? .15);
+      hoveredRing = null;
+    }
+  };
+  const applyHover = (hit) => {
+    let ring = null;
+    if (hit?.userData?.slug) {
+      // Hovering a satellite highlights its own orbit ring.
+      ring = hit.userData.orbit;
+    } else if (hit) {
+      const entry = ringHits.find(({ hit: h }) => h === hit);
+      if (entry) ring = entry.ring;
+    }
+    if (ring !== hoveredRing) {
+      clearHover();
+      if (ring) {
+        hoveredRing = ring;
+        setRingOpacity(ring, .85);
+      }
+    }
+  };
+
+  // Mouse drag rotates the main planet (and its ring system) around.
+  let dragging = false;
+  let dragMoved = 0;
+  let lastX = 0;
+  let lastY = 0;
+  let yaw = 0;
+  let pitch = 0;
+  canvas.addEventListener('pointerdown', (event) => {
+    dragging = true;
+    dragMoved = 0;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    canvas.setPointerCapture?.(event.pointerId);
+  });
   canvas.addEventListener('pointermove', (event) => {
-    const hit = pickSatellite(event);
-    canvas.style.cursor = hit ? 'pointer' : '';
-    hovered = hit;
+    if (dragging) {
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      dragMoved += Math.abs(dx) + Math.abs(dy);
+      lastX = event.clientX;
+      lastY = event.clientY;
+      yaw += dx * .008;
+      pitch = Math.max(-1.1, Math.min(1.1, pitch + dy * .006));
+      canvas.style.cursor = 'grabbing';
+      return;
+    }
+    const hit = pickAt(event.clientX, event.clientY);
+    canvas.style.cursor = hit?.userData?.slug || ringHits.some(({ hit: h }) => h === hit) ? 'pointer' : '';
+    applyHover(hit);
   }, { passive: true });
+  const endDrag = () => {
+    dragging = false;
+    canvas.style.cursor = '';
+  };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
   canvas.addEventListener('click', (event) => {
-    const hit = pickSatellite(event);
+    if (dragging || dragMoved > 6) return;
+    const hit = pickAt(event.clientX, event.clientY);
     if (hit?.userData?.slug) window.location.href = `projects/${hit.userData.slug}/`;
+  });
+  canvas.addEventListener('pointerleave', () => {
+    if (!dragging) clearHover();
   });
 
   const resize = () => {
@@ -198,18 +310,18 @@ function createScene() {
     if (!isVisible || !isPageVisible) return;
     const t = clock.getElapsedTime();
     const p = scrollProgress * scrollProgress * (3 - 2 * scrollProgress);
-    group.rotation.y = t * .09;
-    group.rotation.x = Math.sin(t * .17) * .08 - p * .25;
+    group.rotation.y = t * .09 + yaw;
+    group.rotation.x = Math.sin(t * .17) * .08 - p * .25 + pitch;
     planet.rotation.y = t * .12;
     ring.rotation.z = t * .03 - p * .5;
     ringTwo.rotation.z = -t * .02 + p * .35;
     stars.rotation.y = t * .008 + p * .12;
     satellites.forEach((satellite) => {
-      const { radius, speed, offset, tilt } = satellite.userData;
+      const { radius, speed, offset, tilt, ellipse } = satellite.userData;
       const angle = t * speed + offset;
       satellite.position.set(
         Math.cos(angle) * radius,
-        Math.sin(angle) * radius * orbitEllipse + tilt,
+        Math.sin(angle) * radius * ellipse + tilt,
         0
       );
     });
