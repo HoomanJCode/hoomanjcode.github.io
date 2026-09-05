@@ -202,6 +202,95 @@ function createScene() {
     return mesh;
   });
 
+  // Man-made satellites (solar-panel probes with a red beacon) orbit the main
+  // planet, like the GPS fleet around Earth. How many appear is random per
+  // calendar day: a seeded roll between -5 and 10 (any value below 1 means
+  // none that day), so every day brings a different fleet and reloading never
+  // reshuffles it.
+  const probes = [];
+  // Phones skip the fleet entirely: the satellite mesh overhead isn't worth it
+  // on low-end mobile GPUs, so small screens keep only the orbital planets.
+  if (!isSmallScreen) {
+  const probeParent = new THREE.Group();
+  group.add(probeParent);
+  {
+    const now = new Date();
+    const seedKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-main`;
+    let seed = 1779033703 ^ seedKey.length;
+    for (let i = 0; i < seedKey.length; i += 1) {
+      seed = Math.imul(seed ^ seedKey.charCodeAt(i), 3432918353);
+      seed = (seed << 13) | (seed >>> 19);
+    }
+    const rand = () => {
+      seed = Math.imul(seed ^ (seed >>> 16), 2246822507);
+      seed = Math.imul(seed ^ (seed >>> 13), 3266489909);
+      seed ^= seed >>> 16;
+      return (seed >>> 0) / 4294967296;
+    };
+    const roll = Math.floor(rand() * 16) - 5; // uniform -5..10
+    const probeCount = Math.max(0, roll);
+    if (probeCount > 0) {
+      // Craft sized relative to the planet so proportions stay sane (GPS sats
+      // are small next to the body they circle).
+      const s = 1.48;
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xc3ccda, metalness: .6, roughness: .35 });
+      const panelMat = new THREE.MeshStandardMaterial({ color: 0x1e3a63, metalness: .35, roughness: .5 });
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff5540 });
+      for (let i = 0; i < probeCount; i += 1) {
+        // Each probe has its own tilted orbital plane, like the ring system,
+        // so the fleet doesn't all travel in one flat disc.
+        const plane = new THREE.Group();
+        plane.rotation.x = (rand() - .5) * 1.1;
+        plane.rotation.y = rand() * Math.PI * 2;
+        plane.rotation.z = (rand() - .5) * .6;
+        probeParent.add(plane);
+
+        const craft = new THREE.Group();
+        const body = new THREE.Mesh(
+          new THREE.BoxGeometry(s * .03, s * .035, s * .05),
+          bodyMat
+        );
+        craft.add(body);
+        const wingL = new THREE.Mesh(
+          new THREE.BoxGeometry(s * .08, s * .004, s * .045),
+          panelMat
+        );
+        wingL.position.x = -s * .055;
+        craft.add(wingL);
+        const wingR = new THREE.Mesh(
+          new THREE.BoxGeometry(s * .08, s * .004, s * .045),
+          panelMat
+        );
+        wingR.position.x = s * .055;
+        craft.add(wingR);
+        const beacon = new THREE.Mesh(
+          new THREE.SphereGeometry(s * .012, 6, 6),
+          beaconMat
+        );
+        beacon.position.y = s * .035;
+        craft.add(beacon);
+        craft.rotation.x = (rand() - .5) * .7;
+        craft.rotation.z = (rand() - .5) * .4;
+        plane.add(craft);
+
+        const phase = rand() * Math.PI * 2;
+        // Spread the fleet across the band between the planet's atmosphere and
+        // the inner ring, with a touch of jitter so they're not evenly spaced.
+        const spread = probeCount > 1 ? i / (probeCount - 1) : .5;
+        const radius = 1.74 + (2.03 - 1.74) * spread + (rand() - .5) * .02;
+        const angle = phase;
+        craft.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+        probes.push({
+          craft,
+          radius,
+          speed: (.05 + rand() * .11) * (rand() < .5 ? -1 : 1),
+          phase,
+        });
+      }
+    }
+  }
+  }
+
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   const ringHitMeshes = ringHits.map(({ hit }) => hit);
@@ -399,6 +488,13 @@ function createScene() {
         Math.sin(angle) * radius * ellipse + tilt,
         0
       );
+    });
+    probes.forEach((probe) => {
+      const angle = t * probe.speed + probe.phase;
+      // Orbit inside the probe's own tilted plane (circle in its local XZ),
+      // plus a slow self-spin so the solar panels catch the light.
+      probe.craft.position.set(Math.cos(angle) * probe.radius, 0, Math.sin(angle) * probe.radius);
+      probe.craft.rotation.y = t * .6 + probe.phase;
     });
     stars.position.y = -p * 4;
     stars.material.size = .025 + p * .045;

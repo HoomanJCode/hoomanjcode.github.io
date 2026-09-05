@@ -4,6 +4,7 @@
   if (!canvas || !slug) return;
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
   const orbit = canvas.closest('.detail-orbit');
   if (!orbit) return;
 
@@ -122,11 +123,96 @@
     rim.position.set(...lights.rim);
     scene.add(rim);
 
-    return { renderer, scene, camera, group, planet, ring, ringTwo, clock: new THREE.Clock() };
+    // Man-made satellites (solar-panel probes with a red beacon) orbit this
+    // project's planet like a GPS fleet. The count is random per calendar day:
+    // a seeded roll between -5 and 5 (any value below 1 means none today), so
+    // each day brings a different fleet and it never reshuffles on reload.
+    const probes = [];
+    // Phones skip the satellite fleet for performance — project pages on
+    // small screens keep just the planet and its rings.
+    if (!isSmallScreen) {
+    const probeParent = new THREE.Group();
+    group.add(probeParent);
+    {
+      const now = new Date();
+      const seedKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${slug}`;
+      let seed = 1779033703 ^ seedKey.length;
+      for (let i = 0; i < seedKey.length; i += 1) {
+        seed = Math.imul(seed ^ seedKey.charCodeAt(i), 3432918353);
+        seed = (seed << 13) | (seed >>> 19);
+      }
+      const rand = () => {
+        seed = Math.imul(seed ^ (seed >>> 16), 2246822507);
+        seed = Math.imul(seed ^ (seed >>> 13), 3266489909);
+        seed ^= seed >>> 16;
+        return (seed >>> 0) / 4294967296;
+      };
+      const roll = Math.floor(rand() * 11) - 5; // uniform -5..5
+      const probeCount = Math.max(0, roll);
+      if (probeCount > 0) {
+        const s = .58;
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xc3ccda, metalness: .6, roughness: .35 });
+        const panelMat = new THREE.MeshStandardMaterial({ color: 0x1e3a63, metalness: .35, roughness: .5 });
+        const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff5540 });
+        for (let i = 0; i < probeCount; i += 1) {
+          // Each probe orbits in its own tilted plane, like a satellite fleet.
+          const plane = new THREE.Group();
+          plane.rotation.x = (rand() - .5) * 1.1;
+          plane.rotation.y = rand() * Math.PI * 2;
+          plane.rotation.z = (rand() - .5) * .6;
+          probeParent.add(plane);
+
+          const craft = new THREE.Group();
+          const body = new THREE.Mesh(
+            new THREE.BoxGeometry(s * .03, s * .035, s * .05),
+            bodyMat
+          );
+          craft.add(body);
+          const wingL = new THREE.Mesh(
+            new THREE.BoxGeometry(s * .08, s * .004, s * .045),
+            panelMat
+          );
+          wingL.position.x = -s * .055;
+          craft.add(wingL);
+          const wingR = new THREE.Mesh(
+            new THREE.BoxGeometry(s * .08, s * .004, s * .045),
+            panelMat
+          );
+          wingR.position.x = s * .055;
+          craft.add(wingR);
+          const beacon = new THREE.Mesh(
+            new THREE.SphereGeometry(s * .012, 6, 6),
+            beaconMat
+          );
+          beacon.position.y = s * .035;
+          craft.add(beacon);
+          craft.rotation.x = (rand() - .5) * .7;
+          craft.rotation.z = (rand() - .5) * .4;
+          plane.add(craft);
+
+          const phase = rand() * Math.PI * 2;
+          // Spread the fleet between the planet's atmosphere and the first big
+          // decorative ring, with a touch of jitter so they're not uniform.
+          const spread = probeCount > 1 ? i / (probeCount - 1) : .5;
+          const radius = .95 + (1.95 - .95) * spread + (rand() - .5) * .03;
+          const angle = phase;
+          craft.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+          probes.push({
+            craft,
+            radius,
+            speed: (.05 + rand() * .11) * (rand() < .5 ? -1 : 1),
+            phase,
+          });
+        }
+      }
+    }
+    }
+
+    return { renderer, scene, camera, group, planet, ring, ringTwo, probes, clock: new THREE.Clock() };
   }
 
   function wireUp(THREE, handle) {
-    const { renderer, scene, camera, group, planet, ring, ringTwo, clock } = handle;
+    const { renderer, scene, camera, group, planet, ring, ringTwo, probes, clock } = handle;
 
     const resize = () => {
       const width = canvas.clientWidth || orbit.clientWidth;
@@ -199,6 +285,11 @@
       planet.rotation.y = t * .12;
       ring.rotation.z = t * .03;
       ringTwo.rotation.z = -t * .02;
+      probes.forEach((probe) => {
+        const angle = t * probe.speed + probe.phase;
+        probe.craft.position.set(Math.cos(angle) * probe.radius, 0, Math.sin(angle) * probe.radius);
+        probe.craft.rotation.y = t * .6 + probe.phase;
+      });
       group.position.y = Math.sin(t * .35) * .08;
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(render);
