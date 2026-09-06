@@ -3,6 +3,7 @@
   const canvases = [
     { id: 'instagramBotCanvas', type: 'instagram' },
     { id: 'youtubeBotCanvas', type: 'youtube' },
+    { id: 'telegram7zBotCanvas', type: '7z' },
   ];
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -29,18 +30,34 @@
       this.backgroundCtx = this.backgroundCanvas.getContext('2d', { alpha: true });
       this.phase = type === 'instagram' ? 0.7 : 2.1;
       this.pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
+      // The 7z bot has three source nodes (files/URLs) feeding Telegram, which
+      // packages them and sends zip archives out to the client.
       this.colors = type === 'instagram'
         ? { platform: '#d5ff4f', telegram: '#91baff', client: '#f0eee8' }
-        : { platform: '#ff765c', telegram: '#d5ff4f', client: '#91baff' };
-      this.nodes = {
-        platform: { x: 0.2, y: 0.5 },
-        telegram: { x: 0.5, y: 0.5 },
-        client: { x: 0.8, y: 0.5 },
-      };
+        : type === 'youtube'
+          ? { platform: '#ff765c', telegram: '#d5ff4f', client: '#91baff' }
+          : { source: '#d5ff4f', telegram: '#91baff', client: '#f0eee8', zip: '#ff765c' };
+      this.nodes = type === '7z'
+        ? {
+            sources: [
+              { x: 0.12, y: 0.24 },
+              { x: 0.19, y: 0.5 },
+              { x: 0.12, y: 0.76 },
+            ],
+            telegram: { x: 0.5, y: 0.5 },
+            client: { x: 0.8, y: 0.5 },
+          }
+        : {
+            platform: { x: 0.2, y: 0.5 },
+            telegram: { x: 0.5, y: 0.5 },
+            client: { x: 0.8, y: 0.5 },
+          };
       this.packets = Array.from({ length: 6 }, (_, index) => ({
         progress: (index / 6 + 0.02) % 1,
         speed: 0.12 + (index % 4) * 0.014,
       }));
+      // 7z only: which of the three sources each incoming packet starts from.
+      this.packetSources = Array.from({ length: 6 }, (_, index) => index % 3);
 
       if (!this.ctx || !this.visual) return;
       this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -156,10 +173,14 @@
         background.addColorStop(0, '#422348');
         background.addColorStop(0.5, '#1d2949');
         background.addColorStop(1, '#3e1f34');
-      } else {
+      } else if (this.type === 'youtube') {
         background.addColorStop(0, '#351b28');
         background.addColorStop(0.5, '#171a25');
         background.addColorStop(1, '#080a0e');
+      } else {
+        background.addColorStop(0, '#33203c');
+        background.addColorStop(0.5, '#1c1a2a');
+        background.addColorStop(1, '#0b0d14');
       }
       ctx.fillStyle = background;
       ctx.fillRect(0, 0, width, height);
@@ -185,6 +206,16 @@
       return this.routePath(this.nodes.platform, this.nodes.telegram, platform.y / this.height);
     }
 
+    // 7z only: one incoming route per source node, each curved toward its own
+    // start height so the three routes stay visually distinct.
+    sourcePaths() {
+      if (this.type !== '7z') return [this.platformPath()];
+      return this.nodes.sources.map((source) => {
+        const from = this.point(source);
+        return this.routePath(source, this.nodes.telegram, from.y / this.height);
+      });
+    }
+
     telegramPath() {
       const telegram = this.point(this.nodes.telegram);
       const client = this.point(this.nodes.client);
@@ -206,21 +237,62 @@
 
     drawRoutes() {
       const { ctx } = this;
-      const paths = [this.platformPath(), this.telegramPath()];
       ctx.save();
       ctx.lineWidth = 1.3;
-      paths.forEach((path, index) => {
-        ctx.strokeStyle = index === 0 ? 'rgba(213,255,79,.48)' : 'rgba(145,186,255,.48)';
+      if (this.type === '7z') {
+        // Three incoming paths (each source → Telegram)…
+        this.sourcePaths().forEach((path) => {
+          ctx.strokeStyle = 'rgba(213,255,79,.4)';
+          ctx.beginPath();
+          ctx.moveTo(path.start.x, path.start.y);
+          ctx.quadraticCurveTo(path.controlX, path.controlY, path.end.x, path.end.y);
+          ctx.stroke();
+        });
+        // …and one outgoing path (Telegram → client) for the zips.
+        const outgoing = this.telegramPath();
+        ctx.strokeStyle = 'rgba(255,118,92,.5)';
         ctx.beginPath();
-        ctx.moveTo(path.start.x, path.start.y);
-        ctx.quadraticCurveTo(path.controlX, path.controlY, path.end.x, path.end.y);
+        ctx.moveTo(outgoing.start.x, outgoing.start.y);
+        ctx.quadraticCurveTo(outgoing.controlX, outgoing.controlY, outgoing.end.x, outgoing.end.y);
         ctx.stroke();
-      });
+      } else {
+        const paths = [this.platformPath(), this.telegramPath()];
+        paths.forEach((path, index) => {
+          ctx.strokeStyle = index === 0 ? 'rgba(213,255,79,.48)' : 'rgba(145,186,255,.48)';
+          ctx.beginPath();
+          ctx.moveTo(path.start.x, path.start.y);
+          ctx.quadraticCurveTo(path.controlX, path.controlY, path.end.x, path.end.y);
+          ctx.stroke();
+        });
+      }
       ctx.restore();
     }
 
     drawTraffic() {
       const { ctx } = this;
+      if (this.type === '7z') {
+        // Files (glowing dots) travel from each source to Telegram; once past
+        // the halfway mark they become zip boxes heading to the client.
+        const incoming = this.sourcePaths();
+        const outgoing = this.telegramPath();
+        this.packets.forEach((packet, index) => {
+          if (packet.progress < 0.5) {
+            const point = this.quadraticPoint(incoming[this.packetSources[index]], packet.progress * 2);
+            const color = this.colors.source;
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 9;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 2.5, 0, TAU);
+            ctx.fill();
+            ctx.restore();
+          } else {
+            this.drawZip(this.quadraticPoint(outgoing, (packet.progress - 0.5) * 2));
+          }
+        });
+        return;
+      }
       const firstPath = this.platformPath();
       const secondPath = this.telegramPath();
       this.packets.forEach((packet) => {
@@ -346,7 +418,61 @@
       ctx.globalAlpha = 1;
     }
 
+    // A small zip archive: a glowing box with a darker zipper line and pull tab.
+    drawZip(point) {
+      const { ctx } = this;
+      const width = 9;
+      const height = 11;
+      ctx.save();
+      ctx.fillStyle = this.colors.zip;
+      ctx.shadowColor = this.colors.zip;
+      ctx.shadowBlur = 10;
+      this.roundedRect(point.x - width / 2, point.y - height / 2, width, height, 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(11, 17, 28, .85)';
+      ctx.fillRect(point.x - 1, point.y - height * 0.27, 1.6, height * 0.54);
+      ctx.beginPath();
+      ctx.arc(point.x - 0.2, point.y + height * 0.14, 1.3, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 7z only: a source node drawn as a small file chip with a folded corner.
+    drawSourceNode(point) {
+      const { ctx } = this;
+      const width = 13;
+      const height = 16;
+      ctx.save();
+      ctx.fillStyle = 'rgba(11, 17, 28, .92)';
+      ctx.strokeStyle = this.colors.source;
+      ctx.lineWidth = 1.6;
+      ctx.shadowColor = this.colors.source;
+      ctx.shadowBlur = 9;
+      this.roundedRect(point.x - width / 2, point.y - height / 2, width, height, 2.5);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = this.colors.source;
+      ctx.beginPath();
+      ctx.moveTo(point.x + width / 2 - 4.5, point.y - height / 2);
+      ctx.lineTo(point.x + width / 2, point.y - height / 2 + 4.5);
+      ctx.lineTo(point.x + width / 2 - 4.5, point.y - height / 2 + 4.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(240, 238, 232, .65)';
+      ctx.fillRect(point.x - width * 0.24, point.y - 2.6, width * 0.48, 1.4);
+      ctx.fillRect(point.x - width * 0.24, point.y + 1, width * 0.34, 1.4);
+      ctx.restore();
+    }
+
     drawNodes() {
+      if (this.type === '7z') {
+        this.nodes.sources.forEach((source) => this.drawSourceNode(this.point(source)));
+        this.drawTelegramLogo(this.point(this.nodes.telegram));
+        this.drawClientNode(this.point(this.nodes.client));
+        return;
+      }
       const platform = this.point(this.nodes.platform);
       const telegram = this.point(this.nodes.telegram);
       const client = this.point(this.nodes.client);
