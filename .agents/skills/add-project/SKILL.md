@@ -99,7 +99,7 @@ Choose a thumbnail style, matching how other projects do it:
 
 - **Local image** (like rainy-cloud): `<img src="assets/projects/<slug>/cover.jpg" alt="…">` inside the visual div, plus a `.visual-<slug>` class in `css/main.css` that gives it a background and hides the pseudo-elements (`.visual-<slug>::before, .visual-<slug>::after { display: none; }`).
 - **CSS-only generative visual** (like visual-tools, visual-menu, visual-tunnel): add a `.visual-<slug>` class in `css/main.css` using gradients/borders and the `--pointer-x/--pointer-y` parallax variables (they're driven by `js/components/thumbnail-parallax.js`).
-- **Canvas animation** (like v2portal, proxy-tuner, http-tunnel, the bots): add a `<canvas id="<slug>Canvas" class="routing-canvas|social-bot-canvas" …>` in the card, a component file in `js/components/`, and a `<script src="js/components/<component>.js" defer></script>` tag in `index.html` near the other components.
+- **Canvas animation** (like v2portal, proxy-tuner, http-tunnel, the bots): add a `<canvas id="<slug>Canvas" class="routing-canvas|social-bot-canvas" …>` in the card and a component file in `js/components/`. Then register the component in the **resilient script loader** — the inline script at the bottom of `index.html` that retries decorative scripts with backoff so a transient CDN 504 never kills a thumbnail (add `'js/components/<component>.js'` to its `SCRIPTS` array; never add a plain `<script defer>` tag for it).
 
 Then add the translations to `js/translations.js` under **both** `en` and `fa`:
 `proj.<slug>.index`, `proj.<slug>.desc`, and a `proj.<slug>.play`/`.view` action label (reuse `proj.viewGithub` for GitHub-only projects).

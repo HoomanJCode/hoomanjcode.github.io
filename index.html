@@ -314,16 +314,54 @@
   <script src="js/app.js" defer></script>
   <script src="js/projects.js" defer></script>
   <script src="js/project-data.js" defer></script>
-  <script src="js/scene.js" type="module"></script>
-  <script src="js/components/fxplanet.js" defer></script>
-  <script src="js/components/balls-of-chaos.js" defer></script>
-  <script src="js/components/gravity-sim.js" defer></script>
-  <script src="js/components/social-bots.js" defer></script>
-  <script src="js/components/thumbnail-parallax.js" defer></script>
-  <script src="js/components/v2portal.js" defer></script>
-  <script src="js/components/proxy-tuner.js" defer></script>
-  <script src="js/components/http-tunnel.js" defer></script>
-  <script src="js/components/thumbnail-visibility.js" defer></script>
+  <script>
+    // The hero planet and the animated thumbnails are decorative. A transient
+    // CDN failure (504) on one of these scripts should never leave a card
+    // dead, so each script is fetched with retries and backoff instead of a
+    // single best-effort request. If a script still fails after every attempt
+    // the visual simply keeps its CSS background, exactly as before scripts
+    // existed. The loader itself is inline so it can never fail to load.
+    (function () {
+      var SCRIPTS = [
+        { src: 'js/scene.js', module: true },
+        'js/components/fxplanet.js',
+        'js/components/balls-of-chaos.js',
+        'js/components/gravity-sim.js',
+        'js/components/social-bots.js',
+        'js/components/thumbnail-parallax.js',
+        'js/components/v2portal.js',
+        'js/components/proxy-tuner.js',
+        'js/components/http-tunnel.js',
+        'js/components/thumbnail-visibility.js'
+      ];
+      var MAX_ATTEMPTS = 3;
+      var BASE_DELAY = 600; // ms; doubles each attempt, plus jitter
+
+      var load = function (entry, attempt) {
+        var src = typeof entry === 'string' ? entry : entry.src;
+        var script = document.createElement('script');
+        // Retries get a cache-busting query so a cached error response can
+        // never keep a script permanently broken.
+        script.src = attempt > 1 ? src + '?retry=' + attempt : src;
+        script.async = true;
+        if (entry && entry.module) script.type = 'module';
+        script.onload = function () {
+          script.onerror = null;
+        };
+        script.onerror = function () {
+          script.onerror = null;
+          script.remove();
+          if (attempt < MAX_ATTEMPTS) {
+            var delay = BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 300;
+            setTimeout(function () { load(entry, attempt + 1); }, delay);
+          }
+        };
+        document.body.appendChild(script);
+      };
+
+      SCRIPTS.forEach(function (entry) { load(entry, 1); });
+    })();
+  </script>
   <script>
     // Failsafe: if app.js loaded but failed mid-run, or never loaded at all,
     // force all reveal sections visible after a short grace period so the
