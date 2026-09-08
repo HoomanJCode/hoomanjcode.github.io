@@ -49,11 +49,41 @@
 <body data-project="impasse" id="top">
   <div class="grain" aria-hidden="true"></div>
   <div id="projectPage"></div>
-  <script src="../../js/project-data.js"></script>
-  <script src="../../js/translations.js"></script>
-  <script src="../../js/theme.js" defer></script>
-  <script src="../../js/lang.js" defer></script>
-  <script src="../../js/project-page.js"></script>
-  <script src="../../js/components/detail-orbit.js"></script>
+  <script>
+    // The planet orbit is decorative. A transient CDN failure (504) should
+    // never leave the project page broken, so scripts are fetched with
+    // retries and backoff. If all attempts fail the page keeps its CSS
+    // background. The loader itself is inline so it can never fail to load.
+    (function () {
+      var SCRIPTS = [
+        '../../js/project-data.js',
+        '../../js/translations.js',
+        '../../js/theme.js',
+        '../../js/lang.js',
+        '../../js/project-page.js',
+        '../../js/components/detail-orbit.js'
+      ];
+      var MAX_ATTEMPTS = 3;
+      var BASE_DELAY = 600;
+
+      var load = function (src, attempt) {
+        var script = document.createElement('script');
+        script.src = attempt > 1 ? src + '?retry=' + attempt : src;
+        script.async = true;
+        script.onload = function () { script.onerror = null; };
+        script.onerror = function () {
+          script.onerror = null;
+          script.remove();
+          if (attempt < MAX_ATTEMPTS) {
+            var delay = BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 300;
+            setTimeout(function () { load(src, attempt + 1); }, delay);
+          }
+        };
+        document.body.appendChild(script);
+      };
+
+      SCRIPTS.forEach(function (src) { load(src, 1); });
+    })();
+  </script>
 </body>
 </html>
