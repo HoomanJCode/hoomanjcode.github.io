@@ -3,13 +3,6 @@
   const project = window.PROJECTS?.[slug];
   if (!project) return;
 
-  const lang = () => (document.documentElement.lang === 'fa' ? 'fa' : 'en');
-  const t = (key) => window.I18N?.[lang()]?.[key] ?? '';
-  // The project's content is merged with its fa block when Persian is active;
-  // fields the fa block omits (title, technologies, media, source…) fall back
-  // to the shared English data.
-  const local = () => (lang() === 'fa' && project.fa ? { ...project, ...project.fa } : project);
-
   const escapeHtml = (value) => String(value).replace(/[&<>'\"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const imageFallback = "this.onerror=null;this.hidden=true;this.nextElementSibling.hidden=false;";
   const visualMarkup = (media, index) => {
@@ -19,8 +12,8 @@
     return `<div class="media-fallback ${escapeHtml(media.visual || 'art-generic')}" role="img" aria-label="${escapeHtml(media.alt)}"></div>`;
   };
 
-  // The lightbox is built once and survives re-renders; only the media
-  // triggers change, so they are re-queried and re-wired inside render().
+  // The lightbox is built once at startup; only the media triggers change
+  // between renders, so they are re-queried and re-wired inside render().
   const lightbox = document.createElement('div');
   lightbox.className = 'media-lightbox';
   lightbox.hidden = true;
@@ -41,7 +34,7 @@
   let previouslyFocused = null;
 
   const showMedia = (index) => {
-    const data = local();
+    const data = project;
     activeIndex = (index + data.media.length) % data.media.length;
     const item = data.media[activeIndex];
     const trigger = document.querySelector(`.detail-media-trigger[data-media-index="${activeIndex}"]`);
@@ -81,14 +74,14 @@
   let revealObserver = null;
 
   const render = () => {
-    const data = local();
-    const media = data.media.map((item, index) => `<figure class="detail-media reveal"><div class="detail-media-frame">${visualMarkup(item, index)}<button class="detail-media-trigger" type="button" data-media-index="${index}" aria-label="${t('openLarger')}: ${escapeHtml(item.caption)}"></button><span class="media-number">0${index + 1}</span></div><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join('');
+    const data = project;
+    const media = data.media.map((item, index) => `<figure class="detail-media reveal"><div class="detail-media-frame">${visualMarkup(item, index)}<button class="detail-media-trigger" type="button" data-media-index="${index}" aria-label="Open in a larger view: ${escapeHtml(item.caption)}"></button><span class="media-number">0${index + 1}</span></div><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join('');
     const tags = data.technologies.map((technology) => `<li>${escapeHtml(technology)}</li>`).join('');
     const facts = data.facts.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
     const paragraphs = data.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
-    const storyTitle = (data.storyTitle || (lang() === 'fa' ? ['قوانینی', 'که جا می‌گذارند', 'برای حس.'] : ['Rules that', 'make room', 'for feeling.'])).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
+    const storyTitle = (data.storyTitle || ['Rules that', 'make room', 'for feeling.']).map((line, index) => `${index ? '<br>' : ''}${index === 1 ? `<em>${escapeHtml(line)}</em>` : escapeHtml(line)}`).join('');
     const storyKicker = data.storyKicker || 'The work';
-    const techKicker = data.techKicker || t('techNotes');
+    const techKicker = data.techKicker || 'Technical notes';
     const techParagraphs = (data.technical || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('');
     const techPoints = (data.techPoints || []).map((point) => `<li>${escapeHtml(point)}</li>`).join('');
     const related = (data.related || []).map((item) => `<a class="detail-related-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer"><span>${escapeHtml(item.type || 'Related')}</span>${escapeHtml(item.label)} <b>↗</b></a>`).join('');
@@ -127,11 +120,7 @@
           <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
           <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
         </div>
-        <div class="lang-switch" role="group" aria-label="Language">
-          <button type="button" data-lang-choice="en" aria-pressed="false">EN</button>
-          <button type="button" data-lang-choice="fa" aria-pressed="false">FA</button>
-        </div>
-        <a class="back-link" href="../../#work">${t('backLink')} <span>↗</span></a>
+        <a class="back-link" href="../../#work">Back to work <span>↗</span></a>
       </header>
       <main>
         <section class="detail-hero">
@@ -140,19 +129,19 @@
             <p class="eyebrow">${escapeHtml(data.eyebrow)}</p>
             <h1>${escapeHtml(data.title)}</h1>
             <p class="detail-lede">${escapeHtml(data.description)}</p>
-            <div class="detail-actions"><a class="button button-bright" href="${escapeHtml(data.source)}" target="_blank" rel="noreferrer">${escapeHtml(data.sourceLabel)} <span>↗</span></a><a class="text-link" href="#story">${t('readStory')} <span>↓</span></a></div>
+            <div class="detail-actions"><a class="button button-bright" href="${escapeHtml(data.source)}" target="_blank" rel="noreferrer">${escapeHtml(data.sourceLabel)} <span>↗</span></a><a class="text-link" href="#story">Read the story <span>↓</span></a></div>
           </div>
           <div class="detail-orbit" aria-hidden="true"><canvas class="detail-orbit-canvas" aria-hidden="true"></canvas></div>
         </section>
         <section class="detail-facts" aria-label="Project details"><dl>${facts}</dl><ul class="detail-tags">${tags}</ul></section>
-        <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> ${t('storyLabel')}</div><div class="detail-story-grid"><div><p class="eyebrow">${escapeHtml(storyKicker)}</p><h2>${storyTitle}</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
-        ${data.technical ? `<section class="detail-tech" aria-label="Technical breakdown"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> ${t('techLabel')}</div><p class="eyebrow">${escapeHtml(techKicker)}</p><div class="detail-prose">${techParagraphs}</div>${techPoints ? `<ul class="detail-tech-list">${techPoints}</ul>` : ''}</section>` : ''}
-        <section class="detail-gallery" aria-label="Project media"><div class="detail-section-label">${t('selectedMedia')} <span>/</span> ${escapeHtml(data.sourceType)}</div><div class="detail-media-grid">${media}</div>${related ? `<div class="detail-related"><div class="detail-section-label">${t('related')} <span>/</span> ${t('watchExplore')}</div>${related}</div>` : ''}</section>
-        <section class="detail-next"><p class="eyebrow">${t('keepExploring')}</p><a href="../../#work">${t('seeAllProjects')} <span>↗</span></a></section>
+        <section class="detail-story" id="story"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> notes from the build</div><div class="detail-story-grid"><div><p class="eyebrow">${escapeHtml(storyKicker)}</p><h2>${storyTitle}</h2></div><div class="detail-prose">${paragraphs}</div></div></section>
+        ${data.technical ? `<section class="detail-tech" aria-label="Technical breakdown"><div class="detail-section-label">${escapeHtml(data.number)} <span>/</span> under the hood</div><p class="eyebrow">${escapeHtml(techKicker)}</p><div class="detail-prose">${techParagraphs}</div>${techPoints ? `<ul class="detail-tech-list">${techPoints}</ul>` : ''}</section>` : ''}
+        <section class="detail-gallery" aria-label="Project media"><div class="detail-section-label">Selected media <span>/</span> ${escapeHtml(data.sourceType)}</div><div class="detail-media-grid">${media}</div>${related ? `<div class="detail-related"><div class="detail-section-label">Related <span>/</span> watch & explore</div>${related}</div>` : ''}</section>
+        <section class="detail-next"><p class="eyebrow">Keep exploring</p><a href="../../#work">See all projects <span>↗</span></a></section>
       </main>
-      <footer class="site-footer"><span>© Hooman Jalalpour</span><span>${t('builtCuriosity')}</span><a href="#top">${t('backToTop')} ↑</a></footer>`;
+      <footer class="site-footer"><span>© Hooman Jalalpour</span><span>Built with curiosity</span><a href="#top">Back to top ↑</a></footer>`;
 
-    // Restore switcher states after a re-render (the header is rebuilt).
+    // Restore the theme switcher state after the render (the header is rebuilt).
     let themeChoice = 'system';
     try {
       const stored = localStorage.getItem('theme');
@@ -162,9 +151,6 @@
     }
     document.querySelectorAll('[data-theme-choice]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.themeChoice === themeChoice));
-    });
-    document.querySelectorAll('[data-lang-choice]').forEach((button) => {
-      button.setAttribute('aria-pressed', String(button.dataset.langChoice === lang()));
     });
 
     if (revealObserver) revealObserver.disconnect();
@@ -200,5 +186,4 @@
   });
 
   render();
-  document.addEventListener('langchange', render);
 })();

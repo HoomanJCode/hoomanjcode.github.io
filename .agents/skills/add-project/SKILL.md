@@ -41,10 +41,6 @@ Append a new key inside `window.PROJECTS`, in order, copying the shape of an exi
   techTitle: ['…', '…', '…'],
   technical: ['…', '…'],
   techPoints: ['…', '…', '…'],
-  fa: { category: '…', eyebrow: '…', description: '…', paragraphs: ['…', '…'],
-        storyKicker: '…', storyTitle: ['…', '…', '…'], techKicker: '…', techTitle: ['…', '…', '…'],
-        technical: ['…', '…'], techPoints: ['…', '…', '…'],
-        facts: [['…', '…'], ['…', '…'], ['…', '…']], sourceLabel: '…' },
   technologies: ['…', '…'],
   facts: [['Type', '…'], ['…', '…'], ['…', '…']],
   source: 'https://…', sourceLabel: '…', sourceType: '…',
@@ -60,7 +56,6 @@ Append a new key inside `window.PROJECTS`, in order, copying the shape of an exi
 ```
 
 Notes:
-- The `fa` block holds the Persian translations; fields it omits fall back to English. Translate honestly — do not leave English text inside the fa block.
 - `media` drives the project page gallery + lightbox; the first item also works as the page's visual anchor. Use the project page's own `art-generic`/`art-<slug>` procedural fallback for the second item when a project has only one real asset (see hecs-gravity-sim).
 - The slug must be URL-safe and match the folder/body data exactly (e.g. `simple-meeting-app`, `telegram-7z-bot`).
 
@@ -71,7 +66,7 @@ Notes:
 2. Fill the static `<head>` meta with real values (the page script also re-writes these at runtime, but keep the static ones correct for crawlers):
    - `meta[name="description"]`, `link[rel="canonical"]`, `og:title`, `og:description`, `og:url`, `twitter:title`, `twitter:description` — all using `projects/<slug>/` as the URL
    - `<title><Title> — Hooman Jalalpour</title>`
-3. Nothing else: the whole page body, the planet, the lightbox, and language switching render from the data entry.
+3. Nothing else: the whole page body, the planet, and the lightbox render from the data entry.
 
 ## Step 4 — Add a main-page thumbnail (like other projects)
 
@@ -84,12 +79,12 @@ In `index.html`, inside `<div class="project-list" id="projectList">`, append a 
     <span class="visual-caption">CATEGORY / 15</span>
   </div>
   <div class="project-info">
-    <p class="project-index" data-i18n="proj.<slug>.index">15 · CATEGORY</p>
+    <p class="project-index">15 · CATEGORY</p>
     <h3><Title></h3>
-    <p data-i18n="proj.<slug>.desc">…</p>
+    <p>…</p>
     <div class="project-links">
-      <a href="projects/<slug>/" class="text-link"><span data-i18n="proj.readMore">Read more</span> <span>↗</span></a>
-      <a href="<source>" class="text-link" target="_blank" rel="noreferrer"><span data-i18n="proj.<slug>.play">…</span> <span>↗</span></a>
+      <a href="projects/<slug>/" class="text-link"><span>Read more</span> <span>↗</span></a>
+      <a href="<source>" class="text-link" target="_blank" rel="noreferrer"><span>…</span> <span>↗</span></a>
     </div>
   </div>
 </article>
@@ -100,9 +95,6 @@ Choose a thumbnail style, matching how other projects do it:
 - **Local image** (like rainy-cloud): `<img src="assets/projects/<slug>/cover.jpg" alt="…">` inside the visual div, plus a `.visual-<slug>` class in `css/main.css` that gives it a background and hides the pseudo-elements (`.visual-<slug>::before, .visual-<slug>::after { display: none; }`).
 - **CSS-only generative visual** (like visual-tools, visual-menu, visual-tunnel): add a `.visual-<slug>` class in `css/main.css` using gradients/borders and the `--pointer-x/--pointer-y` parallax variables (they're driven by `js/components/thumbnail-parallax.js`).
 - **Canvas animation** (like v2portal, proxy-tuner, http-tunnel, the bots): add a `<canvas id="<slug>Canvas" class="routing-canvas|social-bot-canvas" …>` in the card and a component file in `js/components/`. Then register the component in the **resilient script loader** — the inline script at the bottom of `index.html` that retries decorative scripts with backoff so a transient CDN 504 never kills a thumbnail (add `'js/components/<component>.js'` to its `SCRIPTS` array; never add a plain `<script defer>` tag for it).
-
-Then add the translations to `js/translations.js` under **both** `en` and `fa`:
-`proj.<slug>.index`, `proj.<slug>.desc`, and a `proj.<slug>.play`/`.view` action label (reuse `proj.viewGithub` for GitHub-only projects).
 
 ## Step 5 — Name the project in the news ticker (same name as the main page)
 
@@ -120,7 +112,7 @@ The "Other projects" marquee (`div.archive-ticker` → `.ticker-row` rows) is th
 - Optionally add the project to the README featured/experiments tables.
 - Verify with a local server (`python3 -m http.server 4173`):
   - the hero shows a **new orbital planet with its own ring**, colored by its palette, and clicking it opens the project page
-  - the project page renders, its planet matches the palette, the lightbox works, and EN/FA switching works
+  - the project page renders, its planet matches the palette, and the lightbox works
   - the thumbnail card appears under "View more" with the caption, links, and (if used) the canvas animation
   - the new name scrolls in the ticker with the exact main-page title
 
@@ -130,17 +122,16 @@ The "Other projects" marquee (`div.archive-ticker` → `.ticker-row` rows) is th
 2. **One name everywhere** — the main card, the ticker, the project page, and the sitemap all use the same display `title`.
 3. **Palette = planet identity** — every project needs a distinct 4-color `palette`; it drives both the homepage orbital planet and the project-page planet.
 4. **Nothing hand-wired for planets** — never edit `scene.js` or `detail-orbit.js`; the data entry is all they need.
-5. **Keep EN/FA in sync** — every user-visible string added to `index.html`/`translations.js` gets both languages.
+5. **English-only** — every user-visible string stays English; there is no translations dictionary or language switcher anymore.
 
 ## Checklist
 
 - [ ] Project link fetched; info, tech, facts, and media extracted from real sources
 - [ ] Media saved under `assets/projects/<slug>/` (or GitHub og fallback used)
 - [ ] Distinct 4-color `palette` chosen
-- [ ] `js/project-data.js` entry added (number, fa block, media, source)
+- [ ] `js/project-data.js` entry added (number, media, source)
 - [ ] `projects/<slug>/index.html` created from `project-page.html` with meta + slug
 - [ ] Main-page thumbnail card added with `.visual-<slug>` (image, CSS, or canvas)
-- [ ] `js/translations.js` updated in EN **and** FA
 - [ ] Name added to the archive ticker using the exact main-page title (track duplicated for the loop)
 - [ ] `sitemap.xml` updated
 - [ ] Verified locally: orbital planet, project page, thumbnail, ticker name

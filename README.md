@@ -126,8 +126,7 @@ hoomanjcode.github.io/
 │   ├── app.js               ← Homepage logic (scroll, reveals, theme colors)
 │   ├── scene.js             ← Three.js hero planet
 │   ├── project-page.js      ← Project page renderer
-│   ├── theme.js · lang.js   ← Shared theme & language handling
-│   ├── translations.js      ← EN / FA dictionaries
+│   ├── theme.js            ← Shared theme handling (system / light / dark)
 │   ├── projects.js          ← Homepage project list logic
 │   ├── project-data.js      ← All project content
 │   └── components/          ← Per-project canvas animations

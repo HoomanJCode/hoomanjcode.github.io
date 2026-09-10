@@ -11,18 +11,6 @@
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     })();
   </script>
-  <script>
-    // Apply the language and text direction before any CSS paints so the
-    // page never flashes the wrong language. 'lang' in localStorage is
-    // 'en' or 'fa' (defaults to 'en').
-    (function () {
-      var lang = null;
-      try { lang = localStorage.getItem('lang'); } catch (error) {}
-      lang = lang === 'fa' ? 'fa' : 'en';
-      document.documentElement.lang = lang;
-      document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
-    })();
-  </script>
   <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/project-page.css"></head>
 <body data-project="telegram-insta-bot" id="top"><div class="grain" aria-hidden="true"></div><div id="projectPage"></div>  <script>
     // The planet orbit is decorative. A transient CDN failure (504) should
@@ -32,9 +20,7 @@
     (function () {
       var SCRIPTS = [
         '../../js/project-data.js',
-        '../../js/translations.js',
         '../../js/theme.js',
-        '../../js/lang.js',
         '../../js/project-page.js',
         '../../js/components/detail-orbit.js'
       ];

@@ -2,11 +2,10 @@
   const slug = document.body.dataset.project;
   if (!slug) return;
 
-  // The project page re-renders its content on language change, replacing the
-  // canvas. A generation token abandons any pending import or running loop
-  // from an older render (the old canvas also stops itself via its
-  // IntersectionObserver once detached), then the orbit is rebuilt on the new
-  // canvas.
+  // A generation token abandons any pending import or running loop from an
+  // older start attempt (a replaced canvas also stops itself via its
+  // IntersectionObserver once detached), then the orbit is rebuilt on the
+  // new canvas.
   let generation = 0;
 
   const hex = (rgb) => (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
@@ -239,8 +238,8 @@
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
-    // Drop the previous render's listener so a language switch (which
-    // rebuilds the canvas) does not pile up stale resize handlers.
+    // Drop the previous listener so repeated start() calls do not pile up
+    // stale resize handlers.
     if (activeResize) window.removeEventListener('resize', activeResize);
     activeResize = resize;
     window.addEventListener('resize', activeResize, { passive: true });
@@ -352,5 +351,4 @@
 
   let activeResize = null;
   start();
-  document.addEventListener('langchange', start);
 })();
