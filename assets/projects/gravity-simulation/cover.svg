@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" fill="none">
+  <defs>
+    <radialGradient id="field" cx="0" cy="0" r="1" gradientTransform="matrix(620 490 -560 710 370 390)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#25374a"/>
+      <stop offset=".55" stop-color="#18212b"/>
+      <stop offset="1" stop-color="#101419"/>
+    </radialGradient>
+    <radialGradient id="planet" cx="0" cy="0" r="1" gradientTransform="matrix(45 68 -68 45 310 322)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d5ff4f"/>
+      <stop offset=".55" stop-color="#8da943"/>
+      <stop offset="1" stop-color="#344126"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="0" cy="0" r="1" gradientTransform="matrix(25 31 -31 25 462 246)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c4dcff"/>
+      <stop offset="1" stop-color="#5681b5"/>
+    </radialGradient>
+    <linearGradient id="bar" x1="0" x2="1" y1="0" y2="0">
+      <stop stop-color="#91baff"/>
+      <stop offset="1" stop-color="#d5ff4f"/>
+    </linearGradient>
+    <filter id="glow" x="180" y="205" width="380" height="380" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="900" fill="#101419"/>
+  <rect width="1200" height="900" fill="url(#field)"/>
+  <path d="M0 680 1200 438v462H0V680Z" fill="#0c1117" fill-opacity=".52"/>
+  <path d="M0 685 1200 443" stroke="#91baff" stroke-opacity=".13"/>
+  <g opacity=".55" fill="#d6e4f6">
+    <circle cx="92" cy="188" r="2"/><circle cx="160" cy="119" r="1.5"/><circle cx="538" cy="154" r="2"/>
+    <circle cx="560" cy="559" r="1.5"/><circle cx="90" cy="565" r="1.5"/><circle cx="510" cy="402" r="1.2"/>
+    <circle cx="88" cy="386" r="1.2"/><circle cx="211" cy="224" r="1"/><circle cx="470" cy="175" r="1"/>
+  </g>
+  <text x="72" y="76" fill="#d5ff4f" font-family="monospace" font-size="15" letter-spacing="3">SIMULATION LAB / 01</text>
+  <text x="72" y="126" fill="#f0eee8" font-family="Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="-1">Gravity, measured.</text>
+  <text x="74" y="158" fill="#a4aab0" font-family="monospace" font-size="12" letter-spacing="1.5">UNITY  ·  C#  ·  PYTHON</text>
+
+  <g opacity=".5" filter="url(#glow)"><circle cx="335" cy="383" r="105" fill="#d5ff4f"/></g>
+  <g transform="rotate(-18 335 383)">
+    <ellipse cx="335" cy="383" rx="220" ry="86" stroke="#91baff" stroke-opacity=".58" stroke-width="2"/>
+    <ellipse cx="335" cy="383" rx="175" ry="135" stroke="#d5ff4f" stroke-opacity=".26" stroke-width="1.5"/>
+    <ellipse cx="335" cy="383" rx="125" ry="190" stroke="#f0eee8" stroke-opacity=".14"/>
+  </g>
+  <circle cx="335" cy="383" r="64" fill="url(#planet)"/>
+  <circle cx="335" cy="383" r="64" stroke="#e8ffc0" stroke-opacity=".6"/>
+  <path d="M291 368c17-23 50-36 77-27M296 403c20 18 48 24 72 13" stroke="#f0eee8" stroke-opacity=".2" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="487" cy="278" r="27" fill="url(#moon)"/>
+  <circle cx="487" cy="278" r="27" stroke="#d8e8ff" stroke-opacity=".7"/>
+  <circle cx="175" cy="438" r="10" fill="#ff765c"/>
+  <circle cx="175" cy="438" r="18" stroke="#ff765c" stroke-opacity=".26"/>
+  <path d="m154 440 14-2" stroke="#ffb2a3" stroke-width="2" stroke-linecap="round"/>
+
+  <rect x="694" y="214" width="430" height="434" rx="14" fill="#11171e" fill-opacity=".92" stroke="#edf2fa" stroke-opacity=".17"/>
+  <path d="M694 275h430" stroke="#edf2fa" stroke-opacity=".12"/>
+  <rect x="725" y="236" width="25" height="18" rx="5" fill="#91baff"/>
+  <text x="733" y="249" fill="#101419" font-family="monospace" font-size="10" font-weight="700">GS</text>
+  <text x="765" y="250" fill="#f0eee8" font-family="monospace" font-size="12" letter-spacing="1.6">PERFORMANCE RUN</text>
+  <circle cx="1080" cy="245" r="5" fill="#d5ff4f"/>
+
+  <g font-family="monospace">
+    <rect x="725" y="300" width="115" height="64" rx="7" fill="#1b242d" stroke="#edf2fa" stroke-opacity=".1"/>
+    <rect x="853" y="300" width="115" height="64" rx="7" fill="#1b242d" stroke="#edf2fa" stroke-opacity=".1"/>
+    <rect x="981" y="300" width="112" height="64" rx="7" fill="#1b242d" stroke="#edf2fa" stroke-opacity=".1"/>
+    <text x="741" y="324" fill="#a4aab0" font-size="10">WORKLOADS</text><text x="741" y="348" fill="#f0eee8" font-size="18">05</text>
+    <text x="869" y="324" fill="#a4aab0" font-size="10">DIMENSIONS</text><text x="869" y="348" fill="#f0eee8" font-size="18">2D / 3D</text>
+    <text x="997" y="324" fill="#a4aab0" font-size="10">RUNTIMES</text><text x="997" y="348" fill="#f0eee8" font-size="18">C# + Py</text>
+  </g>
+
+  <g font-family="monospace" font-size="11" fill="#a4aab0">
+    <text x="726" y="406">GRAVITY 2D</text><text x="726" y="450">GRAVITY 3D</text><text x="726" y="494">ITERATION</text>
+    <text x="726" y="538">PARTICLE SWARM</text><text x="726" y="582">RANDOM SEARCH</text>
+  </g>
+  <g>
+    <rect x="852" y="394" width="229" height="8" rx="4" fill="#27313b"/><rect x="852" y="394" width="175" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="852" y="438" width="229" height="8" rx="4" fill="#27313b"/><rect x="852" y="438" width="146" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="852" y="482" width="229" height="8" rx="4" fill="#27313b"/><rect x="852" y="482" width="199" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="852" y="526" width="229" height="8" rx="4" fill="#27313b"/><rect x="852" y="526" width="126" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="852" y="570" width="229" height="8" rx="4" fill="#27313b"/><rect x="852" y="570" width="163" height="8" rx="4" fill="url(#bar)"/>
+  </g>
+  <g fill="#7f8993" font-family="monospace" font-size="9">
+    <text x="726" y="623">UNITY / JOBS / PYTHON</text><text x="1001" y="623">BENCHMARK</text>
+  </g>
+  <path d="M72 756h1056" stroke="#f0eee8" stroke-opacity=".16"/>
+  <text x="72" y="808" fill="#f0eee8" font-family="monospace" font-size="13" letter-spacing="2">FORCES  ·  SYSTEMS  ·  PERFORMANCE</text>
+  <text x="1128" y="808" text-anchor="end" fill="#91baff" font-family="monospace" font-size="12">01 / 05</text>
+</svg>
