@@ -1,11 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ff765c" data-meta="theme-color-loading">
   <meta name="theme-color" content="#07090d" data-meta="theme-color-page" data-theme-scene="hero">
-  <meta name="theme-color" content="#e9e7e0" media="(prefers-color-scheme: light)">
   <meta name="description" content="Portfolio of Hooman Jalalpour, an indie game programmer and software engineer creating Unity games, generative art, and playful interactive systems.">
   <meta name="author" content="Hooman Jalalpour">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -101,16 +100,6 @@
   }
   </script>
   <script>document.documentElement.classList.add('js');</script>
-  <script>
-    // Apply the theme before any CSS paints so the page never flashes the
-    // wrong one. 'theme' in localStorage is 'light', 'dark', or 'system'.
-    (function () {
-      var choice = null;
-      try { choice = localStorage.getItem('theme'); } catch (error) {}
-      var dark = choice !== 'light' && choice !== 'dark' ? window.matchMedia('(prefers-color-scheme: dark)').matches : choice === 'dark';
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-    })();
-  </script>
   <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml" sizes="any">
   <link rel="alternate icon" href="assets/images/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
@@ -134,11 +123,6 @@
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
     </nav>
-    <div class="theme-switch" role="group" aria-label="Theme">
-      <button type="button" data-theme-choice="system" aria-pressed="false">System</button>
-      <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
-      <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
-    </div>
     <a class="header-link" href="mailto:hooman.jalalpoor@gmail.com"><span>Let's talk</span> <span>↗</span></a>
   </header>
 

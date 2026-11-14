@@ -115,11 +115,6 @@
     document.querySelector('#projectPage').innerHTML = `
       <header class="detail-header">
         <a class="brand" href="../../" aria-label="Hooman Jalalpour home"><span class="brand-mark">HJ</span><span>Hooman<br><b>Jalalpour</b></span></a>
-        <div class="theme-switch" role="group" aria-label="Theme">
-          <button type="button" data-theme-choice="system" aria-pressed="false">System</button>
-          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
-          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
-        </div>
         <a class="back-link" href="../../#work">Back to work <span>↗</span></a>
       </header>
       <main>
@@ -140,18 +135,6 @@
         <section class="detail-next"><p class="eyebrow">Keep exploring</p><a href="../../#work">See all projects <span>↗</span></a></section>
       </main>
       <footer class="site-footer"><span>© Hooman Jalalpour</span><span>Built with curiosity</span><a href="#top">Back to top ↑</a></footer>`;
-
-    // Restore the theme switcher state after the render (the header is rebuilt).
-    let themeChoice = 'system';
-    try {
-      const stored = localStorage.getItem('theme');
-      if (stored === 'light' || stored === 'dark' || stored === 'system') themeChoice = stored;
-    } catch (error) {
-      // Storage unavailable — default state stays.
-    }
-    document.querySelectorAll('[data-theme-choice]').forEach((button) => {
-      button.setAttribute('aria-pressed', String(button.dataset.themeChoice === themeChoice));
-    });
 
     if (revealObserver) revealObserver.disconnect();
     revealObserver = 'IntersectionObserver' in window ? new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('is-visible')), { threshold: .12 }) : null;
