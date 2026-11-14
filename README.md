@@ -118,15 +118,15 @@ hoomanjcode.github.io/
 ├── 📄 projects/             ← 14 project detail pages
 │
 ├── 🎨 css/
-│   ├── main.css             ← Global design system (light + dark)
+│   ├── main.css             ← Global dark design system
 │   ├── project-page.css     ← Project detail page styles
 │   └── projects/            ← Per-project visuals (impasse, chaos, fxplanet)
 │
 ├── ⚡ js/
-│   ├── app.js               ← Homepage logic (scroll, reveals, theme colors)
+│   ├── app.js               ← Homepage logic (scroll, reveals, scene colors)
 │   ├── scene.js             ← Three.js hero planet
 │   ├── project-page.js      ← Project page renderer
-│   ├── theme.js            ← Shared theme handling (system / light / dark)
+│   ├── theme.js            ← Sets the dark-only theme
 │   ├── projects.js          ← Homepage project list logic
 │   ├── project-data.js      ← All project content
 │   └── components/          ← Per-project canvas animations
