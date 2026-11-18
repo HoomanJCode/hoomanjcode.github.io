@@ -10,6 +10,7 @@ function createScene() {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 500);
+  const distantSunDirection = new THREE.Vector3(-.3, .04, -.95).normalize();
   camera.position.set(0, 0, 8.5);
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -101,6 +102,9 @@ function createScene() {
   const key = new THREE.DirectionalLight(0xd5ffcf, 3.2);
   key.position.set(-4, 3, 5);
   scene.add(key);
+  const distantSunLight = new THREE.DirectionalLight(0xffd9a6, .8);
+  distantSunLight.position.copy(distantSunDirection).multiplyScalar(24);
+  scene.add(distantSunLight);
   const rim = new THREE.PointLight(0xff765c, 18, 8);
   rim.position.set(3, -2, 2);
   scene.add(rim);
@@ -257,7 +261,7 @@ function createScene() {
   flightStars.visible = false;
   scene.add(flightStars);
 
-  // A distant star is a flat light point on a sky shell around the ship, not a
+  // A distant sun is a flat light point on a sky shell around the ship, not a
   // sphere or a reachable world object. Its world direction stays fixed, so
   // it crosses the view naturally when the ship turns.
   const skyBeaconCanvas = document.createElement('canvas');
@@ -286,7 +290,6 @@ function createScene() {
   skyBeacon.visible = false;
   skyBeacon.renderOrder = 2;
   scene.add(skyBeacon);
-  const skyBeaconDirection = new THREE.Vector3(-.3, .04, -.95).normalize();
   const skyBeaconDistance = 140;
 
   const projectileCoreGeometry = new THREE.SphereGeometry(.09, 10, 8);
@@ -1148,7 +1151,7 @@ function createScene() {
     skyBeacon.visible = skyBeaconFade > 0;
     skyBeaconMaterial.opacity = skyBeaconFade * (.88 + Math.sin(t * 1.8) * .035);
     if (skyBeacon.visible) {
-      skyBeacon.position.copy(ship.position).addScaledVector(skyBeaconDirection, skyBeaconDistance);
+      skyBeacon.position.copy(ship.position).addScaledVector(distantSunDirection, skyBeaconDistance);
       skyBeacon.scale.setScalar(skyBeaconDistance * .03);
     }
     renderer.render(scene, camera);
