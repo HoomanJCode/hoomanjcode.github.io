@@ -676,6 +676,8 @@ function createScene() {
   let aimPitch = 0;
   let lastPointerX = window.innerWidth / 2;
   let lastPointerY = window.innerHeight / 2;
+  let pointerLockPending = false;
+  let pointerLockUnavailable = false;
   let cameraLookEase = 0;
   const transitionDuration = 2.7;
   const returnDuration = 1.15;
@@ -1155,6 +1157,49 @@ function createScene() {
       flightReticle.style.top = `${clientY}px`;
     }
   };
+  const updateMouseLockStatus = () => {
+    const flightMouseStatus = document.querySelector('#flightMouseStatus');
+    if (!flightMouseStatus) return;
+    const locked = document.pointerLockElement === canvas;
+    flightMouseStatus.textContent = locked
+      ? 'MOUSE WRAP · ACTIVE'
+      : pointerLockUnavailable
+        ? 'MOUSE WRAP · UNAVAILABLE'
+        : 'CLICK TO LOCK · MOUSE WRAP';
+    flightMouseStatus.classList.toggle('locked', locked);
+    flightMouseStatus.classList.toggle('unavailable', !locked && pointerLockUnavailable);
+  };
+  const lockFlightPointer = (clientX, clientY) => {
+    if (document.pointerLockElement === canvas || pointerLockPending) return;
+    lastPointerX = THREE.MathUtils.clamp(clientX, 0, window.innerWidth - 1);
+    lastPointerY = THREE.MathUtils.clamp(clientY, 0, window.innerHeight - 1);
+    updateAim(lastPointerX, lastPointerY);
+    if (typeof canvas.requestPointerLock !== 'function') {
+      pointerLockUnavailable = true;
+      updateMouseLockStatus();
+      return;
+    }
+    pointerLockPending = true;
+    pointerLockUnavailable = false;
+    try {
+      const request = canvas.requestPointerLock();
+      if (request && typeof request.catch === 'function') {
+        request.catch(() => {
+          pointerLockPending = false;
+          pointerLockUnavailable = true;
+          updateMouseLockStatus();
+        });
+      }
+    } catch {
+      pointerLockPending = false;
+      pointerLockUnavailable = true;
+      updateMouseLockStatus();
+    }
+  };
+  const releaseFlightPointer = () => {
+    pointerLockPending = false;
+    if (document.pointerLockElement === canvas) document.exitPointerLock?.();
+  };
   const beginFlight = () => {
     if (!canPilot || flightMode !== 'hero' || !flightHud) return;
     flightReturnScroll = window.scrollY;
@@ -1189,6 +1234,7 @@ function createScene() {
     document.body.dataset.flightState = 'entering';
     flightEntry?.setAttribute('aria-hidden', 'true');
     flightHud.setAttribute('aria-hidden', 'false');
+    updateMouseLockStatus();
     setPortfolioHidden(true);
     clearHover();
     dragging = false;
@@ -1196,6 +1242,7 @@ function createScene() {
   const exitFlight = () => {
     if (flightMode !== 'entering' && flightMode !== 'playing' && flightMode !== 'defeated') return;
     flightMode = 'exiting';
+    releaseFlightPointer();
     flightTransitionTime = 0;
     exitCameraStart.copy(camera.position);
     exitLookStart.copy(lastFlightLookTarget);
@@ -1206,6 +1253,7 @@ function createScene() {
     flightHud?.setAttribute('aria-hidden', 'true');
   };
   const finishFlight = () => {
+    releaseFlightPointer();
     flightMode = 'hero';
     flightVelocity.set(0, 0, 0);
     flightThrottle = 0;
@@ -1258,17 +1306,39 @@ function createScene() {
       }
     });
     document.addEventListener('keyup', (event) => flightModeKeys.delete(event.code));
+    document.addEventListener('pointerlockchange', () => {
+      pointerLockPending = false;
+      if (document.pointerLockElement === canvas && flightMode === 'exiting') releaseFlightPointer();
+      updateMouseLockStatus();
+    });
+    document.addEventListener('pointerlockerror', () => {
+      pointerLockPending = false;
+      pointerLockUnavailable = true;
+      updateMouseLockStatus();
+    });
     document.addEventListener('pointermove', (event) => {
       if (flightMode === 'hero') {
         lastPointerX = event.clientX;
         lastPointerY = event.clientY;
         return;
       }
-      if (flightMode !== 'exiting') updateAim(event.clientX, event.clientY);
+      if (flightMode === 'exiting') return;
+      if (document.pointerLockElement === canvas) {
+        const width = Math.max(1, window.innerWidth);
+        const height = Math.max(1, window.innerHeight);
+        lastPointerX = ((lastPointerX + event.movementX) % width + width) % width;
+        lastPointerY = THREE.MathUtils.clamp(lastPointerY + event.movementY, 0, height - 1);
+        updateAim(lastPointerX, lastPointerY);
+      } else {
+        updateAim(event.clientX, event.clientY);
+      }
     }, { passive: true });
     const startFiring = (event) => {
       if (event.button !== 0 || flightMode !== 'playing' || flightExitButton?.contains(event.target)) return;
       if (firingHeld) return;
+      if (event.target === canvas && document.pointerLockElement !== canvas) {
+        lockFlightPointer(event.clientX, event.clientY);
+      }
       firingHeld = true;
       pointerFirePendingClick = true;
       fireCooldown = fireInterval;
@@ -1289,6 +1359,9 @@ function createScene() {
     window.addEventListener('pointercancel', stopFiring);
     window.addEventListener('click', (event) => {
       if (event.button !== 0 || flightMode !== 'playing' || flightExitButton?.contains(event.target)) return;
+      if (event.target === canvas && document.pointerLockElement !== canvas) {
+        lockFlightPointer(event.clientX, event.clientY);
+      }
       if (!pointerFirePendingClick) fireProjectile();
       pointerFirePendingClick = false;
     });
