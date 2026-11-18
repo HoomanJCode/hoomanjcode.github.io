@@ -357,6 +357,35 @@ function createScene() {
   planetPulseMesh.visible = false;
   planetPulseMesh.renderOrder = 3;
   scene.add(planetPulseMesh);
+  const shipPulseMaterial = new THREE.MeshBasicMaterial({
+    color: 0xc397ff,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const shipPulseMesh = new THREE.Group();
+  const shipPulseRings = [
+    new THREE.Mesh(planetPulseGeometry, shipPulseMaterial),
+    new THREE.Mesh(planetPulseGeometry, shipPulseMaterial),
+    new THREE.Mesh(planetPulseGeometry, shipPulseMaterial),
+  ];
+  shipPulseRings[1].rotation.x = Math.PI / 2;
+  shipPulseRings[2].rotation.y = Math.PI / 2;
+  shipPulseMesh.add(...shipPulseRings);
+  shipPulseMesh.visible = false;
+  shipPulseMesh.renderOrder = 3;
+  scene.add(shipPulseMesh);
+  const pickupGeometry = new THREE.IcosahedronGeometry(.26, 1);
+  const pickupRingGeometry = new THREE.TorusGeometry(.38, .024, 6, 28);
+  const pickupMaterials = {
+    speed: new THREE.MeshBasicMaterial({ color: 0x65dfff, toneMapped: false }),
+    power: new THREE.MeshBasicMaterial({ color: 0xffc96b, toneMapped: false }),
+    spread: new THREE.MeshBasicMaterial({ color: 0xc397ff, toneMapped: false }),
+    rapid: new THREE.MeshBasicMaterial({ color: 0xc7ff58, toneMapped: false }),
+  };
+  const pickups = [];
 
   // One orbital planet per project, riding a ring around the main planet like
   // a solar system. Built from the shared project data, so adding or removing
@@ -566,6 +595,14 @@ function createScene() {
   const planetHealthRow = planetHealthFill?.closest('.flight-health-row');
   const flightThreatStatus = document.querySelector('#flightThreatStatus');
   const flightPulseStatus = document.querySelector('#flightPulseStatus');
+  const flightShipPulseStatus = document.querySelector('#flightShipPulseStatus');
+  const upgradeLevelReadouts = {
+    speed: document.querySelector('#upgradeSpeedLevel'),
+    power: document.querySelector('#upgradePowerLevel'),
+    spread: document.querySelector('#upgradeSpreadLevel'),
+    rapid: document.querySelector('#upgradeRapidLevel'),
+  };
+  const flightPickupNotice = document.querySelector('#flightPickupNotice');
   const flightEntry = document.querySelector('.flight-entry');
   const flightPageElements = [
     document.querySelector('.site-header'),
@@ -600,6 +637,8 @@ function createScene() {
   const flightModeKeys = new Set();
   const fireOrigin = new THREE.Vector3();
   const projectileTarget = new THREE.Vector3();
+  const projectileDirection = new THREE.Vector3();
+  const projectileRight = new THREE.Vector3();
   const enemyAttackDirection = new THREE.Vector3();
   const hostileShotTarget = new THREE.Vector3();
   let playerHealth = 100;
@@ -612,6 +651,14 @@ function createScene() {
   const pulseCooldown = 12;
   const pulseDuration = 1.45;
   const pulseMaxRadius = 52;
+  const shipPulse = { active: false, age: 0, radius: 0, origin: new THREE.Vector3() };
+  let shipPulseCooldownRemaining = 0;
+  let pickupNoticeRemaining = 0;
+  const shipPulseCooldown = 6;
+  const shipPulseDuration = .52;
+  const shipPulseMaxRadius = 9.5;
+  const upgrades = { speed: 0, power: 0, spread: 0, rapid: 0 };
+  const maxUpgradeLevel = 2;
   let firingHeld = false;
   let pointerFirePendingClick = false;
   let fireCooldown = 0;
@@ -662,22 +709,98 @@ function createScene() {
   const clearDefenseObjects = () => {
     enemies.forEach(({ mesh }) => scene.remove(mesh));
     hostileProjectiles.forEach(({ object }) => scene.remove(object));
+    pickups.forEach(({ mesh }) => scene.remove(mesh));
     enemies.length = 0;
     hostileProjectiles.length = 0;
+    pickups.length = 0;
     planetPulse.active = false;
     planetPulse.age = 0;
     planetPulse.radius = 0;
     planetPulseMesh.visible = false;
     planetPulseMaterial.opacity = 0;
+    shipPulse.active = false;
+    shipPulse.age = 0;
+    shipPulse.radius = 0;
+    shipPulseMesh.visible = false;
+    shipPulseMaterial.opacity = 0;
   };
   const updatePulseStatus = () => {
     if (!flightPulseStatus) return;
-    let status = 'SPACE PULSE · READY';
-    if (planetPulse.active) status = 'PLANET PULSE · EXPANDING';
-    else if (pulseCooldownRemaining > 0) status = `SPACE PULSE · ${Math.ceil(pulseCooldownRemaining)}s`;
+    let status = 'SPACE PLANET WAVE · READY';
+    if (planetPulse.active) status = 'PLANET WAVE · EXPANDING';
+    else if (pulseCooldownRemaining > 0) status = `SPACE PLANET WAVE · ${Math.ceil(pulseCooldownRemaining)}s`;
     if (flightPulseStatus.textContent !== status) flightPulseStatus.textContent = status;
     flightPulseStatus.classList.toggle('active', planetPulse.active);
     flightPulseStatus.classList.toggle('recharging', !planetPulse.active && pulseCooldownRemaining > 0);
+  };
+  const updateShipPulseStatus = () => {
+    if (!flightShipPulseStatus) return;
+    let status = 'F SHIP WAVE · READY';
+    if (shipPulse.active) status = 'SHIP WAVE · EXPANDING';
+    else if (shipPulseCooldownRemaining > 0) status = `F SHIP WAVE · ${Math.ceil(shipPulseCooldownRemaining)}s`;
+    if (flightShipPulseStatus.textContent !== status) flightShipPulseStatus.textContent = status;
+    flightShipPulseStatus.classList.toggle('active', shipPulse.active);
+    flightShipPulseStatus.classList.toggle('recharging', !shipPulse.active && shipPulseCooldownRemaining > 0);
+  };
+  const updateUpgradeHud = () => {
+    Object.entries(upgradeLevelReadouts).forEach(([type, element]) => {
+      if (element) element.textContent = `${upgrades[type]}/${maxUpgradeLevel}`;
+    });
+  };
+  const showPickupNotice = (type) => {
+    if (!flightPickupNotice) return;
+    const names = { speed: 'BOLT SPEED', power: 'HEAVY BOLTS', spread: 'SPREAD SHOT', rapid: 'RAPID FIRE' };
+    flightPickupNotice.textContent = `COLLECTED · ${names[type]} ${upgrades[type]}`;
+    flightPickupNotice.hidden = false;
+    pickupNoticeRemaining = 2.8;
+  };
+  const spawnUpgradePickup = (position) => {
+    if (Math.random() >= .16) return;
+    const available = Object.keys(upgrades).filter((type) => upgrades[type] < maxUpgradeLevel);
+    if (!available.length) return;
+    const type = available[Math.floor(Math.random() * available.length)];
+    const mesh = new THREE.Group();
+    const core = new THREE.Mesh(pickupGeometry, pickupMaterials[type]);
+    const ring = new THREE.Mesh(pickupRingGeometry, pickupMaterials[type]);
+    ring.rotation.x = Math.PI / 2;
+    mesh.add(core, ring);
+    const basePosition = position.clone();
+    mesh.position.copy(basePosition);
+    scene.add(mesh);
+    pickups.push({ mesh, type, basePosition, age: 0 });
+  };
+  const destroyEnemy = (index) => {
+    const enemy = enemies[index];
+    if (!enemy) return;
+    const deathPosition = enemy.mesh.position.clone();
+    scene.remove(enemy.mesh);
+    enemies.splice(index, 1);
+    spawnUpgradePickup(deathPosition);
+    updateThreatStatus();
+  };
+  const updatePickups = (dt) => {
+    if (pickupNoticeRemaining > 0) {
+      pickupNoticeRemaining = Math.max(0, pickupNoticeRemaining - dt);
+      if (!pickupNoticeRemaining && flightPickupNotice) flightPickupNotice.hidden = true;
+    }
+    for (let i = pickups.length - 1; i >= 0; i -= 1) {
+      const pickup = pickups[i];
+      pickup.age += dt;
+      pickup.mesh.position.copy(pickup.basePosition);
+      pickup.mesh.position.y += Math.sin(pickup.age * 3.4) * .14;
+      pickup.mesh.rotation.y += dt * 1.2;
+      pickup.mesh.rotation.x += dt * .65;
+      if (pickup.mesh.position.distanceToSquared(ship.position) <= 2.2 * 2.2) {
+        upgrades[pickup.type] = Math.min(maxUpgradeLevel, upgrades[pickup.type] + 1);
+        scene.remove(pickup.mesh);
+        pickups.splice(i, 1);
+        updateUpgradeHud();
+        showPickupNotice(pickup.type);
+      } else if (pickup.age >= 25) {
+        scene.remove(pickup.mesh);
+        pickups.splice(i, 1);
+      }
+    }
   };
   const updateHealthHud = () => {
     const shipValue = Math.ceil(playerHealth);
@@ -733,14 +856,10 @@ function createScene() {
       planetPulseMesh.scale.setScalar(planetPulse.radius);
       planetPulseMaterial.opacity = .82 * (1 - progress);
 
-      let clearedEnemy = false;
       for (let i = enemies.length - 1; i >= 0; i -= 1) {
         if (enemies[i].distance > planetPulse.radius) continue;
-        scene.remove(enemies[i].mesh);
-        enemies.splice(i, 1);
-        clearedEnemy = true;
+        destroyEnemy(i);
       }
-      if (clearedEnemy) updateThreatStatus();
       for (let i = hostileProjectiles.length - 1; i >= 0; i -= 1) {
         if (hostileProjectiles[i].object.position.distanceToSquared(planetNoFlyCenter) > planetPulse.radius * planetPulse.radius) continue;
         scene.remove(hostileProjectiles[i].object);
@@ -755,12 +874,55 @@ function createScene() {
     }
     updatePulseStatus();
   };
+  const activateShipPulse = () => {
+    if (flightMode !== 'playing' || combatOutcome !== 'active' || shipPulseCooldownRemaining > 0) return;
+    shipPulse.active = true;
+    shipPulse.age = 0;
+    shipPulse.radius = .2;
+    shipPulse.origin.copy(ship.position);
+    shipPulseCooldownRemaining = shipPulseCooldown;
+    shipPulseMesh.position.copy(shipPulse.origin);
+    shipPulseMesh.scale.setScalar(shipPulse.radius);
+    shipPulseMesh.visible = true;
+    updateShipPulseStatus();
+  };
+  const updateShipPulse = (dt) => {
+    if (shipPulseCooldownRemaining > 0) shipPulseCooldownRemaining = Math.max(0, shipPulseCooldownRemaining - dt);
+    if (shipPulse.active) {
+      shipPulse.age += dt;
+      const progress = Math.min(1, shipPulse.age / shipPulseDuration);
+      shipPulse.radius = shipPulseMaxRadius * progress;
+      shipPulseMesh.position.copy(shipPulse.origin);
+      shipPulseMesh.scale.setScalar(shipPulse.radius);
+      shipPulseMaterial.opacity = .9 * (1 - progress);
+
+      for (let i = enemies.length - 1; i >= 0; i -= 1) {
+        if (enemies[i].mesh.position.distanceToSquared(shipPulse.origin) > shipPulse.radius * shipPulse.radius) continue;
+        destroyEnemy(i);
+      }
+      for (let i = hostileProjectiles.length - 1; i >= 0; i -= 1) {
+        if (hostileProjectiles[i].object.position.distanceToSquared(shipPulse.origin) > shipPulse.radius * shipPulse.radius) continue;
+        scene.remove(hostileProjectiles[i].object);
+        hostileProjectiles.splice(i, 1);
+      }
+
+      if (progress >= 1) {
+        shipPulse.active = false;
+        shipPulseMesh.visible = false;
+        shipPulseMaterial.opacity = 0;
+      }
+    }
+    updateShipPulseStatus();
+  };
   const endCombat = (outcome) => {
     if (combatOutcome !== 'active') return;
     combatOutcome = outcome;
     planetPulse.active = false;
     planetPulseMesh.visible = false;
     planetPulseMaterial.opacity = 0;
+    shipPulse.active = false;
+    shipPulseMesh.visible = false;
+    shipPulseMaterial.opacity = 0;
     flightMode = 'defeated';
     flightModeKeys.clear();
     clearWeaponState();
@@ -768,6 +930,7 @@ function createScene() {
     document.body.dataset.flightState = 'defeated';
     updateThreatStatus();
     updatePulseStatus();
+    updateShipPulseStatus();
   };
   const damageShip = (amount) => {
     playerHealth = Math.max(0, playerHealth - amount);
@@ -786,10 +949,16 @@ function createScene() {
     combatOutcome = 'active';
     enemySpawnTimer = 2.4;
     enemiesSpawned = 0;
+    shipPulseCooldownRemaining = 0;
     pulseCooldownRemaining = 0;
+    Object.keys(upgrades).forEach((type) => { upgrades[type] = 0; });
+    pickupNoticeRemaining = 0;
+    if (flightPickupNotice) flightPickupNotice.hidden = true;
     updateHealthHud();
     updateThreatStatus();
+    updateUpgradeHud();
     updatePulseStatus();
+    updateShipPulseStatus();
   };
   const randomEnemyDirection = () => {
     const vertical = Math.random() * 2 - 1;
@@ -892,23 +1061,35 @@ function createScene() {
   const fireProjectile = () => {
     if (flightMode !== 'playing' || flightForward.lengthSq() < .5) return;
     ship.updateMatrixWorld(true);
+    projectileRight.set(1, 0, 0).applyQuaternion(ship.quaternion).normalize();
+    const shotOffsets = upgrades.spread === 0
+      ? [0]
+      : upgrades.spread === 1
+        ? [-.12, 0, .12]
+        : [-.22, -.11, 0, .11, .22];
+    const shotSpeed = 34 * (1 + upgrades.speed * .22);
+    const shotDamage = 1 + upgrades.power * .5;
     weaponEmitters.forEach((emitter) => {
       emitter.getWorldPosition(fireOrigin);
-
-      const projectile = new THREE.Group();
-      projectile.add(new THREE.Mesh(projectileCoreGeometry, projectileCoreMaterial));
-      const trail = new THREE.Mesh(projectileTrailGeometry, projectileTrailMaterial);
-      trail.rotation.x = -Math.PI / 2;
-      trail.position.z = .4;
-      projectile.add(trail);
-      projectile.position.copy(fireOrigin);
-      projectileTarget.copy(fireOrigin).add(flightForward);
-      projectile.lookAt(projectileTarget);
-      scene.add(projectile);
-      activeProjectiles.push({
-        object: projectile,
-        velocity: flightForward.clone().multiplyScalar(34).addScaledVector(flightVelocity, .3),
-        age: 0,
+      shotOffsets.forEach((spread) => {
+        const projectile = new THREE.Group();
+        projectile.add(new THREE.Mesh(projectileCoreGeometry, projectileCoreMaterial));
+        const trail = new THREE.Mesh(projectileTrailGeometry, projectileTrailMaterial);
+        trail.rotation.x = -Math.PI / 2;
+        trail.position.z = .4;
+        projectile.add(trail);
+        projectile.scale.setScalar(1 + upgrades.power * .16);
+        projectile.position.copy(fireOrigin);
+        projectileDirection.copy(flightForward).addScaledVector(projectileRight, spread).normalize();
+        projectileTarget.copy(fireOrigin).add(projectileDirection);
+        projectile.lookAt(projectileTarget);
+        scene.add(projectile);
+        activeProjectiles.push({
+          object: projectile,
+          velocity: projectileDirection.clone().multiplyScalar(shotSpeed).addScaledVector(flightVelocity, .3),
+          damage: shotDamage,
+          age: 0,
+        });
       });
     });
     muzzleFlashRemaining = .1;
@@ -923,14 +1104,10 @@ function createScene() {
         for (let j = enemies.length - 1; j >= 0; j -= 1) {
           const enemy = enemies[j];
           if (projectile.object.position.distanceToSquared(enemy.mesh.position) >= 1.05 * 1.05) continue;
-          enemy.health -= 1;
+          enemy.health -= projectile.damage;
           scene.remove(projectile.object);
           activeProjectiles.splice(i, 1);
-          if (enemy.health <= 0) {
-            scene.remove(enemy.mesh);
-            enemies.splice(j, 1);
-            updateThreatStatus();
-          }
+          if (enemy.health <= 0) destroyEnemy(j);
           hitEnemy = true;
           break;
         }
@@ -1067,6 +1244,11 @@ function createScene() {
       if (event.code === 'Space') {
         if (flightMode === 'entering' || flightMode === 'playing' || flightMode === 'defeated') event.preventDefault();
         if (!event.repeat) activatePlanetPulse();
+        return;
+      }
+      if (event.code === 'KeyF') {
+        if (flightMode === 'entering' || flightMode === 'playing' || flightMode === 'defeated') event.preventDefault();
+        if (!event.repeat) activateShipPulse();
         return;
       }
       if (combatOutcome !== 'active') return;
@@ -1405,6 +1587,8 @@ function createScene() {
       placeEngineEffect(1);
       updateDefense(dt);
       updatePlanetPulse(dt);
+      updateShipPulse(dt);
+      updatePickups(dt);
       updateHostileProjectiles(dt);
 
       updateFlightCameraGoal();
@@ -1428,7 +1612,7 @@ function createScene() {
         fireCooldown -= dt;
         if (fireCooldown <= 0) {
           fireProjectile();
-          fireCooldown = fireInterval;
+          fireCooldown = fireInterval / (1 + upgrades.rapid * .22);
         }
       } else {
         fireCooldown = 0;
