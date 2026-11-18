@@ -752,18 +752,24 @@ function createScene() {
       }
       if (flightMode !== 'exiting') updateAim(event.clientX, event.clientY);
     }, { passive: true });
-    window.addEventListener('pointerdown', (event) => {
+    const startFiring = (event) => {
       if (event.button !== 0 || flightMode !== 'playing' || flightExitButton?.contains(event.target)) return;
+      if (firingHeld) return;
       event.preventDefault();
       firingHeld = true;
       fireCooldown = fireInterval;
       fireProjectile();
-    });
+    };
     const stopFiring = () => {
       firingHeld = false;
       fireCooldown = 0;
     };
+    window.addEventListener('pointerdown', startFiring);
+    window.addEventListener('mousedown', startFiring);
     window.addEventListener('pointerup', (event) => {
+      if (event.button === 0) stopFiring();
+    });
+    window.addEventListener('mouseup', (event) => {
       if (event.button === 0) stopFiring();
     });
     window.addEventListener('pointercancel', stopFiring);
