@@ -129,43 +129,85 @@
   <main id="top">
     <section class="hero scene-section" data-scene="hero">
       <canvas id="heroCanvas" aria-label="Animated 3D generative planet and desktop spaceship flight scene"></canvas>
-      <div class="flight-entry" role="note">
-        <p class="flight-entry-label">Optional flight mode</p>
-        <p class="flight-entry-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>to depart</span></p>
+      <div class="flight-entry" role="note" aria-label="Press W, A, S, or D to enter flight mode">
+        <p class="flight-entry-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><svg class="flight-entry-launch" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V4m0 0L5 11m7-7 7 7"/></svg></p>
       </div>
       <div class="flight-hud" id="flightHud" aria-hidden="true">
+        <svg class="flight-icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <symbol id="flight-icon-ship" viewBox="0 0 24 24"><path d="m12 3 8 17-8-3-8 3 8-17Z"/><path d="M12 3v14"/></symbol>
+          <symbol id="flight-icon-planet" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.8" transform="rotate(-24 12 12)"/></symbol>
+          <symbol id="flight-icon-bolt" viewBox="0 0 24 24"><path d="M13.5 2 5 13h6l-.5 9L19 10h-6l.5-8Z"/></symbol>
+          <symbol id="flight-icon-power" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1v4m11 7h-4M5 12H1m11 11v-4"/></symbol>
+          <symbol id="flight-icon-spread" viewBox="0 0 24 24"><path d="m12 12-8-8m8 8H3m9 0-8 8m8-8 8-8m-8 8h9m-9 0 8 8"/></symbol>
+          <symbol id="flight-icon-rate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2m-4-13v2"/></symbol>
+          <symbol id="flight-icon-wave" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M6.5 7.5a6.5 6.5 0 0 0 0 9m11-9a6.5 6.5 0 0 1 0 9M3.5 4.5a10.5 10.5 0 0 0 0 15m17-15a10.5 10.5 0 0 1 0 15"/></symbol>
+          <symbol id="flight-icon-planet-wave" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M3 12a9 9 0 0 1 15.4-6.4M21 12a9 9 0 0 1-15.4 6.4"/><path d="m17 3 .4 3.3 3.2-.8M7 21l-.4-3.3-3.2.8"/></symbol>
+          <symbol id="flight-icon-inbound" viewBox="0 0 24 24"><path d="M4 5h16M12 5v12m0 0 5-5m-5 5-5-5"/><circle cx="12" cy="20" r="1.5"/></symbol>
+          <symbol id="flight-icon-attack" viewBox="0 0 24 24"><path d="m12 2 1.5 6.5L20 6l-3.5 6 6.5 1.5-6.5 1.5L20 21l-6.5-2.5L12 24l-1.5-5.5L4 21l3.5-6L1 13.5 7.5 12 4 6l6.5 2.5L12 2Z" transform="translate(1 0) scale(.92)"/></symbol>
+          <symbol id="flight-icon-ready" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+          <symbol id="flight-icon-radar" viewBox="0 0 24 24"><path d="M4 18a11 11 0 1 1 16 0M12 12l6-5"/><circle cx="12" cy="12" r="1.5"/></symbol>
+          <symbol id="flight-icon-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5m0 3h.01"/></symbol>
+          <symbol id="flight-icon-mouse" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="5.5"/><path d="M12 3v6m-5.5-1H12"/></symbol>
+          <symbol id="flight-icon-exit" viewBox="0 0 24 24"><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M10 8l4 4-4 4m4-4H3"/></symbol>
+          <symbol id="flight-icon-thrust" viewBox="0 0 24 24"><path d="M12 20V4m0 0L6 10m6-6 6 6M7 17v3m10-3v3"/></symbol>
+          <symbol id="flight-icon-boost" viewBox="0 0 24 24"><path d="m7 14 5-5 5 5M7 20l5-5 5 5"/></symbol>
+          <symbol id="flight-icon-turn" viewBox="0 0 24 24"><path d="M5 8a8 8 0 0 1 14-2l2 2m-2-5v5h-5M19 16a8 8 0 0 1-14 2l-2-2m2 5v-5h5"/></symbol>
+          <symbol id="flight-icon-lift" viewBox="0 0 24 24"><path d="M7 18V6m0 0L3.5 9.5M7 6l3.5 3.5m6 6.5V6m0 0L13 9.5M17 6l3.5 3.5"/></symbol>
+          <symbol id="flight-icon-fire" viewBox="0 0 24 24"><path d="M7 3a5 5 0 0 0-5 5v8a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V8a5 5 0 0 0-5-5H7Z"/><path d="M12 3v7m-5 0h10"/><circle cx="12" cy="15" r="2"/></symbol>
+          <symbol id="flight-icon-speedometer" viewBox="0 0 24 24"><path d="M4 18a9 9 0 1 1 16 0M12 13l5-5m-12 12h14"/><circle cx="12" cy="13" r="1"/></symbol>
+          <symbol id="flight-icon-loot" viewBox="0 0 24 24"><path d="m12 2 9 10-9 10L3 12l9-10Z"/><path d="m8 12 3 3 5-6"/></symbol>
+        </svg>
         <div class="flight-hud-top">
-          <span>DEEP SPACE <i>/</i> FLIGHT 01</span>
-          <span id="flightMouseStatus" class="flight-mouse-status">CLICK TO LOCK · MOUSE WRAP</span>
-          <button id="flightExit" type="button">ESC <i>/</i> RETURN TO PROFILE</button>
+          <span class="flight-brand" title="Deep space flight"><svg class="flight-icon"><use href="#flight-icon-ship"/></svg></span>
+          <span id="flightMouseStatus" class="flight-mouse-status" title="Click to lock the mouse and wrap aim"><svg class="flight-icon"><use href="#flight-icon-mouse"/></svg></span>
+          <button id="flightExit" type="button" aria-label="Return to profile" title="Return to profile"><kbd>ESC</kbd><svg class="flight-icon"><use href="#flight-icon-exit"/></svg></button>
         </div>
         <section class="flight-vitals" aria-label="Defense status">
           <div class="flight-health-row">
-            <div class="flight-health-label"><span>SHIP</span><strong id="playerHealthValue">100%</strong></div>
+            <div class="flight-health-label"><span class="flight-stat-icon" role="img" aria-label="Ship health" title="Ship health"><svg class="flight-icon"><use href="#flight-icon-ship"/></svg></span><strong id="playerHealthValue">100%</strong></div>
             <div class="flight-health-track" role="progressbar" aria-label="Ship health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="playerHealthFill"></i></div>
           </div>
           <div class="flight-health-row planet">
-            <div class="flight-health-label"><span>PLANET</span><strong id="planetHealthValue">100%</strong></div>
+            <div class="flight-health-label"><span class="flight-stat-icon" role="img" aria-label="Planet health" title="Planet health"><svg class="flight-icon"><use href="#flight-icon-planet"/></svg></span><strong id="planetHealthValue">100%</strong></div>
             <div class="flight-health-track" role="progressbar" aria-label="Planet health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="planetHealthFill"></i></div>
           </div>
-          <p id="flightThreatStatus" class="flight-threat-status">DEFEND THE PLANET <i>·</i> SCANNING</p>
-          <section class="flight-loadout" aria-label="Ship features">
-            <p class="flight-loadout-title">SHIP SYSTEMS <i>·</i> FLY NEAR LOOT</p>
+          <p id="flightThreatStatus" class="flight-threat-status" role="status" aria-label="Raider wave scanning">
+            <svg class="flight-icon"><use id="flightThreatIcon" href="#flight-icon-radar"/></svg>
+            <span id="flightThreatWave">W01</span><span id="flightThreatCount">03</span><span id="flightThreatTimer" hidden></span>
+          </p>
+          <section class="flight-loadout" aria-label="Ship weapon upgrades and shockwave abilities">
             <div class="flight-upgrade-grid">
-              <div><span>BOLT SPEED</span><strong id="upgradeSpeedLevel">0/2</strong></div>
-              <div><span>BOLT POWER</span><strong id="upgradePowerLevel">0/2</strong></div>
-              <div><span>SPREAD SHOT</span><strong id="upgradeSpreadLevel">0/2</strong></div>
-              <div><span>FIRE RATE</span><strong id="upgradeRapidLevel">0/2</strong></div>
+              <div title="Bolt speed" aria-label="Bolt speed"><svg class="flight-icon"><use href="#flight-icon-bolt"/></svg><strong id="upgradeSpeedLevel">0/2</strong></div>
+              <div title="Bolt power" aria-label="Bolt power"><svg class="flight-icon"><use href="#flight-icon-power"/></svg><strong id="upgradePowerLevel">0/2</strong></div>
+              <div title="Spread shot" aria-label="Spread shot"><svg class="flight-icon"><use href="#flight-icon-spread"/></svg><strong id="upgradeSpreadLevel">0/2</strong></div>
+              <div title="Fire rate" aria-label="Fire rate"><svg class="flight-icon"><use href="#flight-icon-rate"/></svg><strong id="upgradeRapidLevel">0/2</strong></div>
             </div>
-            <p id="flightShipPulseStatus" class="flight-pulse-status ship-wave">F SHIP WAVE · READY</p>
-            <p id="flightPulseStatus" class="flight-pulse-status">SPACE PLANET WAVE · READY</p>
-            <p id="flightPickupNotice" class="flight-pickup-notice" aria-live="polite" hidden></p>
+            <p id="flightShipPulseStatus" class="flight-pulse-status ship-wave" title="Ship shockwave — F" aria-label="Ship shockwave ready">
+              <kbd>F</kbd><svg class="flight-icon"><use id="flightShipPulseIcon" href="#flight-icon-ready"/></svg><span id="flightShipPulseReadout"></span>
+            </p>
+            <p id="flightPulseStatus" class="flight-pulse-status" title="Planet shockwave — Space" aria-label="Planet shockwave ready">
+              <kbd>SPACE</kbd><svg class="flight-icon"><use id="flightPulseIcon" href="#flight-icon-ready"/></svg><span id="flightPulseReadout"></span>
+            </p>
+            <p id="flightPickupNotice" class="flight-pickup-notice" aria-live="polite" aria-label="Upgrade collected" hidden>
+              <svg class="flight-icon"><use id="flightPickupIcon" href="#flight-icon-loot"/></svg><span id="flightPickupLevel"></span>
+            </p>
           </section>
         </section>
         <div class="flight-reticle" id="flightReticle"><i></i></div>
         <div class="flight-hud-bottom">
-          <p><b>W / S</b> THRUST <i>·</i> <b>SHIFT</b> BOOST <i>·</i> <b>A / D</b> TURN <i>·</i> <b>E / Q</b> UP / DOWN <i>·</i> <b>F</b> SHIP WAVE <i>·</i> <b>SPACE</b> PLANET WAVE <i>·</i> <b>MOUSE</b> AIM / WRAP <i>·</i> <b>CLICK / HOLD</b> FIRE</p>
-          <div class="flight-speed"><span>SPEED</span><strong id="flightSpeed">0.0</strong><i>U/S</i></div>
+          <div class="flight-controls" aria-label="Flight controls">
+            <span title="Forward and reverse thrust" aria-label="W forward, S reverse"><kbd>W</kbd><kbd>S</kbd><svg class="flight-icon"><use href="#flight-icon-thrust"/></svg></span>
+            <span title="Boost speed" aria-label="Shift boost"><kbd>SHIFT</kbd><svg class="flight-icon"><use href="#flight-icon-boost"/></svg></span>
+            <span title="Turn and bank" aria-label="A and D turn"><kbd>A</kbd><kbd>D</kbd><svg class="flight-icon"><use href="#flight-icon-turn"/></svg></span>
+            <span title="Move up and down" aria-label="E up, Q down"><kbd>E</kbd><kbd>Q</kbd><svg class="flight-icon"><use href="#flight-icon-lift"/></svg></span>
+            <span title="Ship shockwave" aria-label="F ship shockwave"><kbd>F</kbd><svg class="flight-icon"><use href="#flight-icon-wave"/></svg></span>
+            <span title="Planet shockwave" aria-label="Space planet shockwave"><kbd>SPACE</kbd><svg class="flight-icon"><use href="#flight-icon-planet-wave"/></svg></span>
+            <span title="Mouse aim and wrap" aria-label="Mouse aim and wrap"><svg class="flight-icon"><use href="#flight-icon-mouse"/></svg><svg class="flight-icon"><use href="#flight-icon-radar"/></svg></span>
+            <span title="Click or hold to fire" aria-label="Click or hold to fire"><svg class="flight-icon"><use href="#flight-icon-fire"/></svg><svg class="flight-icon"><use href="#flight-icon-bolt"/></svg></span>
+          </div>
+          <div class="flight-speed" title="Flight speed" aria-label="Flight speed">
+            <svg class="flight-icon"><use href="#flight-icon-speedometer"/></svg><strong id="flightSpeed">0.0</strong>
+          </div>
         </div>
       </div>
       <div class="hero-copy">

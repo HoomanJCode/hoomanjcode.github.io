@@ -643,8 +643,16 @@ function createScene() {
   const playerHealthRow = playerHealthFill?.closest('.flight-health-row');
   const planetHealthRow = planetHealthFill?.closest('.flight-health-row');
   const flightThreatStatus = document.querySelector('#flightThreatStatus');
+  const flightThreatIcon = document.querySelector('#flightThreatIcon');
+  const flightThreatWave = document.querySelector('#flightThreatWave');
+  const flightThreatCount = document.querySelector('#flightThreatCount');
+  const flightThreatTimer = document.querySelector('#flightThreatTimer');
   const flightPulseStatus = document.querySelector('#flightPulseStatus');
+  const flightPulseIcon = document.querySelector('#flightPulseIcon');
+  const flightPulseReadout = document.querySelector('#flightPulseReadout');
   const flightShipPulseStatus = document.querySelector('#flightShipPulseStatus');
+  const flightShipPulseIcon = document.querySelector('#flightShipPulseIcon');
+  const flightShipPulseReadout = document.querySelector('#flightShipPulseReadout');
   const upgradeLevelReadouts = {
     speed: document.querySelector('#upgradeSpeedLevel'),
     power: document.querySelector('#upgradePowerLevel'),
@@ -652,6 +660,8 @@ function createScene() {
     rapid: document.querySelector('#upgradeRapidLevel'),
   };
   const flightPickupNotice = document.querySelector('#flightPickupNotice');
+  const flightPickupIcon = document.querySelector('#flightPickupIcon');
+  const flightPickupLevel = document.querySelector('#flightPickupLevel');
   const flightEntry = document.querySelector('.flight-entry');
   const flightPageElements = [
     document.querySelector('.site-header'),
@@ -780,21 +790,33 @@ function createScene() {
   };
   const updatePulseStatus = () => {
     if (!flightPulseStatus) return;
-    let status = 'SPACE PLANET WAVE · READY';
-    if (planetPulse.active) status = 'PLANET WAVE · EXPANDING';
-    else if (pulseCooldownRemaining > 0) status = `SPACE PLANET WAVE · ${Math.ceil(pulseCooldownRemaining)}s`;
-    if (flightPulseStatus.textContent !== status) flightPulseStatus.textContent = status;
+    const coolingDown = pulseCooldownRemaining > 0;
+    const status = planetPulse.active
+      ? 'Planet shockwave expanding'
+      : coolingDown
+        ? `Planet shockwave recharge: ${Math.ceil(pulseCooldownRemaining)} seconds`
+        : 'Planet shockwave ready';
+    flightPulseStatus.setAttribute('aria-label', status);
+    flightPulseStatus.title = `${status} — Space`;
+    if (flightPulseReadout) flightPulseReadout.textContent = coolingDown && !planetPulse.active ? String(Math.ceil(pulseCooldownRemaining)) : '';
+    flightPulseIcon?.setAttribute('href', planetPulse.active ? '#flight-icon-wave' : coolingDown ? '#flight-icon-rate' : '#flight-icon-ready');
     flightPulseStatus.classList.toggle('active', planetPulse.active);
-    flightPulseStatus.classList.toggle('recharging', !planetPulse.active && pulseCooldownRemaining > 0);
+    flightPulseStatus.classList.toggle('recharging', !planetPulse.active && coolingDown);
   };
   const updateShipPulseStatus = () => {
     if (!flightShipPulseStatus) return;
-    let status = 'F SHIP WAVE · READY';
-    if (shipPulse.active) status = 'SHIP WAVE · EXPANDING';
-    else if (shipPulseCooldownRemaining > 0) status = `F SHIP WAVE · ${Math.ceil(shipPulseCooldownRemaining)}s`;
-    if (flightShipPulseStatus.textContent !== status) flightShipPulseStatus.textContent = status;
+    const coolingDown = shipPulseCooldownRemaining > 0;
+    const status = shipPulse.active
+      ? 'Ship shockwave expanding'
+      : coolingDown
+        ? `Ship shockwave recharge: ${Math.ceil(shipPulseCooldownRemaining)} seconds`
+        : 'Ship shockwave ready';
+    flightShipPulseStatus.setAttribute('aria-label', status);
+    flightShipPulseStatus.title = `${status} — F`;
+    if (flightShipPulseReadout) flightShipPulseReadout.textContent = coolingDown && !shipPulse.active ? String(Math.ceil(shipPulseCooldownRemaining)) : '';
+    flightShipPulseIcon?.setAttribute('href', shipPulse.active ? '#flight-icon-wave' : coolingDown ? '#flight-icon-rate' : '#flight-icon-ready');
     flightShipPulseStatus.classList.toggle('active', shipPulse.active);
-    flightShipPulseStatus.classList.toggle('recharging', !shipPulse.active && shipPulseCooldownRemaining > 0);
+    flightShipPulseStatus.classList.toggle('recharging', !shipPulse.active && coolingDown);
   };
   const updateUpgradeHud = () => {
     Object.entries(upgradeLevelReadouts).forEach(([type, element]) => {
@@ -803,8 +825,13 @@ function createScene() {
   };
   const showPickupNotice = (type) => {
     if (!flightPickupNotice) return;
-    const names = { speed: 'BOLT SPEED', power: 'HEAVY BOLTS', spread: 'SPREAD SHOT', rapid: 'RAPID FIRE' };
-    flightPickupNotice.textContent = `COLLECTED · ${names[type]} ${upgrades[type]}`;
+    const names = { speed: 'bolt speed', power: 'bolt power', spread: 'spread shot', rapid: 'fire rate' };
+    const icons = { speed: 'bolt', power: 'power', spread: 'spread', rapid: 'rate' };
+    const label = `Collected ${names[type]} upgrade, level ${upgrades[type]}`;
+    flightPickupNotice.setAttribute('aria-label', label);
+    flightPickupNotice.title = label;
+    if (flightPickupLevel) flightPickupLevel.textContent = String(upgrades[type]);
+    flightPickupIcon?.setAttribute('href', `#flight-icon-${icons[type]}`);
     flightPickupNotice.hidden = false;
     pickupNoticeRemaining = 2.8;
   };
@@ -874,25 +901,55 @@ function createScene() {
   };
   const updateThreatStatus = () => {
     if (!flightThreatStatus) return;
+    let label = '';
+    let icon = 'radar';
+    let wave = '';
+    let count = '';
+    let timer = '';
+    let danger = false;
     if (combatOutcome === 'shipLost') {
-      flightThreatStatus.textContent = 'SHIP DESTROYED · ESC TO RETURN';
-      flightThreatStatus.classList.add('danger');
+      label = 'Ship destroyed. Press Escape to return to profile.';
+      icon = 'alert';
+      danger = true;
     } else if (combatOutcome === 'planetLost') {
-      flightThreatStatus.textContent = 'PLANET LOST · ESC TO RETURN';
-      flightThreatStatus.classList.add('danger');
+      label = 'Planet lost. Press Escape to return to profile.';
+      icon = 'alert';
+      danger = true;
     } else if (enemies.length || waveSpawned < enemyWaveSize(waveNumber)) {
       const waitingToSpawn = Math.max(0, enemyWaveSize(waveNumber) - waveSpawned);
       const raidSize = enemies.length + waitingToSpawn;
       const attacking = enemies.some((enemy) => enemy.distance <= 16.1);
-      flightThreatStatus.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} · ${String(raidSize).padStart(2, '0')} RAIDERS ${attacking ? 'ATTACKING' : 'INBOUND'}`;
-      flightThreatStatus.classList.toggle('danger', attacking);
+      wave = `W${String(waveNumber).padStart(2, '0')}`;
+      count = String(raidSize).padStart(2, '0');
+      icon = attacking ? 'attack' : 'inbound';
+      label = `Wave ${waveNumber}, ${raidSize} raiders ${attacking ? 'attacking the planet' : 'inbound to the planet'}.`;
+      danger = attacking;
     } else if (waveBreakRemaining > 0) {
-      flightThreatStatus.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} CLEAR · NEXT WAVE IN ${Math.ceil(waveBreakRemaining)}S`;
-      flightThreatStatus.classList.remove('danger');
+      wave = `W${String(waveNumber).padStart(2, '0')}`;
+      timer = String(Math.ceil(waveBreakRemaining));
+      icon = 'ready';
+      label = `Wave ${waveNumber} cleared. Next wave in ${timer} seconds.`;
     } else {
-      flightThreatStatus.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} · RAIDERS DEPLOYING`;
-      flightThreatStatus.classList.remove('danger');
+      wave = `W${String(waveNumber).padStart(2, '0')}`;
+      icon = 'radar';
+      label = `Wave ${waveNumber}, raiders deploying.`;
     }
+    flightThreatStatus.setAttribute('aria-label', label);
+    flightThreatStatus.title = label;
+    if (flightThreatIcon) flightThreatIcon.setAttribute('href', `#flight-icon-${icon}`);
+    if (flightThreatWave) {
+      flightThreatWave.textContent = wave;
+      flightThreatWave.hidden = !wave;
+    }
+    if (flightThreatCount) {
+      flightThreatCount.textContent = count;
+      flightThreatCount.hidden = !count;
+    }
+    if (flightThreatTimer) {
+      flightThreatTimer.textContent = timer;
+      flightThreatTimer.hidden = !timer;
+    }
+    flightThreatStatus.classList.toggle('danger', danger);
   };
   const activatePlanetPulse = () => {
     if (flightMode !== 'playing' || combatOutcome !== 'active' || pulseCooldownRemaining > 0) return;
@@ -1257,11 +1314,13 @@ function createScene() {
     const flightMouseStatus = document.querySelector('#flightMouseStatus');
     if (!flightMouseStatus) return;
     const locked = document.pointerLockElement === canvas;
-    flightMouseStatus.textContent = locked
+    const label = locked
       ? 'MOUSE WRAP · ACTIVE'
       : pointerLockUnavailable
         ? 'MOUSE WRAP · UNAVAILABLE'
         : 'CLICK TO LOCK · MOUSE WRAP';
+    flightMouseStatus.setAttribute('aria-label', label);
+    flightMouseStatus.title = label;
     flightMouseStatus.classList.toggle('locked', locked);
     flightMouseStatus.classList.toggle('unavailable', !locked && pointerLockUnavailable);
   };
