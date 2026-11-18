@@ -73,7 +73,7 @@ Every visual element is **procedurally generated** — no images, no assets, jus
 </tr>
 </table>
 
-At the top of the portfolio on desktop, press **W**, **A**, **S**, or **D** to pull away from the hero planet and enter flight mode. Hold **W** to fly forward (**S** reverses); releasing thrust stops the saucer and switches off its engine glow. **A/D** turn and bank it in place, the **mouse** aims through a full half turn, **Space/Shift** move up or down, and **left click** fires paired energy bolts along the current aim (hold to fire continuously). The rim emitters follow the ship's aim while the saucer disc spins independently. A no-fly boundary keeps the saucer at a safe distance from the planet. A distant sun appears as a glowing point in the flight sky and stays out of reach. The saucer spins faster while maneuvering. Press **Escape** to return to the portfolio. Flight mode is disabled on touch devices.
+At the top of the portfolio on desktop, press **W**, **A**, **S**, or **D** to pull away from the hero planet and enter flight mode. Hold **W** to fly forward (**S** reverses); releasing thrust stops the saucer and switches off its engine glow. **A/D** turn and bank it in place, the **mouse** aims through a full half turn, **Space/Shift** move up or down, and **left click** fires paired energy bolts along the current aim (hold to fire continuously). The rim emitters follow the ship's aim while the saucer disc spins independently. A no-fly boundary keeps the saucer at a safe distance from the planet. A distant star appears as a glowing point on the 3D flight sky and stays out of reach. The saucer spins faster while maneuvering. Press **Escape** to return to the portfolio. Flight mode is disabled on touch devices.
 
 ---
 

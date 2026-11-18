@@ -257,9 +257,9 @@ function createScene() {
   flightStars.visible = false;
   scene.add(flightStars);
 
-  // A distant sun is a flat light point on the flight sky, not a sphere or a
-  // reachable world object. Its camera-relative placement keeps it visible
-  // as a fixed landmark while the ship travels through the starfield.
+  // A distant star is a flat light point on a sky shell around the ship, not a
+  // sphere or a reachable world object. Its world direction stays fixed, so
+  // it crosses the view naturally when the ship turns.
   const skyBeaconCanvas = document.createElement('canvas');
   skyBeaconCanvas.width = 128;
   skyBeaconCanvas.height = 128;
@@ -279,14 +279,15 @@ function createScene() {
     opacity: 0,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
-    depthTest: false,
+    depthTest: true,
     toneMapped: false,
   });
   const skyBeacon = new THREE.Sprite(skyBeaconMaterial);
   skyBeacon.visible = false;
   skyBeacon.renderOrder = 2;
   scene.add(skyBeacon);
-  const skyBeaconViewPosition = new THREE.Vector3();
+  const skyBeaconDirection = new THREE.Vector3(-.3, .04, -.95).normalize();
+  const skyBeaconDistance = 140;
 
   const projectileCoreGeometry = new THREE.SphereGeometry(.09, 10, 8);
   const projectileCoreMaterial = new THREE.MeshBasicMaterial({
@@ -1147,12 +1148,8 @@ function createScene() {
     skyBeacon.visible = skyBeaconFade > 0;
     skyBeaconMaterial.opacity = skyBeaconFade * (.88 + Math.sin(t * 1.8) * .035);
     if (skyBeacon.visible) {
-      const beaconDepth = 120;
-      const halfViewHeight = Math.tan((camera.fov * Math.PI / 180) / 2) * beaconDepth;
-      skyBeaconViewPosition.set(-camera.aspect * halfViewHeight * .62, halfViewHeight * .38, -beaconDepth);
-      skyBeaconViewPosition.applyQuaternion(camera.quaternion).add(camera.position);
-      skyBeacon.position.copy(skyBeaconViewPosition);
-      skyBeacon.scale.setScalar(beaconDepth * .03);
+      skyBeacon.position.copy(ship.position).addScaledVector(skyBeaconDirection, skyBeaconDistance);
+      skyBeacon.scale.setScalar(skyBeaconDistance * .03);
     }
     renderer.render(scene, camera);
     animationFrame = requestAnimationFrame(render);
