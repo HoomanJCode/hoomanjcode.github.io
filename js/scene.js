@@ -235,6 +235,37 @@ function createScene() {
   flightStars.visible = false;
   scene.add(flightStars);
 
+  // A distant sun is a flat light point on the flight sky, not a sphere or a
+  // reachable world object. Its camera-relative placement keeps it visible
+  // as a fixed landmark while the ship travels through the starfield.
+  const skyBeaconCanvas = document.createElement('canvas');
+  skyBeaconCanvas.width = 128;
+  skyBeaconCanvas.height = 128;
+  const skyBeaconContext = skyBeaconCanvas.getContext('2d');
+  const skyBeaconGradient = skyBeaconContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+  skyBeaconGradient.addColorStop(0, 'rgba(255,255,245,1)');
+  skyBeaconGradient.addColorStop(.045, 'rgba(255,248,220,.96)');
+  skyBeaconGradient.addColorStop(.14, 'rgba(255,219,150,.72)');
+  skyBeaconGradient.addColorStop(.42, 'rgba(255,174,91,.2)');
+  skyBeaconGradient.addColorStop(1, 'rgba(255,150,72,0)');
+  skyBeaconContext.fillStyle = skyBeaconGradient;
+  skyBeaconContext.fillRect(0, 0, 128, 128);
+  const skyBeaconTexture = new THREE.CanvasTexture(skyBeaconCanvas);
+  const skyBeaconMaterial = new THREE.SpriteMaterial({
+    map: skyBeaconTexture,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    depthTest: false,
+    toneMapped: false,
+  });
+  const skyBeacon = new THREE.Sprite(skyBeaconMaterial);
+  skyBeacon.visible = false;
+  skyBeacon.renderOrder = 2;
+  scene.add(skyBeacon);
+  const skyBeaconViewPosition = new THREE.Vector3();
+
   // One orbital planet per project, riding a ring around the main planet like
   // a solar system. Built from the shared project data, so adding or removing
   // a project automatically adds or removes its orbital planet, and its color
@@ -957,6 +988,22 @@ function createScene() {
       camera.lookAt(lastFlightLookTarget);
       flightStars.position.copy(ship.position);
       if (flightTransitionTime >= 1) finishFlight();
+    }
+
+    const skyBeaconFade = flightMode === 'entering'
+      ? smoothstep(flightTransitionTime)
+      : flightMode === 'exiting'
+        ? 1 - smoothstep(flightTransitionTime)
+        : flightMode === 'hero' ? 0 : 1;
+    skyBeacon.visible = skyBeaconFade > 0;
+    skyBeaconMaterial.opacity = skyBeaconFade * (.88 + Math.sin(t * 1.8) * .035);
+    if (skyBeacon.visible) {
+      const beaconDepth = 120;
+      const halfViewHeight = Math.tan((camera.fov * Math.PI / 180) / 2) * beaconDepth;
+      skyBeaconViewPosition.set(-camera.aspect * halfViewHeight * .62, halfViewHeight * .38, -beaconDepth);
+      skyBeaconViewPosition.applyQuaternion(camera.quaternion).add(camera.position);
+      skyBeacon.position.copy(skyBeaconViewPosition);
+      skyBeacon.scale.setScalar(beaconDepth * .03);
     }
     renderer.render(scene, camera);
     animationFrame = requestAnimationFrame(render);
