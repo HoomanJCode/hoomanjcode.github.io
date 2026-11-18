@@ -541,6 +541,7 @@ function createScene() {
   const fireOrigin = new THREE.Vector3();
   const projectileTarget = new THREE.Vector3();
   let firingHeld = false;
+  let pointerFirePendingClick = false;
   let fireCooldown = 0;
   let muzzleFlashRemaining = 0;
   let flightMode = 'hero';
@@ -575,6 +576,7 @@ function createScene() {
   };
   const clearWeaponState = () => {
     firingHeld = false;
+    pointerFirePendingClick = false;
     fireCooldown = 0;
     muzzleFlashRemaining = 0;
     weaponEmitterMaterial.opacity = 0;
@@ -755,8 +757,8 @@ function createScene() {
     const startFiring = (event) => {
       if (event.button !== 0 || flightMode !== 'playing' || flightExitButton?.contains(event.target)) return;
       if (firingHeld) return;
-      event.preventDefault();
       firingHeld = true;
+      pointerFirePendingClick = true;
       fireCooldown = fireInterval;
       fireProjectile();
     };
@@ -773,6 +775,11 @@ function createScene() {
       if (event.button === 0) stopFiring();
     });
     window.addEventListener('pointercancel', stopFiring);
+    window.addEventListener('click', (event) => {
+      if (event.button !== 0 || flightMode !== 'playing' || flightExitButton?.contains(event.target)) return;
+      if (!pointerFirePendingClick) fireProjectile();
+      pointerFirePendingClick = false;
+    });
     window.addEventListener('blur', () => {
       flightModeKeys.clear();
       clearWeaponState();
