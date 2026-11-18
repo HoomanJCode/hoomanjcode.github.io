@@ -518,7 +518,7 @@ function createScene() {
   ].filter(Boolean);
   const heroCopy = document.querySelector('.hero-copy');
   const heroMeta = [...document.querySelectorAll('.hero-meta')];
-  const flightKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ShiftLeft', 'ShiftRight']);
+  const flightKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyQ']);
   const launchKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
   const flightVelocity = new THREE.Vector3();
   const flightForward = new THREE.Vector3();
@@ -1042,8 +1042,7 @@ function createScene() {
       shipYaw += yawDifference * steeringEase;
       flightPitch += (aimPitch - flightPitch) * steeringEase;
       const thrust = (flightModeKeys.has('KeyW') ? 1 : 0) - (flightModeKeys.has('KeyS') ? 1 : 0);
-      const lift = (flightModeKeys.has('Space') ? 1 : 0)
-        - (flightModeKeys.has('ShiftLeft') || flightModeKeys.has('ShiftRight') ? 1 : 0);
+      const lift = (flightModeKeys.has('KeyE') ? 1 : 0) - (flightModeKeys.has('KeyQ') ? 1 : 0);
       saucerSpin += dt * (thrust !== 0 || turnInput !== 0 || lift !== 0 ? 4.8 : .65);
       saucerModel.rotation.y = saucerSpin;
       const bank = -turnInput * .48 - yawDifference * .08;
