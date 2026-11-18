@@ -54,8 +54,8 @@ Every visual element is **procedurally generated** — no images, no assets, jus
 <tr>
 <td align="center" width="33%">
 
-### 🌍 Hero Planet
-**Three.js** procedural planet with orbital rings, stars, and scroll-driven camera movement
+### 🌍 Hero Planet & Flight
+**Three.js** procedural planet, orbiting project worlds, and a desktop-only third-person spaceship
 
 </td>
 <td align="center" width="33%">
@@ -73,6 +73,8 @@ Every visual element is **procedurally generated** — no images, no assets, jus
 </tr>
 </table>
 
+At the top of the portfolio on desktop, press **W**, **A**, **S**, or **D** to pull away from the hero planet and enter flight mode. Use **W/S** to thrust, **A/D** to strafe, **Space/Shift** to ascend or descend, and the **mouse** to steer. Press **Escape** to return to the portfolio. Flight mode is disabled on touch devices.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -80,7 +82,7 @@ Every visual element is **procedurally generated** — no images, no assets, jus
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│   🎮 Three.js          →  3D procedural planet & stars      │
+│   🎮 Three.js          →  Procedural planet, stars & ship   │
 │   🖼️ Canvas 2D         →  FxPlanet generative art           │
 │   ⚛️ Vanilla JS        →  Physics, scroll, animations       │
 │   🎨 Pure CSS          →  Responsive design, animations     │
@@ -124,7 +126,7 @@ hoomanjcode.github.io/
 │
 ├── ⚡ js/
 │   ├── app.js               ← Homepage logic (scroll, reveals, scene colors)
-│   ├── scene.js             ← Three.js hero planet
+│   ├── scene.js             ← Three.js hero scene & flight mode
 │   ├── project-page.js      ← Project page renderer
 │   ├── theme.js            ← Sets the dark-only theme
 │   ├── projects.js          ← Homepage project list logic
