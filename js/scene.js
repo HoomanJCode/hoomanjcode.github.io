@@ -167,6 +167,21 @@ function createScene() {
     porthole.position.set(Math.cos(angle) * radius, .055, Math.sin(angle) * radius);
     saucerModel.add(porthole);
   }
+  // This under-hull emitter follows the ship's aim but is outside the spinning
+  // saucer model, so the cosmetic disc rotation never changes firing direction.
+  const weaponEmitterMaterial = new THREE.MeshBasicMaterial({
+    color: 0x9cefff,
+    transparent: true,
+    opacity: 0,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const weaponEmitter = new THREE.Mesh(new THREE.SphereGeometry(.085, 12, 8), weaponEmitterMaterial);
+  weaponEmitter.position.set(0, -.3, -.72);
+  ship.add(weaponEmitter);
+  const weaponFlash = new THREE.PointLight(0x55ccff, 0, 3);
+  weaponFlash.position.copy(weaponEmitter.position);
+  ship.add(weaponFlash);
   // The fusion glow lives in a separate, unrotated scene group. It tracks the
   // saucer's position, but its exhaust always hangs straight down while the
   // disc spins or changes heading.
@@ -265,6 +280,24 @@ function createScene() {
   skyBeacon.renderOrder = 2;
   scene.add(skyBeacon);
   const skyBeaconViewPosition = new THREE.Vector3();
+
+  const projectileCoreGeometry = new THREE.SphereGeometry(.065, 10, 8);
+  const projectileCoreMaterial = new THREE.MeshBasicMaterial({
+    color: 0xb9f5ff,
+    transparent: true,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const projectileTrailGeometry = new THREE.CylinderGeometry(.012, .038, .64, 7, 1, true);
+  const projectileTrailMaterial = new THREE.MeshBasicMaterial({
+    color: 0x35bfff,
+    transparent: true,
+    opacity: .82,
+    depthWrite: false,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const activeProjectiles = [];
 
   // One orbital planet per project, riding a ring around the main planet like
   // a solar system. Built from the shared project data, so adding or removing
@@ -498,6 +531,11 @@ function createScene() {
   // a physical collision response.
   const planetNoFlyRadius = 1.63 + 1.3 + .45;
   const flightModeKeys = new Set();
+  const fireOrigin = new THREE.Vector3();
+  const projectileTarget = new THREE.Vector3();
+  let firingHeld = false;
+  let fireCooldown = 0;
+  let muzzleFlashRemaining = 0;
   let flightMode = 'hero';
   let flightTransitionTime = 0;
   let flightReturnScroll = 0;
@@ -514,6 +552,8 @@ function createScene() {
   let cameraLookEase = 0;
   const transitionDuration = 2.7;
   const returnDuration = 1.15;
+  const fireInterval = .16;
+  const projectileLifetime = 1.4;
   const smoothstep = (value) => value * value * (3 - 2 * value);
   const placeEngineEffect = (scale) => {
     engineEffect.position.copy(ship.position);
@@ -525,6 +565,52 @@ function createScene() {
     fusionBeamMaterial.opacity = 0;
     fusionBeam.scale.y = .001;
     engineGlow.intensity = 0;
+  };
+  const clearWeaponState = () => {
+    firingHeld = false;
+    fireCooldown = 0;
+    muzzleFlashRemaining = 0;
+    weaponEmitterMaterial.opacity = 0;
+    weaponFlash.intensity = 0;
+  };
+  const clearProjectiles = () => {
+    activeProjectiles.forEach(({ object }) => scene.remove(object));
+    activeProjectiles.length = 0;
+  };
+  const fireProjectile = () => {
+    if (flightMode !== 'playing' || flightForward.lengthSq() < .5) return;
+    ship.updateMatrixWorld(true);
+    weaponEmitter.getWorldPosition(fireOrigin);
+
+    const projectile = new THREE.Group();
+    projectile.add(new THREE.Mesh(projectileCoreGeometry, projectileCoreMaterial));
+    const trail = new THREE.Mesh(projectileTrailGeometry, projectileTrailMaterial);
+    trail.rotation.x = -Math.PI / 2;
+    trail.position.z = .3;
+    projectile.add(trail);
+    projectile.position.copy(fireOrigin);
+    projectileTarget.copy(fireOrigin).add(flightForward);
+    projectile.lookAt(projectileTarget);
+    scene.add(projectile);
+    activeProjectiles.push({
+      object: projectile,
+      velocity: flightForward.clone().multiplyScalar(52).addScaledVector(flightVelocity, .3),
+      age: 0,
+    });
+    muzzleFlashRemaining = .1;
+  };
+  const updateProjectiles = (dt) => {
+    for (let i = activeProjectiles.length - 1; i >= 0; i -= 1) {
+      const projectile = activeProjectiles[i];
+      projectile.age += dt;
+      projectile.object.position.addScaledVector(projectile.velocity, dt);
+      const remaining = projectileLifetime - projectile.age;
+      if (remaining <= .12) projectile.object.scale.setScalar(Math.max(.01, remaining / .12));
+      if (remaining <= 0) {
+        scene.remove(projectile.object);
+        activeProjectiles.splice(i, 1);
+      }
+    }
   };
   const updateFlightCameraGoal = () => {
     flightCameraOffsetWorld.copy(flightCameraOffset).applyQuaternion(ship.quaternion);
@@ -563,6 +649,8 @@ function createScene() {
     flightReturnScroll = window.scrollY;
     flightVelocity.set(0, 0, 0);
     flightThrottle = 0;
+    clearWeaponState();
+    clearProjectiles();
     saucerSpin = 0;
     saucerModel.rotation.y = 0;
     flightModeKeys.clear();
@@ -600,6 +688,7 @@ function createScene() {
     exitCameraStart.copy(camera.position);
     exitLookStart.copy(lastFlightLookTarget);
     flightModeKeys.clear();
+    clearWeaponState();
     clearFusionEffect();
     document.body.dataset.flightState = 'exiting';
     flightHud?.setAttribute('aria-hidden', 'true');
@@ -609,6 +698,8 @@ function createScene() {
     flightVelocity.set(0, 0, 0);
     flightThrottle = 0;
     flightModeKeys.clear();
+    clearWeaponState();
+    clearProjectiles();
     clearFusionEffect();
     flightStars.visible = false;
     flightStarsMaterial.opacity = 0;
@@ -651,7 +742,25 @@ function createScene() {
       }
       if (flightMode !== 'exiting') updateAim(event.clientX, event.clientY);
     }, { passive: true });
-    window.addEventListener('blur', () => flightModeKeys.clear());
+    window.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || flightMode !== 'playing' || flightExitButton?.contains(event.target)) return;
+      event.preventDefault();
+      firingHeld = true;
+      fireCooldown = fireInterval;
+      fireProjectile();
+    });
+    const stopFiring = () => {
+      firingHeld = false;
+      fireCooldown = 0;
+    };
+    window.addEventListener('pointerup', (event) => {
+      if (event.button === 0) stopFiring();
+    });
+    window.addEventListener('pointercancel', stopFiring);
+    window.addEventListener('blur', () => {
+      flightModeKeys.clear();
+      clearWeaponState();
+    });
     flightExitButton?.addEventListener('click', exitFlight);
   }
 
@@ -959,6 +1068,20 @@ function createScene() {
       fusionBeam.scale.y = engineOn ? .84 + Math.min(.28, speed / 42) + Math.sin(t * 18) * .06 : .001;
       engineGlow.intensity = engineOn ? 2.2 + speed * .13 + Math.sin(t * 12) * .35 : 0;
 
+      if (firingHeld) {
+        fireCooldown -= dt;
+        if (fireCooldown <= 0) {
+          fireProjectile();
+          fireCooldown = fireInterval;
+        }
+      } else {
+        fireCooldown = 0;
+      }
+      muzzleFlashRemaining = Math.max(0, muzzleFlashRemaining - dt);
+      const muzzleBrightness = Math.max(firingHeld ? .62 + Math.sin(t * 32) * .12 : 0, muzzleFlashRemaining / .1);
+      weaponEmitterMaterial.opacity = muzzleBrightness;
+      weaponFlash.intensity = muzzleBrightness * 2.6;
+
       const wrapRadius = 95;
       for (let i = 0; i < flightStarCount; i += 1) {
         const offset = i * 3;
@@ -989,6 +1112,8 @@ function createScene() {
       flightStars.position.copy(ship.position);
       if (flightTransitionTime >= 1) finishFlight();
     }
+
+    updateProjectiles(dt);
 
     const skyBeaconFade = flightMode === 'entering'
       ? smoothstep(flightTransitionTime)
