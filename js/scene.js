@@ -336,6 +336,27 @@ function createScene() {
     toneMapped: false,
     blending: THREE.AdditiveBlending,
   });
+  const planetPulseGeometry = new THREE.TorusGeometry(1, .0025, 6, 96);
+  const planetPulseMaterial = new THREE.MeshBasicMaterial({
+    color: 0x8cecff,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const planetPulseMesh = new THREE.Group();
+  const pulseRings = [
+    new THREE.Mesh(planetPulseGeometry, planetPulseMaterial),
+    new THREE.Mesh(planetPulseGeometry, planetPulseMaterial),
+    new THREE.Mesh(planetPulseGeometry, planetPulseMaterial),
+  ];
+  pulseRings[1].rotation.x = Math.PI / 2;
+  pulseRings[2].rotation.y = Math.PI / 2;
+  planetPulseMesh.add(...pulseRings);
+  planetPulseMesh.visible = false;
+  planetPulseMesh.renderOrder = 3;
+  scene.add(planetPulseMesh);
 
   // One orbital planet per project, riding a ring around the main planet like
   // a solar system. Built from the shared project data, so adding or removing
@@ -544,6 +565,7 @@ function createScene() {
   const playerHealthRow = playerHealthFill?.closest('.flight-health-row');
   const planetHealthRow = planetHealthFill?.closest('.flight-health-row');
   const flightThreatStatus = document.querySelector('#flightThreatStatus');
+  const flightPulseStatus = document.querySelector('#flightPulseStatus');
   const flightEntry = document.querySelector('.flight-entry');
   const flightPageElements = [
     document.querySelector('.site-header'),
@@ -585,6 +607,11 @@ function createScene() {
   let combatOutcome = 'active';
   let enemySpawnTimer = 0;
   let enemiesSpawned = 0;
+  const planetPulse = { active: false, age: 0, radius: 0 };
+  let pulseCooldownRemaining = 0;
+  const pulseCooldown = 12;
+  const pulseDuration = 1.45;
+  const pulseMaxRadius = 52;
   let firingHeld = false;
   let pointerFirePendingClick = false;
   let fireCooldown = 0;
@@ -637,6 +664,20 @@ function createScene() {
     hostileProjectiles.forEach(({ object }) => scene.remove(object));
     enemies.length = 0;
     hostileProjectiles.length = 0;
+    planetPulse.active = false;
+    planetPulse.age = 0;
+    planetPulse.radius = 0;
+    planetPulseMesh.visible = false;
+    planetPulseMaterial.opacity = 0;
+  };
+  const updatePulseStatus = () => {
+    if (!flightPulseStatus) return;
+    let status = 'SPACE PULSE · READY';
+    if (planetPulse.active) status = 'PLANET PULSE · EXPANDING';
+    else if (pulseCooldownRemaining > 0) status = `SPACE PULSE · ${Math.ceil(pulseCooldownRemaining)}s`;
+    if (flightPulseStatus.textContent !== status) flightPulseStatus.textContent = status;
+    flightPulseStatus.classList.toggle('active', planetPulse.active);
+    flightPulseStatus.classList.toggle('recharging', !planetPulse.active && pulseCooldownRemaining > 0);
   };
   const updateHealthHud = () => {
     const shipValue = Math.ceil(playerHealth);
@@ -670,15 +711,63 @@ function createScene() {
       flightThreatStatus.classList.remove('danger');
     }
   };
+  const activatePlanetPulse = () => {
+    if (flightMode !== 'playing' || combatOutcome !== 'active' || pulseCooldownRemaining > 0) return;
+    planetPulse.active = true;
+    planetPulse.age = 0;
+    planetPulse.radius = 1.48 * Math.max(planetNoFlyScale.x, planetNoFlyScale.y, planetNoFlyScale.z) + .12;
+    pulseCooldownRemaining = pulseCooldown;
+    planetPulseMesh.position.copy(planetNoFlyCenter);
+    planetPulseMesh.scale.setScalar(planetPulse.radius);
+    planetPulseMesh.visible = true;
+    updatePulseStatus();
+  };
+  const updatePlanetPulse = (dt) => {
+    if (pulseCooldownRemaining > 0) pulseCooldownRemaining = Math.max(0, pulseCooldownRemaining - dt);
+    if (planetPulse.active) {
+      planetPulse.age += dt;
+      const progress = Math.min(1, planetPulse.age / pulseDuration);
+      const surfaceRadius = 1.48 * Math.max(planetNoFlyScale.x, planetNoFlyScale.y, planetNoFlyScale.z) + .12;
+      planetPulse.radius = surfaceRadius + (pulseMaxRadius - surfaceRadius) * progress;
+      planetPulseMesh.position.copy(planetNoFlyCenter);
+      planetPulseMesh.scale.setScalar(planetPulse.radius);
+      planetPulseMaterial.opacity = .82 * (1 - progress);
+
+      let clearedEnemy = false;
+      for (let i = enemies.length - 1; i >= 0; i -= 1) {
+        if (enemies[i].distance > planetPulse.radius) continue;
+        scene.remove(enemies[i].mesh);
+        enemies.splice(i, 1);
+        clearedEnemy = true;
+      }
+      if (clearedEnemy) updateThreatStatus();
+      for (let i = hostileProjectiles.length - 1; i >= 0; i -= 1) {
+        if (hostileProjectiles[i].object.position.distanceToSquared(planetNoFlyCenter) > planetPulse.radius * planetPulse.radius) continue;
+        scene.remove(hostileProjectiles[i].object);
+        hostileProjectiles.splice(i, 1);
+      }
+
+      if (progress >= 1) {
+        planetPulse.active = false;
+        planetPulseMesh.visible = false;
+        planetPulseMaterial.opacity = 0;
+      }
+    }
+    updatePulseStatus();
+  };
   const endCombat = (outcome) => {
     if (combatOutcome !== 'active') return;
     combatOutcome = outcome;
+    planetPulse.active = false;
+    planetPulseMesh.visible = false;
+    planetPulseMaterial.opacity = 0;
     flightMode = 'defeated';
     flightModeKeys.clear();
     clearWeaponState();
     clearFusionEffect();
     document.body.dataset.flightState = 'defeated';
     updateThreatStatus();
+    updatePulseStatus();
   };
   const damageShip = (amount) => {
     playerHealth = Math.max(0, playerHealth - amount);
@@ -697,8 +786,10 @@ function createScene() {
     combatOutcome = 'active';
     enemySpawnTimer = 2.4;
     enemiesSpawned = 0;
+    pulseCooldownRemaining = 0;
     updateHealthHud();
     updateThreatStatus();
+    updatePulseStatus();
   };
   const randomEnemyDirection = () => {
     const vertical = Math.random() * 2 - 1;
@@ -971,6 +1062,11 @@ function createScene() {
       if (event.code === 'Escape') {
         event.preventDefault();
         exitFlight();
+        return;
+      }
+      if (event.code === 'Space') {
+        if (flightMode === 'entering' || flightMode === 'playing' || flightMode === 'defeated') event.preventDefault();
+        if (!event.repeat) activatePlanetPulse();
         return;
       }
       if (combatOutcome !== 'active') return;
@@ -1308,6 +1404,7 @@ function createScene() {
       }
       placeEngineEffect(1);
       updateDefense(dt);
+      updatePlanetPulse(dt);
       updateHostileProjectiles(dt);
 
       updateFlightCameraGoal();
