@@ -311,16 +311,65 @@ function createScene() {
   const activeProjectiles = [];
   const hostileProjectiles = [];
   const enemies = [];
-  const enemyCoreGeometry = new THREE.IcosahedronGeometry(.46, 1);
-  const enemyCoreMaterial = new THREE.MeshStandardMaterial({
-    color: 0x42121d,
-    metalness: .5,
-    roughness: .3,
-    emissive: 0xff2348,
-    emissiveIntensity: 1.6,
+  const enemyFuselageGeometry = new THREE.ConeGeometry(.3, 1.45, 6, 1);
+  enemyFuselageGeometry.rotateX(Math.PI / 2);
+  const enemyWingShape = new THREE.Shape();
+  enemyWingShape.moveTo(0, .38);
+  enemyWingShape.lineTo(1.28, -.55);
+  enemyWingShape.lineTo(.66, -.4);
+  enemyWingShape.lineTo(.3, -.08);
+  enemyWingShape.lineTo(-.3, -.08);
+  enemyWingShape.lineTo(-.66, -.4);
+  enemyWingShape.lineTo(-1.28, -.55);
+  enemyWingShape.closePath();
+  const enemyWingGeometry = new THREE.ExtrudeGeometry(enemyWingShape, {
+    depth: .1,
+    bevelEnabled: true,
+    bevelSegments: 1,
+    bevelSize: .025,
+    bevelThickness: .025,
   });
-  const enemyRingGeometry = new THREE.TorusGeometry(.62, .035, 6, 24);
-  const enemyRingMaterial = new THREE.MeshBasicMaterial({ color: 0xff526b, toneMapped: false });
+  enemyWingGeometry.rotateX(Math.PI / 2);
+  const enemyHullMaterial = new THREE.MeshStandardMaterial({
+    color: 0x39212a,
+    metalness: .72,
+    roughness: .28,
+    emissive: 0x641222,
+    emissiveIntensity: .48,
+  });
+  const enemyWingMaterial = new THREE.MeshStandardMaterial({
+    color: 0x541923,
+    metalness: .62,
+    roughness: .32,
+    emissive: 0x701022,
+    emissiveIntensity: .36,
+    side: THREE.DoubleSide,
+  });
+  const enemyCanopyGeometry = new THREE.SphereGeometry(.19, 12, 8);
+  const enemyCanopyMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff704f,
+    metalness: .28,
+    roughness: .18,
+    emissive: 0xff2d3f,
+    emissiveIntensity: 1.2,
+  });
+  const enemyEngineGeometry = new THREE.CylinderGeometry(.12, .17, .5, 8);
+  enemyEngineGeometry.rotateX(Math.PI / 2);
+  const enemyEngineMaterial = new THREE.MeshStandardMaterial({
+    color: 0x20151c,
+    metalness: .72,
+    roughness: .3,
+    emissive: 0xb20d2e,
+    emissiveIntensity: 1.1,
+  });
+  const enemyGlowGeometry = new THREE.SphereGeometry(.085, 8, 6);
+  const enemyGlowMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff3655,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const enemyFinGeometry = new THREE.BoxGeometry(.12, .32, .42);
+  const enemyGunGeometry = new THREE.BoxGeometry(.075, .085, .4);
   const hostileCoreGeometry = new THREE.SphereGeometry(.085, 10, 8);
   const hostileCoreMaterial = new THREE.MeshBasicMaterial({
     color: 0xffe1a7,
@@ -645,7 +694,10 @@ function createScene() {
   let planetHealth = 100;
   let combatOutcome = 'active';
   let enemySpawnTimer = 0;
-  let enemiesSpawned = 0;
+  let waveNumber = 1;
+  let waveSpawned = 0;
+  let waveBreakRemaining = -1;
+  const enemyWaveSize = (wave) => Math.min(8, wave + 2);
   const planetPulse = { active: false, age: 0, radius: 0 };
   let pulseCooldownRemaining = 0;
   const pulseCooldown = 12;
@@ -828,11 +880,17 @@ function createScene() {
     } else if (combatOutcome === 'planetLost') {
       flightThreatStatus.textContent = 'PLANET LOST · ESC TO RETURN';
       flightThreatStatus.classList.add('danger');
-    } else if (enemies.length) {
-      flightThreatStatus.textContent = `${String(enemies.length).padStart(2, '0')} HOSTILE${enemies.length === 1 ? '' : 'S'} · DEFEND THE PLANET`;
-      flightThreatStatus.classList.toggle('danger', enemies.some((enemy) => enemy.distance <= 16.1));
+    } else if (enemies.length || waveSpawned < enemyWaveSize(waveNumber)) {
+      const waitingToSpawn = Math.max(0, enemyWaveSize(waveNumber) - waveSpawned);
+      const raidSize = enemies.length + waitingToSpawn;
+      const attacking = enemies.some((enemy) => enemy.distance <= 16.1);
+      flightThreatStatus.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} · ${String(raidSize).padStart(2, '0')} RAIDERS ${attacking ? 'ATTACKING' : 'INBOUND'}`;
+      flightThreatStatus.classList.toggle('danger', attacking);
+    } else if (waveBreakRemaining > 0) {
+      flightThreatStatus.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} CLEAR · NEXT WAVE IN ${Math.ceil(waveBreakRemaining)}S`;
+      flightThreatStatus.classList.remove('danger');
     } else {
-      flightThreatStatus.innerHTML = 'DEFEND THE PLANET <i>·</i> SCANNING';
+      flightThreatStatus.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} · RAIDERS DEPLOYING`;
       flightThreatStatus.classList.remove('danger');
     }
   };
@@ -950,7 +1008,9 @@ function createScene() {
     planetHealth = 100;
     combatOutcome = 'active';
     enemySpawnTimer = 2.4;
-    enemiesSpawned = 0;
+    waveNumber = 1;
+    waveSpawned = 0;
+    waveBreakRemaining = -1;
     shipPulseCooldownRemaining = 0;
     pulseCooldownRemaining = 0;
     Object.keys(upgrades).forEach((type) => { upgrades[type] = 0; });
@@ -968,21 +1028,44 @@ function createScene() {
     const horizontal = Math.sqrt(1 - vertical * vertical);
     return new THREE.Vector3(Math.cos(angle) * horizontal, vertical, Math.sin(angle) * horizontal);
   };
-  const spawnEnemy = (direction, distance = 42 + Math.random() * 6) => {
+  const spawnEnemy = (direction, distance = 48 + Math.random() * 6) => {
     const mesh = new THREE.Group();
-    const core = new THREE.Mesh(enemyCoreGeometry, enemyCoreMaterial);
-    const ringMesh = new THREE.Mesh(enemyRingGeometry, enemyRingMaterial);
-    core.rotation.set(.18, .28, .12);
-    ringMesh.rotation.set(.72, .18, 0);
-    mesh.add(core, ringMesh);
+    const model = new THREE.Group();
+    const wings = new THREE.Mesh(enemyWingGeometry, enemyWingMaterial);
+    wings.position.y = .05;
+    model.add(wings);
+    const fuselage = new THREE.Mesh(enemyFuselageGeometry, enemyHullMaterial);
+    fuselage.scale.set(.82, .82, 1);
+    model.add(fuselage);
+    const canopy = new THREE.Mesh(enemyCanopyGeometry, enemyCanopyMaterial);
+    canopy.scale.set(.82, .58, 1.35);
+    canopy.position.set(0, .22, .12);
+    model.add(canopy);
+    for (const side of [-1, 1]) {
+      const engine = new THREE.Mesh(enemyEngineGeometry, enemyEngineMaterial);
+      engine.position.set(side * .32, -.025, -.48);
+      model.add(engine);
+      const engineGlow = new THREE.Mesh(enemyGlowGeometry, enemyGlowMaterial);
+      engineGlow.position.set(side * .32, -.025, -.75);
+      model.add(engineGlow);
+      const fin = new THREE.Mesh(enemyFinGeometry, enemyWingMaterial);
+      fin.position.set(side * .49, .13, -.35);
+      fin.rotation.z = side * -.16;
+      model.add(fin);
+      const gun = new THREE.Mesh(enemyGunGeometry, enemyHullMaterial);
+      gun.position.set(side * .52, .015, .12);
+      model.add(gun);
+    }
+    mesh.add(model);
     const enemy = {
       mesh,
-      core,
-      ring: ringMesh,
+      model,
       direction: direction.clone().normalize(),
       distance,
-      speed: 1.2 + Math.random() * .35,
-      health: 3,
+      speed: 2.05 + Math.random() * .45 + Math.min(.6, (waveNumber - 1) * .07),
+      health: 3 + Math.floor((waveNumber - 1) / 4),
+      hitRadius: 1.22,
+      age: Math.random() * Math.PI * 2,
       fireCooldown: 2.2 + Math.random() * 1.4,
     };
     mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
@@ -1012,23 +1095,36 @@ function createScene() {
   };
   const updateDefense = (dt) => {
     if (combatOutcome !== 'active') return;
-    enemySpawnTimer -= dt;
-    if (enemySpawnTimer <= 0) {
-      if (enemies.length < 6) {
-        const direction = enemiesSpawned === 0
-          ? new THREE.Vector3(.43, .2, -.87).normalize()
+    const enemiesThisWave = enemyWaveSize(waveNumber);
+    if (waveSpawned < enemiesThisWave) {
+      enemySpawnTimer -= dt;
+      if (enemySpawnTimer <= 0) {
+        const direction = waveNumber === 1 && waveSpawned === 0
+          ? new THREE.Vector3(.22, .08, -.97).normalize()
           : randomEnemyDirection();
-        spawnEnemy(direction);
-        enemiesSpawned += 1;
+        spawnEnemy(direction, 48 + Math.random() * 6);
+        waveSpawned += 1;
+        enemySpawnTimer = 1.55;
       }
-      enemySpawnTimer = 7.2;
+    } else if (!enemies.length && !hostileProjectiles.length) {
+      if (waveBreakRemaining < 0) waveBreakRemaining = 4;
+      waveBreakRemaining = Math.max(0, waveBreakRemaining - dt);
+      if (waveBreakRemaining === 0) {
+        waveNumber += 1;
+        waveSpawned = 0;
+        waveBreakRemaining = -1;
+        enemySpawnTimer = 1.2;
+      }
+    } else {
+      waveBreakRemaining = -1;
     }
 
     for (const enemy of enemies) {
       enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
       enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
-      enemy.core.rotation.y += dt * .9;
-      enemy.ring.rotation.z += dt * 1.35;
+      enemy.mesh.lookAt(planetNoFlyCenter);
+      enemy.age += dt;
+      enemy.model.rotation.z = Math.sin(enemy.age * 1.7) * .045;
       if (enemy.distance <= 16.05) {
         enemy.fireCooldown -= dt;
         if (enemy.fireCooldown <= 0) spawnHostileProjectile(enemy);
@@ -1105,7 +1201,7 @@ function createScene() {
       if (flightMode === 'playing' && combatOutcome === 'active') {
         for (let j = enemies.length - 1; j >= 0; j -= 1) {
           const enemy = enemies[j];
-          if (projectile.object.position.distanceToSquared(enemy.mesh.position) >= 1.05 * 1.05) continue;
+          if (projectile.object.position.distanceToSquared(enemy.mesh.position) >= enemy.hitRadius * enemy.hitRadius) continue;
           enemy.health -= projectile.damage;
           scene.remove(projectile.object);
           activeProjectiles.splice(i, 1);
