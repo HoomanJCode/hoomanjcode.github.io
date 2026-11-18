@@ -309,6 +309,33 @@ function createScene() {
     blending: THREE.AdditiveBlending,
   });
   const activeProjectiles = [];
+  const hostileProjectiles = [];
+  const enemies = [];
+  const enemyCoreGeometry = new THREE.IcosahedronGeometry(.46, 1);
+  const enemyCoreMaterial = new THREE.MeshStandardMaterial({
+    color: 0x42121d,
+    metalness: .5,
+    roughness: .3,
+    emissive: 0xff2348,
+    emissiveIntensity: 1.6,
+  });
+  const enemyRingGeometry = new THREE.TorusGeometry(.62, .035, 6, 24);
+  const enemyRingMaterial = new THREE.MeshBasicMaterial({ color: 0xff526b, toneMapped: false });
+  const hostileCoreGeometry = new THREE.SphereGeometry(.085, 10, 8);
+  const hostileCoreMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffe1a7,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const hostileTrailGeometry = new THREE.CylinderGeometry(.016, .044, .72, 7, 1, true);
+  const hostileTrailMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff385b,
+    transparent: true,
+    opacity: .95,
+    depthWrite: false,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
 
   // One orbital planet per project, riding a ring around the main planet like
   // a solar system. Built from the shared project data, so adding or removing
@@ -510,6 +537,13 @@ function createScene() {
   const flightExitButton = document.querySelector('#flightExit');
   const flightSpeedReadout = document.querySelector('#flightSpeed');
   const flightReticle = document.querySelector('#flightReticle');
+  const playerHealthFill = document.querySelector('#playerHealthFill');
+  const playerHealthValue = document.querySelector('#playerHealthValue');
+  const planetHealthFill = document.querySelector('#planetHealthFill');
+  const planetHealthValue = document.querySelector('#planetHealthValue');
+  const playerHealthRow = playerHealthFill?.closest('.flight-health-row');
+  const planetHealthRow = planetHealthFill?.closest('.flight-health-row');
+  const flightThreatStatus = document.querySelector('#flightThreatStatus');
   const flightEntry = document.querySelector('.flight-entry');
   const flightPageElements = [
     document.querySelector('.site-header'),
@@ -544,6 +578,13 @@ function createScene() {
   const flightModeKeys = new Set();
   const fireOrigin = new THREE.Vector3();
   const projectileTarget = new THREE.Vector3();
+  const enemyAttackDirection = new THREE.Vector3();
+  const hostileShotTarget = new THREE.Vector3();
+  let playerHealth = 100;
+  let planetHealth = 100;
+  let combatOutcome = 'active';
+  let enemySpawnTimer = 0;
+  let enemiesSpawned = 0;
   let firingHeld = false;
   let pointerFirePendingClick = false;
   let fireCooldown = 0;
@@ -591,6 +632,172 @@ function createScene() {
     activeProjectiles.forEach(({ object }) => scene.remove(object));
     activeProjectiles.length = 0;
   };
+  const clearDefenseObjects = () => {
+    enemies.forEach(({ mesh }) => scene.remove(mesh));
+    hostileProjectiles.forEach(({ object }) => scene.remove(object));
+    enemies.length = 0;
+    hostileProjectiles.length = 0;
+  };
+  const updateHealthHud = () => {
+    const shipValue = Math.ceil(playerHealth);
+    const planetValue = Math.ceil(planetHealth);
+    if (playerHealthFill) {
+      playerHealthFill.style.width = `${shipValue}%`;
+      playerHealthFill.parentElement?.setAttribute('aria-valuenow', String(shipValue));
+    }
+    if (playerHealthValue) playerHealthValue.textContent = `${shipValue}%`;
+    if (planetHealthFill) {
+      planetHealthFill.style.width = `${planetValue}%`;
+      planetHealthFill.parentElement?.setAttribute('aria-valuenow', String(planetValue));
+    }
+    if (planetHealthValue) planetHealthValue.textContent = `${planetValue}%`;
+    playerHealthRow?.classList.toggle('critical', playerHealth <= 30);
+    planetHealthRow?.classList.toggle('critical', planetHealth <= 30);
+  };
+  const updateThreatStatus = () => {
+    if (!flightThreatStatus) return;
+    if (combatOutcome === 'shipLost') {
+      flightThreatStatus.textContent = 'SHIP DESTROYED · ESC TO RETURN';
+      flightThreatStatus.classList.add('danger');
+    } else if (combatOutcome === 'planetLost') {
+      flightThreatStatus.textContent = 'PLANET LOST · ESC TO RETURN';
+      flightThreatStatus.classList.add('danger');
+    } else if (enemies.length) {
+      flightThreatStatus.textContent = `${String(enemies.length).padStart(2, '0')} HOSTILE${enemies.length === 1 ? '' : 'S'} · DEFEND THE PLANET`;
+      flightThreatStatus.classList.toggle('danger', enemies.some((enemy) => enemy.distance <= 16.1));
+    } else {
+      flightThreatStatus.innerHTML = 'DEFEND THE PLANET <i>·</i> SCANNING';
+      flightThreatStatus.classList.remove('danger');
+    }
+  };
+  const endCombat = (outcome) => {
+    if (combatOutcome !== 'active') return;
+    combatOutcome = outcome;
+    flightMode = 'defeated';
+    flightModeKeys.clear();
+    clearWeaponState();
+    clearFusionEffect();
+    document.body.dataset.flightState = 'defeated';
+    updateThreatStatus();
+  };
+  const damageShip = (amount) => {
+    playerHealth = Math.max(0, playerHealth - amount);
+    updateHealthHud();
+    if (playerHealth <= 0) endCombat('shipLost');
+  };
+  const damagePlanet = (amount) => {
+    planetHealth = Math.max(0, planetHealth - amount);
+    updateHealthHud();
+    if (planetHealth <= 0) endCombat('planetLost');
+  };
+  const resetDefense = () => {
+    clearDefenseObjects();
+    playerHealth = 100;
+    planetHealth = 100;
+    combatOutcome = 'active';
+    enemySpawnTimer = 2.4;
+    enemiesSpawned = 0;
+    updateHealthHud();
+    updateThreatStatus();
+  };
+  const randomEnemyDirection = () => {
+    const vertical = Math.random() * 2 - 1;
+    const angle = Math.random() * Math.PI * 2;
+    const horizontal = Math.sqrt(1 - vertical * vertical);
+    return new THREE.Vector3(Math.cos(angle) * horizontal, vertical, Math.sin(angle) * horizontal);
+  };
+  const spawnEnemy = (direction, distance = 42 + Math.random() * 6) => {
+    const mesh = new THREE.Group();
+    const core = new THREE.Mesh(enemyCoreGeometry, enemyCoreMaterial);
+    const ringMesh = new THREE.Mesh(enemyRingGeometry, enemyRingMaterial);
+    core.rotation.set(.18, .28, .12);
+    ringMesh.rotation.set(.72, .18, 0);
+    mesh.add(core, ringMesh);
+    const enemy = {
+      mesh,
+      core,
+      ring: ringMesh,
+      direction: direction.clone().normalize(),
+      distance,
+      speed: 1.2 + Math.random() * .35,
+      health: 3,
+      fireCooldown: 2.2 + Math.random() * 1.4,
+    };
+    mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
+    scene.add(mesh);
+    enemies.push(enemy);
+    updateThreatStatus();
+  };
+  const spawnHostileProjectile = (enemy) => {
+    enemyAttackDirection.copy(planetNoFlyCenter).sub(enemy.mesh.position).normalize();
+    const object = new THREE.Group();
+    object.add(new THREE.Mesh(hostileCoreGeometry, hostileCoreMaterial));
+    const trail = new THREE.Mesh(hostileTrailGeometry, hostileTrailMaterial);
+    trail.rotation.x = -Math.PI / 2;
+    trail.position.z = .34;
+    object.add(trail);
+    object.position.copy(enemy.mesh.position).addScaledVector(enemyAttackDirection, .72);
+    hostileShotTarget.copy(object.position).add(enemyAttackDirection);
+    object.lookAt(hostileShotTarget);
+    scene.add(object);
+    hostileProjectiles.push({
+      object,
+      velocity: enemyAttackDirection.clone().multiplyScalar(14),
+      age: 0,
+      damage: 8,
+    });
+    enemy.fireCooldown = 2.8 + Math.random() * 1.1;
+  };
+  const updateDefense = (dt) => {
+    if (combatOutcome !== 'active') return;
+    enemySpawnTimer -= dt;
+    if (enemySpawnTimer <= 0) {
+      if (enemies.length < 6) {
+        const direction = enemiesSpawned === 0
+          ? new THREE.Vector3(.43, .2, -.87).normalize()
+          : randomEnemyDirection();
+        spawnEnemy(direction);
+        enemiesSpawned += 1;
+      }
+      enemySpawnTimer = 7.2;
+    }
+
+    for (const enemy of enemies) {
+      enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
+      enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
+      enemy.core.rotation.y += dt * .9;
+      enemy.ring.rotation.z += dt * 1.35;
+      if (enemy.distance <= 16.05) {
+        enemy.fireCooldown -= dt;
+        if (enemy.fireCooldown <= 0) spawnHostileProjectile(enemy);
+      }
+    }
+    updateThreatStatus();
+  };
+  const updateHostileProjectiles = (dt) => {
+    if (combatOutcome !== 'active') return;
+    const scale = Math.max(planetNoFlyScale.x, planetNoFlyScale.y, planetNoFlyScale.z);
+    const planetSurfaceRadius = 1.48 * scale + .12;
+    for (let i = hostileProjectiles.length - 1; i >= 0; i -= 1) {
+      const projectile = hostileProjectiles[i];
+      projectile.age += dt;
+      projectile.object.position.addScaledVector(projectile.velocity, dt);
+      if (projectile.object.position.distanceToSquared(ship.position) < 1.35 * 1.35) {
+        damageShip(16);
+        scene.remove(projectile.object);
+        hostileProjectiles.splice(i, 1);
+        if (combatOutcome !== 'active') break;
+      } else if (projectile.object.position.distanceToSquared(planetNoFlyCenter) < planetSurfaceRadius * planetSurfaceRadius) {
+        damagePlanet(projectile.damage);
+        scene.remove(projectile.object);
+        hostileProjectiles.splice(i, 1);
+        if (combatOutcome !== 'active') break;
+      } else if (projectile.age > 3.2) {
+        scene.remove(projectile.object);
+        hostileProjectiles.splice(i, 1);
+      }
+    }
+  };
   const fireProjectile = () => {
     if (flightMode !== 'playing' || flightForward.lengthSq() < .5) return;
     ship.updateMatrixWorld(true);
@@ -620,6 +827,24 @@ function createScene() {
       const projectile = activeProjectiles[i];
       projectile.age += dt;
       projectile.object.position.addScaledVector(projectile.velocity, dt);
+      let hitEnemy = false;
+      if (flightMode === 'playing' && combatOutcome === 'active') {
+        for (let j = enemies.length - 1; j >= 0; j -= 1) {
+          const enemy = enemies[j];
+          if (projectile.object.position.distanceToSquared(enemy.mesh.position) >= 1.05 * 1.05) continue;
+          enemy.health -= 1;
+          scene.remove(projectile.object);
+          activeProjectiles.splice(i, 1);
+          if (enemy.health <= 0) {
+            scene.remove(enemy.mesh);
+            enemies.splice(j, 1);
+            updateThreatStatus();
+          }
+          hitEnemy = true;
+          break;
+        }
+      }
+      if (hitEnemy) continue;
       const remaining = projectileLifetime - projectile.age;
       if (remaining <= .12) projectile.object.scale.setScalar(Math.max(.01, remaining / .12));
       if (remaining <= 0) {
@@ -628,6 +853,8 @@ function createScene() {
       }
     }
   };
+  updateHealthHud();
+  updateThreatStatus();
   const updateFlightCameraGoal = () => {
     flightCameraOffsetWorld.copy(flightCameraOffset).applyQuaternion(ship.quaternion);
     flightLookOffsetWorld.copy(flightLookOffset).applyQuaternion(ship.quaternion);
@@ -667,6 +894,7 @@ function createScene() {
     flightThrottle = 0;
     clearWeaponState();
     clearProjectiles();
+    resetDefense();
     saucerSpin = 0;
     saucerModel.rotation.y = 0;
     flightModeKeys.clear();
@@ -698,7 +926,7 @@ function createScene() {
     dragging = false;
   };
   const exitFlight = () => {
-    if (flightMode !== 'entering' && flightMode !== 'playing') return;
+    if (flightMode !== 'entering' && flightMode !== 'playing' && flightMode !== 'defeated') return;
     flightMode = 'exiting';
     flightTransitionTime = 0;
     exitCameraStart.copy(camera.position);
@@ -716,6 +944,7 @@ function createScene() {
     flightModeKeys.clear();
     clearWeaponState();
     clearProjectiles();
+    clearDefenseObjects();
     clearFusionEffect();
     flightStars.visible = false;
     flightStarsMaterial.opacity = 0;
@@ -744,6 +973,7 @@ function createScene() {
         exitFlight();
         return;
       }
+      if (combatOutcome !== 'active') return;
       if (flightKeys.has(event.code)) {
         event.preventDefault();
         if (flightMode !== 'exiting') flightModeKeys.add(event.code);
@@ -1076,6 +1306,8 @@ function createScene() {
         if (inwardSpeed < 0) flightVelocity.addScaledVector(shipToPlanet, -inwardSpeed);
       }
       placeEngineEffect(1);
+      updateDefense(dt);
+      updateHostileProjectiles(dt);
 
       updateFlightCameraGoal();
       cameraLookEase = 1 - Math.exp(-dt * 5.2);

@@ -138,6 +138,17 @@
           <span>DEEP SPACE <i>/</i> FLIGHT 01</span>
           <button id="flightExit" type="button">ESC <i>/</i> RETURN TO PROFILE</button>
         </div>
+        <section class="flight-vitals" aria-label="Defense status">
+          <div class="flight-health-row">
+            <div class="flight-health-label"><span>SHIP</span><strong id="playerHealthValue">100%</strong></div>
+            <div class="flight-health-track" role="progressbar" aria-label="Ship health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="playerHealthFill"></i></div>
+          </div>
+          <div class="flight-health-row planet">
+            <div class="flight-health-label"><span>PLANET</span><strong id="planetHealthValue">100%</strong></div>
+            <div class="flight-health-track" role="progressbar" aria-label="Planet health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="planetHealthFill"></i></div>
+          </div>
+          <p id="flightThreatStatus" class="flight-threat-status">DEFEND THE PLANET <i>·</i> SCANNING</p>
+        </section>
         <div class="flight-reticle" id="flightReticle"><i></i></div>
         <div class="flight-hud-bottom">
           <p><b>W / S</b> THRUST <i>·</i> <b>A / D</b> TURN <i>·</i> <b>E / Q</b> UP / DOWN <i>·</i> <b>MOUSE</b> AIM <i>·</i> <b>CLICK / HOLD</b> FIRE</p>
