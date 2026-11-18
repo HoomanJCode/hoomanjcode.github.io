@@ -466,5 +466,35 @@ window.PROJECTS = {
       { visual: 'art-tools alt-art', alt: 'Comparative processing paths for the benchmark workloads', caption: 'PROCESSING / METHODS' },
       { visual: 'art-planet alt-art', alt: 'A dashboard visualization representing measured workload results', caption: 'MEASURE / COMPARE' }
     ]
+  },
+  charsu: {
+    number: '03', category: 'SAAS / BUSINESS MANAGEMENT', title: 'Charsu', eyebrow: 'A digital home for independent businesses', storyKicker: 'The platform', storyTitle: ['Everyday work.', 'One connected', 'workspace.'],
+    description: 'An independently developed platform helping cafés, restaurants, and other small businesses build a digital presence, manage daily work, and strengthen customer relationships.',
+    palette: [[25, 35, 33], [213, 255, 79], [145, 186, 255], [255, 118, 92]],
+    paragraphs: [
+      'Charsu brings a customer-facing storefront together with tools for products, orders, customer engagement, loyalty rewards, and business reporting. Each business can present its own catalog and identity while using a shared platform.',
+      'The business dashboard is designed as an installable web app and supports offline work with later synchronization. Selected AI-assisted features help with operational tasks, catalog work, localization, and customer-facing experiences.'
+    ],
+    techKicker: 'Product and engineering',
+    techTitle: ['Built around', 'businesses', 'in motion.'],
+    technical: [
+      'Charsu is an independently developed full-stack SaaS product. Its customer storefronts and business dashboards are built with React and TypeScript, backed by a C# and .NET API. The installable PWA is designed to keep selected dashboard workflows available during connectivity interruptions.',
+      'Product direction and implementation span architecture, interface development, business workflows, offline behavior, AI-assisted features, containerization, and delivery automation. The platform is under active development, with ongoing stability work and preparation for real-business validation.'
+    ],
+    techPoints: [
+      'Business storefronts with catalogs, menus, and business information',
+      'Customer engagement, digital loyalty, orders, and operational dashboards',
+      'Installable PWA with offline-capable dashboard workflows',
+      'C# / .NET API with React and TypeScript interfaces',
+      'Founder-led product architecture and full-stack development'
+    ],
+    technologies: ['C#', '.NET', 'React', 'TypeScript', 'Docker', 'PWA'],
+    facts: [['Role', 'Independent founder & engineer'], ['Stage', 'Active development'], ['Focus', 'Small business tools']],
+    source: 'https://charsu.shop', sourceLabel: 'Visit Charsu', sourceType: 'Product website',
+    media: [
+      { visual: 'art-tools', alt: 'Abstract business dashboard with connected management panels', caption: 'BUSINESS / DASHBOARD' },
+      { visual: 'art-menu alt-art', alt: 'Storefront and customer experience panels', caption: 'STOREFRONT / CUSTOMERS' },
+      { visual: 'art-planet alt-art', alt: 'Customer engagement and loyalty represented by connected orbits', caption: 'LOYALTY / ENGAGEMENT' }
+    ]
   }
 };

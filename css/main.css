@@ -44,7 +44,7 @@ a { color: inherit; text-decoration: none; }
 .portrait-photo { position: absolute; z-index: 1; top: 6px; left: 20%; width: 190px; height: 190px; border: 5px solid rgba(255,255,255,.72); border-radius: 50%; object-fit: cover; object-position: 55% 34%; box-shadow: 0 20px 35px rgba(48,79,125,.25); }
 .visual-charsu { display: grid; place-items: center; background: radial-gradient(ellipse at 50% 42%, rgba(213,255,79,.13), transparent 53%), linear-gradient(145deg, #192321, #101419 72%); }
 .visual-charsu::before { content: ''; position: absolute; inset: 9%; border: 1px solid rgba(213,255,79,.13); border-radius: 50%; transform: rotate(-22deg) scaleY(.42); }
-.charsu-dashboard { position: relative; width: 78%; aspect-ratio: 1.32; overflow: hidden; border: 1px solid rgba(240,238,232,.2); border-radius: 9px; background: #171c1d; box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 50px rgba(213,255,79,.08); transform: perspective(900px) rotateY(-8deg) rotateX(3deg); }
+.charsu-dashboard { position: relative; width: 78%; aspect-ratio: 1.32; overflow: hidden; border: 1px solid rgba(240,238,232,.2); border-radius: 9px; background: #171c1d; box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 50px rgba(213,255,79,.08); transform: perspective(900px) rotateY(-8deg) rotateX(3deg); animation: charsuDashboardFloat 5s ease-in-out infinite; }
 .charsu-topbar { height: 14%; display: flex; align-items: center; gap: 10px; padding: 0 4%; border-bottom: 1px solid rgba(240,238,232,.1); }
 .charsu-mark { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--acid); color: #171c1d; font: 700 12px var(--mono); }
 .charsu-topline, .charsu-avatar, .charsu-sidebar i, .charsu-welcome, .charsu-stats i, .charsu-chart, .charsu-orders { display: block; }
@@ -61,9 +61,15 @@ a { color: inherit; text-decoration: none; }
 .charsu-panels { display: grid; grid-template-columns: 1.3fr 1fr; gap: 4%; height: 48%; margin-top: 6%; }
 .charsu-chart, .charsu-orders { position: relative; border: 1px solid rgba(240,238,232,.1); border-radius: 4px; background: rgba(240,238,232,.025); }
 .charsu-chart { display: flex; align-items: end; gap: 5%; padding: 8% 8% 0; }
-.charsu-chart i { flex: 1; height: 35%; border-radius: 2px 2px 0 0; background: linear-gradient(180deg, #d5ff4f, rgba(213,255,79,.18)); }
+.charsu-chart i { flex: 1; height: 35%; border-radius: 2px 2px 0 0; background: linear-gradient(180deg, #d5ff4f, rgba(213,255,79,.18)); transform-origin: bottom; animation: charsuChartPulse 2.8s ease-in-out infinite; }
 .charsu-chart i:nth-child(2), .charsu-chart i:nth-child(6) { height: 58%; }.charsu-chart i:nth-child(3), .charsu-chart i:nth-child(5) { height: 76%; }.charsu-chart i:nth-child(4) { height: 92%; }
 .charsu-orders { padding: 8%; }.charsu-orders i { display: block; height: 5px; margin: 6px 0 11px; border-radius: 99px; background: rgba(240,238,232,.16); }.charsu-orders i:first-child { width: 60%; background: rgba(240,238,232,.45); }
+.charsu-chart i:nth-child(2) { animation-delay: -.4s; }.charsu-chart i:nth-child(3) { animation-delay: -.8s; }.charsu-chart i:nth-child(4) { animation-delay: -1.2s; }.charsu-chart i:nth-child(5) { animation-delay: -1.6s; }.charsu-chart i:nth-child(6) { animation-delay: -2s; }.charsu-chart i:nth-child(7) { animation-delay: -2.4s; }
+.charsu-orders i:first-child { animation: charsuOrderPulse 3.2s ease-in-out infinite; }
+@keyframes charsuDashboardFloat { 0%, 100% { transform: perspective(900px) rotateY(-8deg) rotateX(3deg) translateY(0); } 50% { transform: perspective(900px) rotateY(-8deg) rotateX(3deg) translateY(-4px); } }
+@keyframes charsuChartPulse { 0%, 100% { transform: scaleY(.78); opacity: .72; } 50% { transform: scaleY(1); opacity: 1; } }
+@keyframes charsuOrderPulse { 0%, 100% { width: 60%; opacity: .62; } 50% { width: 82%; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .charsu-dashboard, .charsu-chart i, .charsu-orders i:first-child { animation: none; } }
 .visual-benchmark { display: grid; place-items: center; background: radial-gradient(ellipse at 50% 48%, rgba(145,186,255,.16), transparent 58%), linear-gradient(145deg, #17202b, #101419 72%); }
 .benchmark-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; }
 .visual-benchmark .visual-caption { z-index: 2; }
