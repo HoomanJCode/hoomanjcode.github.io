@@ -118,9 +118,6 @@ function createScene() {
   const undersideMaterial = new THREE.MeshStandardMaterial({ color: 0x263753, metalness: .74, roughness: .34, flatShading: true });
   const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xd5ff4f, metalness: .58, roughness: .3, emissive: 0x526510, emissiveIntensity: .42 });
   const glassMaterial = new THREE.MeshPhysicalMaterial({ color: 0x5dcfff, metalness: .38, roughness: .13, clearcoat: 1, emissive: 0x0b314f, emissiveIntensity: .55 });
-  const engineMaterial = new THREE.MeshStandardMaterial({ color: 0x202734, metalness: .84, roughness: .3 });
-  const plumeMaterial = new THREE.MeshBasicMaterial({ color: 0x75ddff, transparent: true, opacity: .64, depthWrite: false });
-
   const saucerProfile = [
     new THREE.Vector2(0, -.22),
     new THREE.Vector2(.36, -.23),
@@ -170,42 +167,41 @@ function createScene() {
     porthole.position.set(Math.cos(angle) * radius, .055, Math.sin(angle) * radius);
     saucerModel.add(porthole);
   }
-  const headingBeacon = new THREE.Mesh(
-    new THREE.SphereGeometry(.075, 10, 8),
-    new THREE.MeshBasicMaterial({ color: 0x75ddff, toneMapped: false })
-  );
-  headingBeacon.position.set(0, .095, -1.17);
-  saucerModel.add(headingBeacon);
-
-  const reactorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0d293a,
-    emissive: 0x23cbff,
-    emissiveIntensity: 0,
-    metalness: .55,
-    roughness: .18,
+  // The fusion glow lives in a separate, unrotated scene group. It tracks the
+  // saucer's position, but its exhaust always hangs straight down while the
+  // disc spins or changes heading.
+  const engineEffect = new THREE.Group();
+  engineEffect.position.copy(ship.position);
+  engineEffect.scale.setScalar(.001);
+  engineEffect.visible = false;
+  scene.add(engineEffect);
+  const fusionCoreMaterial = new THREE.MeshBasicMaterial({
+    color: 0x8deaff,
+    transparent: true,
+    opacity: 0,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
   });
-  const reactor = new THREE.Mesh(new THREE.SphereGeometry(.25, 16, 12), reactorMaterial);
-  reactor.position.set(0, -.3, 0);
-  saucerModel.add(reactor);
-
-  const enginePlumes = [];
-  for (const side of [-1, 1]) {
-    const engine = new THREE.Mesh(new THREE.CylinderGeometry(.12, .16, .22, 10), engineMaterial);
-    engine.position.set(side * .3, -.22, .58);
-    saucerModel.add(engine);
-    const nozzle = new THREE.Mesh(new THREE.TorusGeometry(.12, .025, 6, 12), trimMaterial);
-    nozzle.rotation.x = Math.PI / 2;
-    nozzle.position.set(side * .3, -.22, .7);
-    saucerModel.add(nozzle);
-    const plume = new THREE.Mesh(new THREE.ConeGeometry(.105, .58, 8), plumeMaterial.clone());
-    plume.rotation.x = Math.PI / 2;
-    plume.position.set(side * .3, -.22, .98);
-    saucerModel.add(plume);
-    enginePlumes.push(plume);
-  }
-  const engineGlow = new THREE.PointLight(0x63d9ff, 2.4, 4.5);
-  engineGlow.position.set(0, -.24, .72);
-  saucerModel.add(engineGlow);
+  const fusionCore = new THREE.Mesh(new THREE.SphereGeometry(.22, 16, 12), fusionCoreMaterial);
+  fusionCore.position.set(0, -.38, 0);
+  fusionCore.scale.set(.86, .56, .86);
+  engineEffect.add(fusionCore);
+  const fusionBeamMaterial = new THREE.MeshBasicMaterial({
+    color: 0x35bfff,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const fusionBeam = new THREE.Mesh(new THREE.ConeGeometry(.42, 1.1, 18, 1, true), fusionBeamMaterial);
+  fusionBeam.rotation.z = Math.PI;
+  fusionBeam.position.y = -.92;
+  engineEffect.add(fusionBeam);
+  const engineGlow = new THREE.PointLight(0x52cfff, 0, 4);
+  engineGlow.position.set(0, -.42, 0);
+  engineEffect.add(engineGlow);
 
   // A second, much wider star layer fades in as the camera leaves the hero
   // planet. It wraps around the ship while flying so the player can keep
@@ -481,6 +477,17 @@ function createScene() {
   const transitionDuration = 2.7;
   const returnDuration = 1.15;
   const smoothstep = (value) => value * value * (3 - 2 * value);
+  const placeEngineEffect = (scale) => {
+    engineEffect.position.copy(ship.position);
+    engineEffect.rotation.set(0, 0, 0);
+    engineEffect.scale.setScalar(scale);
+  };
+  const clearFusionEffect = () => {
+    fusionCoreMaterial.opacity = 0;
+    fusionBeamMaterial.opacity = 0;
+    fusionBeam.scale.y = .001;
+    engineGlow.intensity = 0;
+  };
   const updateFlightCameraGoal = () => {
     flightCameraOffsetWorld.copy(flightCameraOffset).applyQuaternion(ship.quaternion);
     flightLookOffsetWorld.copy(flightLookOffset).applyQuaternion(ship.quaternion);
@@ -528,12 +535,9 @@ function createScene() {
     flightPitch = aimPitch;
     flightRoll = 0;
     ship.rotation.set(flightPitch, shipYaw, flightRoll, 'YXZ');
-    enginePlumes.forEach((plume) => {
-      plume.material.opacity = 0;
-      plume.scale.y = .001;
-    });
-    reactorMaterial.emissiveIntensity = 0;
-    engineGlow.intensity = 0;
+    clearFusionEffect();
+    engineEffect.visible = true;
+    placeEngineEffect(.001);
     ship.scale.setScalar(.001);
     flightMode = 'entering';
     flightTransitionTime = 0;
@@ -558,12 +562,7 @@ function createScene() {
     exitCameraStart.copy(camera.position);
     exitLookStart.copy(lastFlightLookTarget);
     flightModeKeys.clear();
-    enginePlumes.forEach((plume) => {
-      plume.material.opacity = 0;
-      plume.scale.y = .001;
-    });
-    reactorMaterial.emissiveIntensity = 0;
-    engineGlow.intensity = 0;
+    clearFusionEffect();
     document.body.dataset.flightState = 'exiting';
     flightHud?.setAttribute('aria-hidden', 'true');
   };
@@ -572,11 +571,11 @@ function createScene() {
     flightVelocity.set(0, 0, 0);
     flightThrottle = 0;
     flightModeKeys.clear();
-    reactorMaterial.emissiveIntensity = 0;
-    engineGlow.intensity = 0;
+    clearFusionEffect();
     flightStars.visible = false;
     flightStarsMaterial.opacity = 0;
     ship.scale.setScalar(.001);
+    engineEffect.visible = false;
     document.body.classList.remove('spaceflight-active');
     document.body.removeAttribute('data-flight-state');
     flightEntry?.removeAttribute('aria-hidden');
@@ -848,6 +847,7 @@ function createScene() {
       saucerModel.rotation.y = saucerSpin;
       updateFlightCameraGoal();
       ship.scale.setScalar(Math.max(.001, ease));
+      placeEngineEffect(Math.max(.001, ease));
       flightStars.position.copy(ship.position);
       flightStarsMaterial.opacity = ease * .86;
       camera.position.lerpVectors(heroCameraPosition, flightCameraGoal, ease);
@@ -885,6 +885,7 @@ function createScene() {
       flightVelocity.copy(flightForward).multiplyScalar(flightThrottle);
       flightVelocity.addScaledVector(flightUp, lift * 5.4);
       ship.position.addScaledVector(flightVelocity, dt);
+      placeEngineEffect(1);
 
       updateFlightCameraGoal();
       cameraLookEase = 1 - Math.exp(-dt * 5.2);
@@ -897,13 +898,11 @@ function createScene() {
       const speed = flightVelocity.length();
       if (flightSpeedReadout) flightSpeedReadout.textContent = speed.toFixed(1);
       const engineOn = flightModeKeys.has('KeyW');
-      const enginePulse = engineOn ? .78 + Math.min(.22, speed / 28) + Math.sin(t * 17) * .06 : 0;
-      enginePlumes.forEach((plume, index) => {
-        plume.material.opacity = enginePulse;
-        plume.scale.y = engineOn ? .72 + Math.min(.7, speed / 24) + Math.sin(t * 19 + index) * .08 : .001;
-      });
+      const enginePulse = engineOn ? .78 + Math.min(.18, speed / 32) + Math.sin(t * 17) * .04 : 0;
+      fusionCoreMaterial.opacity = enginePulse;
+      fusionBeamMaterial.opacity = engineOn ? .22 + Math.sin(t * 16) * .045 : 0;
+      fusionBeam.scale.y = engineOn ? .84 + Math.min(.28, speed / 42) + Math.sin(t * 18) * .06 : .001;
       engineGlow.intensity = engineOn ? 2.2 + speed * .13 + Math.sin(t * 12) * .35 : 0;
-      reactorMaterial.emissiveIntensity = engineOn ? 1.8 + Math.sin(t * 15) * .25 : 0;
 
       const wrapRadius = 95;
       for (let i = 0; i < flightStarCount; i += 1) {
@@ -925,6 +924,7 @@ function createScene() {
       saucerSpin += dt * 1.1;
       saucerModel.rotation.y = saucerSpin;
       ship.scale.setScalar(Math.max(.001, 1 - ease));
+      placeEngineEffect(Math.max(.001, 1 - ease));
       flightStarsMaterial.opacity = .86 * (1 - ease);
       camera.position.lerpVectors(exitCameraStart, heroCameraPosition, ease);
       lastFlightLookTarget.lerpVectors(exitLookStart, heroCameraTarget, ease);
