@@ -435,5 +435,36 @@ window.PROJECTS = {
       { image: 'https://opengraph.githubassets.com/1/HoomanJCode/Telegram_Yt_Bot', alt: 'Telegram YouTube Bot GitHub project preview', caption: 'YOUTUBE / 14' },
       { visual: 'art-youtube alt-art', alt: 'Video, audio, and thumbnail delivery paths', caption: 'FORMAT / DELIVERY' }
     ]
+  },
+  'batch-process-benchmark': {
+    number: '16', category: 'UNITY / PERFORMANCE BENCHMARKS', title: 'Batch Process Benchmark', eyebrow: 'Measure the work behind the frame', storyKicker: 'The benchmark', storyTitle: ['Same workload.', 'Different', 'processing paths.'],
+    description: 'A Unity benchmark project for comparing gravity simulation, batch calculations, and random-search workloads across processing strategies.',
+    palette: [[18, 27, 38], [145, 186, 255], [213, 255, 79], [255, 118, 92]],
+    paragraphs: [
+      'The project brings several computation-heavy examples into one place: 2D and 3D gravity, simple iteration, and random-search optimization. Its goal is to make the work visible and comparable while keeping each method on the same configured workload.',
+      'A local browser dashboard streams Unity Profiler measurements as each comparison runs. It presents the workload results in context and stores completed runs in the browser on that computer, while headless helpers can produce reports for repeatable local comparisons.'
+    ],
+    techKicker: 'How comparisons run',
+    techTitle: ['Warm up.', 'Measure.', 'Compare.'],
+    technical: [
+      'The dashboard runs the examples in sequence and compares multiple Unity processing methods, including single-threaded, asynchronous, parallel, Jobs, and Burst approaches where supported by the workload. Batch and optimization comparisons run a warm-up pass before collecting measured runs.',
+      'Gravity comparisons have separate 2D and 3D scenes. Headless PowerShell helpers can launch gravity, batch, and optimization runs with a local Unity Editor installation and save reports locally. Performance depends on the workload, runtime, hardware, and current system conditions, so the measurements are useful as experiments rather than universal rankings.'
+    ],
+    techPoints: [
+      'Four example workloads: 2D gravity, 3D gravity, simple iteration, and random search',
+      'Unity / C# strategies include async, parallel, Jobs, and Burst where supported',
+      'Local real-time dashboard streams profiler measurements from Unity',
+      'Configurable workload size and measured runs for comparisons',
+      'Headless PowerShell helpers produce local benchmark reports'
+    ],
+    technologies: ['Unity', 'C#', 'Unity Jobs', 'Burst', 'PowerShell', 'HTML / JavaScript'],
+    facts: [['Workloads', 'Gravity · iteration · random search'], ['Interface', 'Local real-time dashboard'], ['Reports', 'Headless local runs']],
+    source: 'https://github.com/HoomanJCode/BatchProcess-Benchmark', sourceLabel: 'View on GitHub', sourceType: 'GitHub',
+    image: 'https://opengraph.githubassets.com/1/HoomanJCode/BatchProcess-Benchmark',
+    media: [
+      { visual: 'art-gravity', alt: 'Gravity bodies and orbital paths representing the simulation workloads', caption: 'GRAVITY / 2D + 3D' },
+      { visual: 'art-tools alt-art', alt: 'Comparative processing paths for the benchmark workloads', caption: 'PROCESSING / METHODS' },
+      { visual: 'art-planet alt-art', alt: 'A dashboard visualization representing measured workload results', caption: 'MEASURE / COMPARE' }
+    ]
   }
 };

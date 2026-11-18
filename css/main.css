@@ -65,5 +65,5 @@ a { color: inherit; text-decoration: none; }
 .charsu-chart i:nth-child(2), .charsu-chart i:nth-child(6) { height: 58%; }.charsu-chart i:nth-child(3), .charsu-chart i:nth-child(5) { height: 76%; }.charsu-chart i:nth-child(4) { height: 92%; }
 .charsu-orders { padding: 8%; }.charsu-orders i { display: block; height: 5px; margin: 6px 0 11px; border-radius: 99px; background: rgba(240,238,232,.16); }.charsu-orders i:first-child { width: 60%; background: rgba(240,238,232,.45); }
 .visual-benchmark { display: grid; place-items: center; background: radial-gradient(ellipse at 50% 48%, rgba(145,186,255,.16), transparent 58%), linear-gradient(145deg, #17202b, #101419 72%); }
-.visual-benchmark img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; object-fit: cover; }
+.benchmark-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; }
 .visual-benchmark .visual-caption { z-index: 2; }
