@@ -129,6 +129,21 @@
   <main id="top">
     <section class="hero scene-section" data-scene="hero">
       <canvas id="heroCanvas" aria-label="Animated 3D generative planet"></canvas>
+      <div class="flight-entry" aria-hidden="true">
+        <p class="flight-entry-label">Optional flight mode</p>
+        <p class="flight-entry-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>to depart</span></p>
+      </div>
+      <div class="flight-hud" id="flightHud" aria-hidden="true">
+        <div class="flight-hud-top">
+          <span>DEEP SPACE <i>/</i> FLIGHT 01</span>
+          <button id="flightExit" type="button">ESC <i>/</i> RETURN TO PROFILE</button>
+        </div>
+        <div class="flight-reticle" id="flightReticle"><i></i></div>
+        <div class="flight-hud-bottom">
+          <p><b>W / S</b> THRUST <i>·</i> <b>A / D</b> STRAFE <i>·</i> <b>SPACE / SHIFT</b> ASCEND / DESCEND <i>·</i> <b>MOUSE</b> STEER</p>
+          <div class="flight-speed"><span>SPEED</span><strong id="flightSpeed">0.0</strong><i>U/S</i></div>
+        </div>
+      </div>
       <div class="hero-copy">
         <p class="eyebrow"><span class="status-dot"></span> <span>Unity game developer · Isfahan / Everywhere</span></p>
         <h1>I build <em>worlds</em><br>that stay with you.</h1>

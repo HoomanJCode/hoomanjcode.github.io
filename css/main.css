@@ -73,3 +73,97 @@ a { color: inherit; text-decoration: none; }
 .visual-benchmark { display: grid; place-items: center; background: radial-gradient(ellipse at 50% 48%, rgba(145,186,255,.16), transparent 58%), linear-gradient(145deg, #17202b, #101419 72%); }
 .benchmark-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; }
 .visual-benchmark .visual-caption { z-index: 2; }
+
+/* Desktop-only flight mode launch cue and in-flight controls. */
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .flight-entry {
+    position: absolute;
+    z-index: 4;
+    right: 5vw;
+    bottom: 13vh;
+    color: var(--paper);
+    text-align: right;
+    font: 10px var(--mono);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    transition: opacity .45s ease, transform .65s ease;
+  }
+  .flight-entry-label { margin: 0 0 11px; color: var(--muted); }
+  .flight-entry-keys { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin: 0; }
+  .flight-entry-keys kbd {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    border: 1px solid rgba(240,238,232,.32);
+    border-radius: 3px;
+    color: var(--acid);
+    font: 11px var(--mono);
+  }
+  .flight-entry-keys span { margin-left: 8px; color: var(--paper); }
+  .flight-hud {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px 4vw 25px;
+    color: rgba(226,237,255,.8);
+    font: 10px var(--mono);
+    letter-spacing: .1em;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .65s ease, visibility .65s ease;
+  }
+  .flight-hud-top, .flight-hud-bottom { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+  .flight-hud-top > span, .flight-hud-top button { color: rgba(226,237,255,.7); font: inherit; letter-spacing: inherit; }
+  .flight-hud-top i, .flight-hud-bottom p i { padding: 0 7px; color: var(--acid); font-style: normal; }
+  .flight-hud-top button { border: 1px solid rgba(226,237,255,.25); padding: 10px 13px; background: rgba(5,9,16,.34); cursor: pointer; pointer-events: auto; transition: color .2s ease, border-color .2s ease; }
+  .flight-hud-top button:hover, .flight-hud-top button:focus-visible { border-color: var(--acid); color: var(--acid); }
+  .flight-hud-bottom p { margin: 0; color: rgba(226,237,255,.52); font: inherit; line-height: 1.8; }
+  .flight-hud-bottom p b { color: rgba(226,237,255,.88); font-weight: 500; }
+  .flight-speed { display: flex; align-items: baseline; gap: 9px; white-space: nowrap; }
+  .flight-speed span { color: rgba(226,237,255,.5); }
+  .flight-speed strong { min-width: 46px; color: var(--acid); font: 500 20px var(--mono); text-align: right; }
+  .flight-speed i { color: rgba(226,237,255,.55); font-style: normal; }
+  .flight-reticle { position: fixed; top: 50%; left: 50%; width: 26px; height: 26px; transform: translate(-50%, -50%); opacity: .75; }
+  .flight-reticle::before, .flight-reticle::after { content: ''; position: absolute; border: 1px solid rgba(213,255,79,.7); }
+  .flight-reticle::before { inset: 0; border-radius: 50%; }
+  .flight-reticle::after { top: 11px; left: 11px; width: 4px; height: 4px; border: 0; border-radius: 50%; background: var(--acid); box-shadow: 0 0 10px var(--acid); }
+  .spaceflight-active { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  .spaceflight-active .site-header,
+  .spaceflight-active .progress,
+  .spaceflight-active .grain,
+  .spaceflight-active .site-footer,
+  .spaceflight-active main > .scene-section:not(.hero) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .65s ease, visibility 0s linear .65s;
+  }
+  .spaceflight-active .hero {
+    position: fixed;
+    z-index: 40;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #03060b;
+  }
+  .spaceflight-active .hero::after { opacity: 0; transition: opacity .9s ease; }
+  .spaceflight-active #heroCanvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; cursor: none; }
+  .spaceflight-active .hero-copy,
+  .spaceflight-active .hero-meta { opacity: 0; transform: translateY(-15px); pointer-events: none; transition: opacity .45s ease, transform .65s ease; }
+  .spaceflight-active .flight-entry { opacity: 0; transform: translateY(12px); pointer-events: none; }
+  .spaceflight-active .flight-hud { opacity: 1; visibility: visible; }
+  .spaceflight-active[data-flight-state="exiting"] .flight-hud { opacity: 0; visibility: hidden; }
+  .spaceflight-active[data-flight-state="exiting"] .flight-entry,
+  .spaceflight-active[data-flight-state="exiting"] .hero-copy,
+  .spaceflight-active[data-flight-state="exiting"] .hero-meta { opacity: 0; }
+  .spaceflight-active[data-flight-state="exiting"] .hero::after { opacity: .85; }
+}
