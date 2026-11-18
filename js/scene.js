@@ -457,8 +457,15 @@ function createScene() {
   const lastFlightLookTarget = new THREE.Vector3();
   const exitCameraStart = new THREE.Vector3();
   const exitLookStart = new THREE.Vector3();
+  const planetNoFlyCenter = new THREE.Vector3();
+  const planetNoFlyScale = new THREE.Vector3();
+  const shipToPlanet = new THREE.Vector3();
   const heroCameraPosition = new THREE.Vector3(0, 0, 8.5);
   const heroCameraTarget = new THREE.Vector3(0, 0, 0);
+  // Keep the ship's center outside the planet's atmosphere plus its own
+  // radius and a small visual buffer. This is a smooth flight boundary, not
+  // a physical collision response.
+  const planetNoFlyRadius = 1.63 + 1.3 + .45;
   const flightModeKeys = new Set();
   let flightMode = 'hero';
   let flightTransitionTime = 0;
@@ -885,6 +892,23 @@ function createScene() {
       flightVelocity.copy(flightForward).multiplyScalar(flightThrottle);
       flightVelocity.addScaledVector(flightUp, lift * 5.4);
       ship.position.addScaledVector(flightVelocity, dt);
+
+      group.getWorldPosition(planetNoFlyCenter);
+      group.getWorldScale(planetNoFlyScale);
+      const minimumPlanetDistance = planetNoFlyRadius * Math.max(
+        planetNoFlyScale.x,
+        planetNoFlyScale.y,
+        planetNoFlyScale.z
+      );
+      shipToPlanet.copy(ship.position).sub(planetNoFlyCenter);
+      if (shipToPlanet.lengthSq() < minimumPlanetDistance * minimumPlanetDistance) {
+        if (shipToPlanet.lengthSq() < 1e-6) shipToPlanet.set(0, 0, 1);
+        else shipToPlanet.normalize();
+        ship.position.copy(planetNoFlyCenter).addScaledVector(shipToPlanet, minimumPlanetDistance);
+
+        const inwardSpeed = flightVelocity.dot(shipToPlanet);
+        if (inwardSpeed < 0) flightVelocity.addScaledVector(shipToPlanet, -inwardSpeed);
+      }
       placeEngineEffect(1);
 
       updateFlightCameraGoal();
