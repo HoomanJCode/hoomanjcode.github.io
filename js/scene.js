@@ -732,6 +732,8 @@ function createScene() {
   const projectileDirection = new THREE.Vector3();
   const projectileRight = new THREE.Vector3();
   const enemyAttackDirection = new THREE.Vector3();
+  const enemyPursuitDirection = new THREE.Vector3();
+  const enemyFacingTarget = new THREE.Vector3();
   const hostileShotTarget = new THREE.Vector3();
   let playerHealth = 100;
   let planetHealth = 100;
@@ -951,11 +953,14 @@ function createScene() {
     } else if (enemies.length || waveSpawned < enemyWaveSize(waveNumber)) {
       const waitingToSpawn = Math.max(0, enemyWaveSize(waveNumber) - waveSpawned);
       const raidSize = enemies.length + waitingToSpawn;
-      const attacking = enemies.some((enemy) => enemy.distance <= 16.1);
+      const playerUnderAttack = enemies.some((enemy) => enemy.target === 'player');
+      const planetUnderAttack = enemies.some((enemy) => enemy.target === 'planet' && enemy.distance <= 16.1);
+      const attacking = playerUnderAttack || planetUnderAttack;
       wave = `W${String(waveNumber).padStart(2, '0')}`;
       count = String(raidSize).padStart(2, '0');
       icon = attacking ? 'attack' : 'inbound';
-      label = `Wave ${waveNumber}, ${raidSize} raiders ${attacking ? 'attacking the planet' : 'inbound to the planet'}.`;
+      const attackedTarget = playerUnderAttack ? 'the player' : 'the planet';
+      label = `Wave ${waveNumber}, ${raidSize} raiders ${attacking ? `attacking ${attackedTarget}` : 'inbound to the planet'}.`;
       danger = attacking;
     } else if (waveBreakRemaining > 0) {
       wave = `W${String(waveNumber).padStart(2, '0')}`;
@@ -1174,6 +1179,8 @@ function createScene() {
       mesh,
       model,
       direction: direction.clone().normalize(),
+      flightDirection: direction.clone().negate().normalize(),
+      target: 'planet',
       distance,
       speed: 2.05 + Math.random() * .45 + Math.min(.6, (waveNumber - 1) * .07),
       health: 3 + Math.floor((waveNumber - 1) / 4),
@@ -1189,7 +1196,8 @@ function createScene() {
     updateThreatStatus();
   };
   const spawnHostileProjectile = (enemy) => {
-    enemyAttackDirection.copy(planetNoFlyCenter).sub(enemy.mesh.position).normalize();
+    const targetPosition = enemy.target === 'player' ? ship.position : planetNoFlyCenter;
+    enemyAttackDirection.copy(targetPosition).sub(enemy.mesh.position).normalize();
     const object = new THREE.Group();
     object.add(new THREE.Mesh(hostileCoreGeometry, hostileCoreMaterial));
     const trail = new THREE.Mesh(hostileTrailGeometry, hostileTrailMaterial);
@@ -1205,8 +1213,11 @@ function createScene() {
       velocity: enemyAttackDirection.clone().multiplyScalar(14),
       age: 0,
       damage: 8,
+      target: enemy.target,
     });
-    enemy.fireCooldown = 2.8 + Math.random() * 1.1;
+    enemy.fireCooldown = enemy.target === 'player'
+      ? 2.4 + Math.random() * .6
+      : 2.8 + Math.random() * 1.1;
   };
   const updateDefense = (dt) => {
     if (combatOutcome !== 'active') return;
@@ -1235,9 +1246,26 @@ function createScene() {
     }
 
     for (const enemy of enemies) {
-      enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
-      enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
-      enemy.mesh.lookAt(planetNoFlyCenter);
+      const playerDistanceSq = enemy.mesh.position.distanceToSquared(ship.position);
+      if (enemy.target === 'planet' && playerDistanceSq <= 22 * 22) {
+        enemy.target = 'player';
+        enemy.fireCooldown = Math.min(enemy.fireCooldown, .65);
+      }
+
+      if (enemy.target === 'player') {
+        enemyPursuitDirection.copy(ship.position).sub(enemy.mesh.position);
+        if (enemyPursuitDirection.lengthSq() > 1e-6) {
+          enemyPursuitDirection.normalize();
+          enemy.flightDirection.lerp(enemyPursuitDirection, 1 - Math.exp(-dt * 3.2)).normalize();
+        }
+        enemy.mesh.position.addScaledVector(enemy.flightDirection, enemy.speed * 1.2 * dt);
+      } else {
+        enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
+        enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
+        enemy.flightDirection.copy(planetNoFlyCenter).sub(enemy.mesh.position).normalize();
+      }
+      enemyFacingTarget.copy(enemy.mesh.position).addScaledVector(enemy.flightDirection, -1);
+      enemy.mesh.lookAt(enemyFacingTarget);
       enemy.mesh.rotateY(Math.PI);
       enemy.age += dt;
       enemy.model.rotation.z = Math.sin(enemy.age * 1.7) * .045;
@@ -1251,7 +1279,7 @@ function createScene() {
         particle.position.set(side * (.32 + Math.sin(enemy.age * 8 + phase * Math.PI * 2) * .045), -.025, -.87 - progress * 1.55);
         particle.scale.setScalar(.3 + Math.sin(progress * Math.PI) * .72);
       });
-      if (enemy.distance <= 16.05) {
+      if (enemy.target === 'player' || enemy.distance <= 16.05) {
         enemy.fireCooldown -= dt;
         if (enemy.fireCooldown <= 0) spawnHostileProjectile(enemy);
       }
@@ -1266,12 +1294,12 @@ function createScene() {
       const projectile = hostileProjectiles[i];
       projectile.age += dt;
       projectile.object.position.addScaledVector(projectile.velocity, dt);
-      if (projectile.object.position.distanceToSquared(ship.position) < 1.35 * 1.35) {
-        damageShip(16);
+      if (projectile.target === 'player' && projectile.object.position.distanceToSquared(ship.position) < 1.35 * 1.35) {
+        damageShip(projectile.damage);
         scene.remove(projectile.object);
         hostileProjectiles.splice(i, 1);
         if (combatOutcome !== 'active') break;
-      } else if (projectile.object.position.distanceToSquared(planetNoFlyCenter) < planetSurfaceRadius * planetSurfaceRadius) {
+      } else if (projectile.target === 'planet' && projectile.object.position.distanceToSquared(planetNoFlyCenter) < planetSurfaceRadius * planetSurfaceRadius) {
         damagePlanet(projectile.damage);
         scene.remove(projectile.object);
         hostileProjectiles.splice(i, 1);
