@@ -368,6 +368,39 @@ function createScene() {
     toneMapped: false,
     blending: THREE.AdditiveBlending,
   });
+  // Twin exhaust plumes extend behind the raider's local -Z tail, opposite its
+  // +Z nose, so they follow the ship as it steers toward the planet.
+  const enemyExhaustGeometry = new THREE.ConeGeometry(.2, 1.2, 10, 1, true);
+  enemyExhaustGeometry.rotateX(-Math.PI / 2);
+  const enemyExhaustMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff315b,
+    transparent: true,
+    opacity: .34,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const enemyExhaustCoreGeometry = new THREE.ConeGeometry(.095, .88, 8, 1, true);
+  enemyExhaustCoreGeometry.rotateX(-Math.PI / 2);
+  const enemyExhaustCoreMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffb3c0,
+    transparent: true,
+    opacity: .72,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const enemyExhaustParticleGeometry = new THREE.SphereGeometry(.045, 7, 5);
+  const enemyExhaustParticleMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff7890,
+    transparent: true,
+    opacity: .72,
+    depthWrite: false,
+    toneMapped: false,
+    blending: THREE.AdditiveBlending,
+  });
   const enemyFinGeometry = new THREE.BoxGeometry(.12, .32, .42);
   const enemyGunGeometry = new THREE.BoxGeometry(.075, .085, .4);
   const hostileCoreGeometry = new THREE.SphereGeometry(.085, 10, 8);
@@ -1088,6 +1121,8 @@ function createScene() {
   const spawnEnemy = (direction, distance = 48 + Math.random() * 6) => {
     const mesh = new THREE.Group();
     const model = new THREE.Group();
+    const exhausts = [];
+    const exhaustParticles = [];
     const wings = new THREE.Mesh(enemyWingGeometry, enemyWingMaterial);
     wings.position.y = .05;
     model.add(wings);
@@ -1105,6 +1140,27 @@ function createScene() {
       const engineGlow = new THREE.Mesh(enemyGlowGeometry, enemyGlowMaterial);
       engineGlow.position.set(side * .32, -.025, -.75);
       model.add(engineGlow);
+      const exhaust = new THREE.Group();
+      exhaust.position.set(side * .32, -.025, -1.37);
+      const plume = new THREE.Mesh(enemyExhaustGeometry, enemyExhaustMaterial);
+      plume.scale.z = .9;
+      exhaust.add(plume);
+      const core = new THREE.Mesh(enemyExhaustCoreGeometry, enemyExhaustCoreMaterial);
+      core.position.z = .04;
+      core.scale.z = .9;
+      exhaust.add(core);
+      model.add(exhaust);
+      exhausts.push({ plume, core });
+      for (let particleIndex = 0; particleIndex < 3; particleIndex += 1) {
+        const particle = new THREE.Mesh(enemyExhaustParticleGeometry, enemyExhaustParticleMaterial);
+        particle.position.set(side * .32, -.025, -.9 - particleIndex * .44);
+        model.add(particle);
+        exhaustParticles.push({
+          mesh: particle,
+          side,
+          phase: particleIndex / 3 + Math.random() * .16,
+        });
+      }
       const fin = new THREE.Mesh(enemyFinGeometry, enemyWingMaterial);
       fin.position.set(side * .49, .13, -.35);
       fin.rotation.z = side * -.16;
@@ -1124,6 +1180,8 @@ function createScene() {
       hitRadius: 1.22,
       age: Math.random() * Math.PI * 2,
       fireCooldown: 2.2 + Math.random() * 1.4,
+      exhausts,
+      exhaustParticles,
     };
     mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
     scene.add(mesh);
@@ -1180,8 +1238,19 @@ function createScene() {
       enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
       enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
       enemy.mesh.lookAt(planetNoFlyCenter);
+      enemy.mesh.rotateY(Math.PI);
       enemy.age += dt;
       enemy.model.rotation.z = Math.sin(enemy.age * 1.7) * .045;
+      const thrustPulse = .9 + Math.sin(enemy.age * 12) * .1;
+      enemy.exhausts.forEach(({ plume, core }) => {
+        plume.scale.z = thrustPulse;
+        core.scale.z = thrustPulse * 1.05;
+      });
+      enemy.exhaustParticles.forEach(({ mesh: particle, side, phase }) => {
+        const progress = (enemy.age * .82 + phase) % 1;
+        particle.position.set(side * (.32 + Math.sin(enemy.age * 8 + phase * Math.PI * 2) * .045), -.025, -.87 - progress * 1.55);
+        particle.scale.setScalar(.3 + Math.sin(progress * Math.PI) * .72);
+      });
       if (enemy.distance <= 16.05) {
         enemy.fireCooldown -= dt;
         if (enemy.fireCooldown <= 0) spawnHostileProjectile(enemy);
