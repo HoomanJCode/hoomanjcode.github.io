@@ -167,8 +167,9 @@ function createScene() {
     porthole.position.set(Math.cos(angle) * radius, .055, Math.sin(angle) * radius);
     saucerModel.add(porthole);
   }
-  // This under-hull emitter follows the ship's aim but is outside the spinning
-  // saucer model, so the cosmetic disc rotation never changes firing direction.
+  // Twin emitters sit at the saucer's leading rim and follow the ship's aim.
+  // They live outside the spinning disc, so its cosmetic rotation never
+  // changes firing direction.
   const weaponEmitterMaterial = new THREE.MeshBasicMaterial({
     color: 0x9cefff,
     transparent: true,
@@ -176,12 +177,18 @@ function createScene() {
     toneMapped: false,
     blending: THREE.AdditiveBlending,
   });
-  const weaponEmitter = new THREE.Mesh(new THREE.SphereGeometry(.085, 12, 8), weaponEmitterMaterial);
-  weaponEmitter.position.set(0, -.3, -.72);
-  ship.add(weaponEmitter);
-  const weaponFlash = new THREE.PointLight(0x55ccff, 0, 3);
-  weaponFlash.position.copy(weaponEmitter.position);
-  ship.add(weaponFlash);
+  const weaponEmitters = [-1, 1].map((side) => {
+    const emitter = new THREE.Mesh(new THREE.SphereGeometry(.09, 12, 8), weaponEmitterMaterial);
+    emitter.position.set(side * .52, .07, -.93);
+    ship.add(emitter);
+    return emitter;
+  });
+  const weaponFlashes = weaponEmitters.map((emitter) => {
+    const flash = new THREE.PointLight(0x55ccff, 0, 3);
+    flash.position.copy(emitter.position);
+    ship.add(flash);
+    return flash;
+  });
   // The fusion glow lives in a separate, unrotated scene group. It tracks the
   // saucer's position, but its exhaust always hangs straight down while the
   // disc spins or changes heading.
@@ -281,18 +288,18 @@ function createScene() {
   scene.add(skyBeacon);
   const skyBeaconViewPosition = new THREE.Vector3();
 
-  const projectileCoreGeometry = new THREE.SphereGeometry(.065, 10, 8);
+  const projectileCoreGeometry = new THREE.SphereGeometry(.09, 10, 8);
   const projectileCoreMaterial = new THREE.MeshBasicMaterial({
     color: 0xb9f5ff,
     transparent: true,
     toneMapped: false,
     blending: THREE.AdditiveBlending,
   });
-  const projectileTrailGeometry = new THREE.CylinderGeometry(.012, .038, .64, 7, 1, true);
+  const projectileTrailGeometry = new THREE.CylinderGeometry(.018, .05, .86, 7, 1, true);
   const projectileTrailMaterial = new THREE.MeshBasicMaterial({
     color: 0x35bfff,
     transparent: true,
-    opacity: .82,
+    opacity: .95,
     depthWrite: false,
     toneMapped: false,
     blending: THREE.AdditiveBlending,
@@ -552,7 +559,7 @@ function createScene() {
   let cameraLookEase = 0;
   const transitionDuration = 2.7;
   const returnDuration = 1.15;
-  const fireInterval = .16;
+  const fireInterval = .18;
   const projectileLifetime = 1.4;
   const smoothstep = (value) => value * value * (3 - 2 * value);
   const placeEngineEffect = (scale) => {
@@ -571,7 +578,8 @@ function createScene() {
     fireCooldown = 0;
     muzzleFlashRemaining = 0;
     weaponEmitterMaterial.opacity = 0;
-    weaponFlash.intensity = 0;
+    weaponFlashes.forEach((flash) => { flash.intensity = 0; });
+    flightReticle?.classList.remove('firing');
   };
   const clearProjectiles = () => {
     activeProjectiles.forEach(({ object }) => scene.remove(object));
@@ -580,22 +588,24 @@ function createScene() {
   const fireProjectile = () => {
     if (flightMode !== 'playing' || flightForward.lengthSq() < .5) return;
     ship.updateMatrixWorld(true);
-    weaponEmitter.getWorldPosition(fireOrigin);
+    weaponEmitters.forEach((emitter) => {
+      emitter.getWorldPosition(fireOrigin);
 
-    const projectile = new THREE.Group();
-    projectile.add(new THREE.Mesh(projectileCoreGeometry, projectileCoreMaterial));
-    const trail = new THREE.Mesh(projectileTrailGeometry, projectileTrailMaterial);
-    trail.rotation.x = -Math.PI / 2;
-    trail.position.z = .3;
-    projectile.add(trail);
-    projectile.position.copy(fireOrigin);
-    projectileTarget.copy(fireOrigin).add(flightForward);
-    projectile.lookAt(projectileTarget);
-    scene.add(projectile);
-    activeProjectiles.push({
-      object: projectile,
-      velocity: flightForward.clone().multiplyScalar(52).addScaledVector(flightVelocity, .3),
-      age: 0,
+      const projectile = new THREE.Group();
+      projectile.add(new THREE.Mesh(projectileCoreGeometry, projectileCoreMaterial));
+      const trail = new THREE.Mesh(projectileTrailGeometry, projectileTrailMaterial);
+      trail.rotation.x = -Math.PI / 2;
+      trail.position.z = .4;
+      projectile.add(trail);
+      projectile.position.copy(fireOrigin);
+      projectileTarget.copy(fireOrigin).add(flightForward);
+      projectile.lookAt(projectileTarget);
+      scene.add(projectile);
+      activeProjectiles.push({
+        object: projectile,
+        velocity: flightForward.clone().multiplyScalar(34).addScaledVector(flightVelocity, .3),
+        age: 0,
+      });
     });
     muzzleFlashRemaining = .1;
   };
@@ -1080,7 +1090,8 @@ function createScene() {
       muzzleFlashRemaining = Math.max(0, muzzleFlashRemaining - dt);
       const muzzleBrightness = Math.max(firingHeld ? .62 + Math.sin(t * 32) * .12 : 0, muzzleFlashRemaining / .1);
       weaponEmitterMaterial.opacity = muzzleBrightness;
-      weaponFlash.intensity = muzzleBrightness * 2.6;
+      weaponFlashes.forEach((flash) => { flash.intensity = muzzleBrightness * 2.6; });
+      flightReticle?.classList.toggle('firing', firingHeld || muzzleFlashRemaining > 0);
 
       const wrapRadius = 95;
       for (let i = 0; i < flightStarCount; i += 1) {

@@ -134,6 +134,8 @@ a { color: inherit; text-decoration: none; }
   .flight-reticle::before, .flight-reticle::after { content: ''; position: absolute; border: 1px solid rgba(213,255,79,.7); }
   .flight-reticle::before { inset: 0; border-radius: 50%; }
   .flight-reticle::after { top: 11px; left: 11px; width: 4px; height: 4px; border: 0; border-radius: 50%; background: var(--acid); box-shadow: 0 0 10px var(--acid); }
+  .flight-reticle.firing::before { border-color: rgba(112,229,255,.95); box-shadow: 0 0 14px rgba(72,205,255,.5); }
+  .flight-reticle.firing::after { background: #b9f5ff; box-shadow: 0 0 14px #69dcff; }
   .spaceflight-active { position: fixed; inset: 0; width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
   .spaceflight-active .site-header,
   .spaceflight-active .progress,
