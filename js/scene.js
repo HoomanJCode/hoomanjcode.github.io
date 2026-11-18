@@ -552,7 +552,7 @@ function createScene() {
   ].filter(Boolean);
   const heroCopy = document.querySelector('.hero-copy');
   const heroMeta = [...document.querySelectorAll('.hero-meta')];
-  const flightKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyQ']);
+  const flightKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyQ', 'ShiftLeft', 'ShiftRight']);
   const launchKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
   const flightVelocity = new THREE.Vector3();
   const flightForward = new THREE.Vector3();
@@ -1273,6 +1273,7 @@ function createScene() {
       flightPitch += (aimPitch - flightPitch) * steeringEase;
       const thrust = (flightModeKeys.has('KeyW') ? 1 : 0) - (flightModeKeys.has('KeyS') ? 1 : 0);
       const lift = (flightModeKeys.has('KeyE') ? 1 : 0) - (flightModeKeys.has('KeyQ') ? 1 : 0);
+      const speedBoost = flightModeKeys.has('ShiftLeft') || flightModeKeys.has('ShiftRight');
       saucerSpin += dt * (thrust !== 0 || turnInput !== 0 || lift !== 0 ? 4.8 : .65);
       saucerModel.rotation.y = saucerSpin;
       const bank = -turnInput * .48 - yawDifference * .08;
@@ -1282,11 +1283,11 @@ function createScene() {
       if (thrust === 0) {
         flightThrottle = 0;
       } else {
-        const targetThrottle = thrust > 0 ? 12 : -5.5;
+        const targetThrottle = thrust > 0 ? (speedBoost ? 20 : 12) : (speedBoost ? -9 : -5.5);
         flightThrottle += (targetThrottle - flightThrottle) * (1 - Math.exp(-dt * 2.4));
       }
       flightVelocity.copy(flightForward).multiplyScalar(flightThrottle);
-      flightVelocity.addScaledVector(flightUp, lift * 5.4);
+      flightVelocity.addScaledVector(flightUp, lift * (speedBoost ? 8.1 : 5.4));
       ship.position.addScaledVector(flightVelocity, dt);
 
       group.getWorldPosition(planetNoFlyCenter);
