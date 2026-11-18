@@ -426,7 +426,6 @@ function createScene() {
   const launchKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
   const flightVelocity = new THREE.Vector3();
   const flightForward = new THREE.Vector3();
-  const flightRight = new THREE.Vector3();
   const flightUp = new THREE.Vector3(0, 1, 0);
   const flightCameraOffset = new THREE.Vector3(0, 2.35, 8.6);
   const flightLookOffset = new THREE.Vector3(0, .2, -1.65);
@@ -444,7 +443,10 @@ function createScene() {
   let flightTransitionTime = 0;
   let flightReturnScroll = 0;
   let flightYaw = 0;
+  let shipYaw = 0;
   let flightPitch = 0;
+  let flightRoll = 0;
+  let flightThrottle = 0;
   let aimYaw = 0;
   let aimPitch = 0;
   let lastPointerX = window.innerWidth / 2;
@@ -478,7 +480,7 @@ function createScene() {
     const height = Math.max(1, window.innerHeight);
     const normalX = (clientX / width) * 2 - 1;
     const normalY = (clientY / height) * 2 - 1;
-    aimYaw = normalX * 1.42;
+    aimYaw = -normalX * Math.PI;
     aimPitch = THREE.MathUtils.clamp(-normalY * .72, -.56, .56);
     if (flightReticle) {
       flightReticle.style.left = `${clientX}px`;
@@ -489,12 +491,17 @@ function createScene() {
     if (!canPilot || flightMode !== 'hero' || !flightHud) return;
     flightReturnScroll = window.scrollY;
     flightVelocity.set(0, 0, 0);
+    flightThrottle = 0;
     flightModeKeys.clear();
     ship.position.set(-.2, .05, 17.5);
     updateAim(lastPointerX, lastPointerY);
-    flightYaw = aimYaw;
+    flightYaw = 0;
+    shipYaw = aimYaw;
     flightPitch = aimPitch;
-    ship.rotation.set(flightPitch, flightYaw, 0, 'YXZ');
+    flightRoll = 0;
+    ship.rotation.set(flightPitch, shipYaw, flightRoll, 'YXZ');
+    enginePlumes.forEach((plume) => { plume.material.opacity = 0; });
+    engineGlow.intensity = 0;
     ship.scale.setScalar(.001);
     flightMode = 'entering';
     flightTransitionTime = 0;
@@ -525,6 +532,7 @@ function createScene() {
   const finishFlight = () => {
     flightMode = 'hero';
     flightVelocity.set(0, 0, 0);
+    flightThrottle = 0;
     flightModeKeys.clear();
     flightStars.visible = false;
     flightStarsMaterial.opacity = 0;
@@ -811,21 +819,27 @@ function createScene() {
       }
     } else if (flightMode === 'playing') {
       const steeringEase = 1 - Math.exp(-dt * 4.2);
-      flightYaw += (aimYaw - flightYaw) * steeringEase;
+      const turnInput = (flightModeKeys.has('KeyD') ? 1 : 0) - (flightModeKeys.has('KeyA') ? 1 : 0);
+      flightYaw -= turnInput * 1.85 * dt;
+      const desiredYaw = flightYaw + aimYaw;
+      const yawDifference = Math.atan2(Math.sin(desiredYaw - shipYaw), Math.cos(desiredYaw - shipYaw));
+      shipYaw += yawDifference * steeringEase;
       flightPitch += (aimPitch - flightPitch) * steeringEase;
-      const strafe = (flightModeKeys.has('KeyD') ? 1 : 0) - (flightModeKeys.has('KeyA') ? 1 : 0);
       const thrust = (flightModeKeys.has('KeyW') ? 1 : 0) - (flightModeKeys.has('KeyS') ? 1 : 0);
       const lift = (flightModeKeys.has('Space') ? 1 : 0)
         - (flightModeKeys.has('ShiftLeft') || flightModeKeys.has('ShiftRight') ? 1 : 0);
-      const bank = -strafe * .24 - (aimYaw - flightYaw) * .1;
-      ship.rotation.set(flightPitch, flightYaw, bank, 'YXZ');
+      const bank = -turnInput * .48 - yawDifference * .08;
+      flightRoll += (bank - flightRoll) * (1 - Math.exp(-dt * 5));
+      ship.rotation.set(flightPitch, shipYaw, flightRoll, 'YXZ');
       flightForward.set(0, 0, -1).applyQuaternion(ship.quaternion).normalize();
-      flightRight.set(1, 0, 0).applyQuaternion(ship.quaternion).normalize();
-      flightVelocity.addScaledVector(flightForward, thrust * 8.5 * dt);
-      flightVelocity.addScaledVector(flightRight, strafe * 5.4 * dt);
-      flightVelocity.addScaledVector(flightUp, lift * 5.4 * dt);
-      flightVelocity.multiplyScalar(Math.exp(-.19 * dt));
-      if (flightVelocity.length() > 26) flightVelocity.setLength(26);
+      if (thrust === 0) {
+        flightThrottle = 0;
+      } else {
+        const targetThrottle = thrust > 0 ? 12 : -5.5;
+        flightThrottle += (targetThrottle - flightThrottle) * (1 - Math.exp(-dt * 2.4));
+      }
+      flightVelocity.copy(flightForward).multiplyScalar(flightThrottle);
+      flightVelocity.addScaledVector(flightUp, lift * 5.4);
       ship.position.addScaledVector(flightVelocity, dt);
 
       updateFlightCameraGoal();
@@ -838,12 +852,13 @@ function createScene() {
 
       const speed = flightVelocity.length();
       if (flightSpeedReadout) flightSpeedReadout.textContent = speed.toFixed(1);
-      const enginePulse = .58 + Math.min(.42, speed / 30) + Math.sin(t * 17) * .09;
+      const engineOn = flightModeKeys.has('KeyW');
+      const enginePulse = engineOn ? .78 + Math.min(.22, speed / 28) + Math.sin(t * 17) * .06 : 0;
       enginePlumes.forEach((plume, index) => {
         plume.material.opacity = enginePulse;
-        plume.scale.z = .72 + Math.min(.7, speed / 24) + Math.sin(t * 19 + index) * .08;
+        plume.scale.y = engineOn ? .72 + Math.min(.7, speed / 24) + Math.sin(t * 19 + index) * .08 : .001;
       });
-      engineGlow.intensity = 2.2 + speed * .13 + Math.sin(t * 12) * .35;
+      engineGlow.intensity = engineOn ? 2.2 + speed * .13 + Math.sin(t * 12) * .35 : 0;
 
       const wrapRadius = 95;
       for (let i = 0; i < flightStarCount; i += 1) {
