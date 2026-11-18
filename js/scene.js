@@ -2,13 +2,14 @@ import * as THREE from '../vendor/three/three.module.js';
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
+const canPilot = window.matchMedia('(min-width: 761px) and (hover: hover) and (pointer: fine)').matches;
 const canvas = document.querySelector('#heroCanvas');
 
 function createScene() {
   if (!canvas || !window.WebGLRenderingContext || prefersReducedMotion) return;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 500);
   camera.position.set(0, 0, 8.5);
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -103,6 +104,115 @@ function createScene() {
   const rim = new THREE.PointLight(0xff765c, 18, 8);
   rim.position.set(3, -2, 2);
   scene.add(rim);
+
+  // A small procedural interceptor for the desktop flight mode. Its nose
+  // points down local -Z, which makes the chase camera and thrust controls
+  // straightforward to reason about.
+  const ship = new THREE.Group();
+  ship.position.set(-.2, .05, 17.5);
+  ship.rotation.order = 'YXZ';
+  ship.scale.setScalar(.001);
+  scene.add(ship);
+  const hullMaterial = new THREE.MeshStandardMaterial({ color: 0x9db5d9, metalness: .78, roughness: .27, flatShading: true });
+  const wingMaterial = new THREE.MeshStandardMaterial({ color: 0x344c72, metalness: .72, roughness: .34, flatShading: true });
+  const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xd5ff4f, metalness: .58, roughness: .3, emissive: 0x526510, emissiveIntensity: .42 });
+  const cockpitMaterial = new THREE.MeshPhysicalMaterial({ color: 0x5dcfff, metalness: .45, roughness: .12, clearcoat: 1, emissive: 0x0b314f, emissiveIntensity: .65 });
+  const engineMaterial = new THREE.MeshStandardMaterial({ color: 0x202734, metalness: .84, roughness: .3 });
+  const plumeMaterial = new THREE.MeshBasicMaterial({ color: 0x75ddff, transparent: true, opacity: .64, depthWrite: false });
+
+  const fuselage = new THREE.Mesh(new THREE.ConeGeometry(.37, 2.8, 8), hullMaterial);
+  fuselage.rotation.x = -Math.PI / 2;
+  ship.add(fuselage);
+  const rearBody = new THREE.Mesh(new THREE.CylinderGeometry(.3, .37, .72, 8), hullMaterial);
+  rearBody.rotation.x = Math.PI / 2;
+  rearBody.position.z = .92;
+  ship.add(rearBody);
+
+  const wingShape = new THREE.Shape();
+  wingShape.moveTo(-.2, -.48);
+  wingShape.lineTo(-1.72, .82);
+  wingShape.lineTo(-1.45, 1.12);
+  wingShape.lineTo(-.28, .62);
+  wingShape.closePath();
+  const wingGeometry = new THREE.ExtrudeGeometry(wingShape, {
+    depth: .085,
+    bevelEnabled: true,
+    bevelSegments: 1,
+    steps: 1,
+    bevelSize: .035,
+    bevelThickness: .025,
+  });
+  wingGeometry.translate(0, 0, -.0425);
+  const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+  leftWing.rotation.x = Math.PI / 2;
+  ship.add(leftWing);
+  const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+  rightWing.rotation.x = Math.PI / 2;
+  rightWing.scale.x = -1;
+  ship.add(rightWing);
+
+  const cockpit = new THREE.Mesh(new THREE.SphereGeometry(.34, 16, 12), cockpitMaterial);
+  cockpit.position.set(0, .2, -.34);
+  cockpit.scale.set(.78, .72, 1.55);
+  ship.add(cockpit);
+  const noseLight = new THREE.Mesh(new THREE.SphereGeometry(.075, 10, 8), trimMaterial);
+  noseLight.position.set(0, 0, -1.35);
+  ship.add(noseLight);
+
+  const enginePlumes = [];
+  for (const side of [-1, 1]) {
+    const engine = new THREE.Mesh(new THREE.CylinderGeometry(.14, .19, .72, 10), engineMaterial);
+    engine.rotation.x = Math.PI / 2;
+    engine.position.set(side * .31, -.04, .86);
+    ship.add(engine);
+    const nozzle = new THREE.Mesh(new THREE.TorusGeometry(.13, .025, 6, 12), trimMaterial);
+    nozzle.position.set(side * .31, -.04, 1.23);
+    ship.add(nozzle);
+    const plume = new THREE.Mesh(new THREE.ConeGeometry(.105, .58, 8), plumeMaterial.clone());
+    plume.rotation.x = Math.PI / 2;
+    plume.position.set(side * .31, -.04, 1.55);
+    ship.add(plume);
+    enginePlumes.push(plume);
+    const wingMark = new THREE.Mesh(new THREE.BoxGeometry(.64, .022, .045), trimMaterial);
+    wingMark.position.set(side * .94, .06, .48);
+    wingMark.rotation.y = side * -.48;
+    ship.add(wingMark);
+  }
+  const engineGlow = new THREE.PointLight(0x63d9ff, 2.4, 4.5);
+  engineGlow.position.set(0, 0, 1.55);
+  ship.add(engineGlow);
+
+  // A second, much wider star layer fades in as the camera leaves the hero
+  // planet. It wraps around the ship while flying so the player can keep
+  // moving without reaching the edge of the backdrop.
+  const flightStarCount = 1500;
+  const flightStarPositions = new Float32Array(flightStarCount * 3);
+  const flightStarColors = new Float32Array(flightStarCount * 3);
+  for (let i = 0; i < flightStarCount; i += 1) {
+    flightStarPositions[i * 3] = (Math.random() - .5) * 190;
+    flightStarPositions[i * 3 + 1] = (Math.random() - .5) * 130;
+    flightStarPositions[i * 3 + 2] = (Math.random() - .5) * 210;
+    color.setHSL(.55 + Math.random() * .08, .35 + Math.random() * .35, .62 + Math.random() * .35);
+    flightStarColors[i * 3] = color.r;
+    flightStarColors[i * 3 + 1] = color.g;
+    flightStarColors[i * 3 + 2] = color.b;
+  }
+  const flightStarGeometry = new THREE.BufferGeometry();
+  const flightStarPositionAttribute = new THREE.BufferAttribute(flightStarPositions, 3);
+  flightStarPositionAttribute.setUsage(THREE.DynamicDrawUsage);
+  flightStarGeometry.setAttribute('position', flightStarPositionAttribute);
+  flightStarGeometry.setAttribute('color', new THREE.BufferAttribute(flightStarColors, 3));
+  const flightStarsMaterial = new THREE.PointsMaterial({
+    size: .055,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0,
+    sizeAttenuation: true,
+    depthWrite: false,
+  });
+  const flightStars = new THREE.Points(flightStarGeometry, flightStarsMaterial);
+  flightStars.visible = false;
+  scene.add(flightStars);
 
   // One orbital planet per project, riding a ring around the main planet like
   // a solar system. Built from the shared project data, so adding or removing
@@ -300,6 +410,166 @@ function createScene() {
   }
   }
 
+  const flightHud = document.querySelector('#flightHud');
+  const flightExitButton = document.querySelector('#flightExit');
+  const flightSpeedReadout = document.querySelector('#flightSpeed');
+  const flightReticle = document.querySelector('#flightReticle');
+  const flightEntry = document.querySelector('.flight-entry');
+  const flightPageElements = [
+    document.querySelector('.site-header'),
+    ...document.querySelectorAll('main > .scene-section:not(.hero)'),
+    document.querySelector('.site-footer'),
+  ].filter(Boolean);
+  const heroCopy = document.querySelector('.hero-copy');
+  const heroMeta = [...document.querySelectorAll('.hero-meta')];
+  const flightKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ShiftLeft', 'ShiftRight']);
+  const launchKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
+  const flightVelocity = new THREE.Vector3();
+  const flightForward = new THREE.Vector3();
+  const flightRight = new THREE.Vector3();
+  const flightUp = new THREE.Vector3(0, 1, 0);
+  const flightCameraOffset = new THREE.Vector3(0, 2.35, 8.6);
+  const flightLookOffset = new THREE.Vector3(0, .2, -1.65);
+  const flightCameraGoal = new THREE.Vector3();
+  const flightLookGoal = new THREE.Vector3();
+  const flightCameraOffsetWorld = new THREE.Vector3();
+  const flightLookOffsetWorld = new THREE.Vector3();
+  const lastFlightLookTarget = new THREE.Vector3();
+  const exitCameraStart = new THREE.Vector3();
+  const exitLookStart = new THREE.Vector3();
+  const heroCameraPosition = new THREE.Vector3(0, 0, 8.5);
+  const heroCameraTarget = new THREE.Vector3(0, 0, 0);
+  const flightModeKeys = new Set();
+  let flightMode = 'hero';
+  let flightTransitionTime = 0;
+  let flightReturnScroll = 0;
+  let flightYaw = 0;
+  let flightPitch = 0;
+  let aimYaw = 0;
+  let aimPitch = 0;
+  let lastPointerX = window.innerWidth / 2;
+  let lastPointerY = window.innerHeight / 2;
+  let cameraLookEase = 0;
+  const transitionDuration = 2.7;
+  const returnDuration = 1.15;
+  const smoothstep = (value) => value * value * (3 - 2 * value);
+  const updateFlightCameraGoal = () => {
+    flightCameraOffsetWorld.copy(flightCameraOffset).applyQuaternion(ship.quaternion);
+    flightLookOffsetWorld.copy(flightLookOffset).applyQuaternion(ship.quaternion);
+    flightCameraGoal.copy(ship.position).add(flightCameraOffsetWorld);
+    flightLookGoal.copy(ship.position).add(flightLookOffsetWorld);
+  };
+  const setPortfolioHidden = (hidden) => {
+    flightPageElements.forEach((element) => {
+      element.inert = hidden;
+      if (hidden) element.setAttribute('aria-hidden', 'true');
+      else element.removeAttribute('aria-hidden');
+    });
+    if (heroCopy) {
+      heroCopy.inert = hidden;
+      heroCopy.setAttribute('aria-hidden', String(hidden));
+    }
+    heroMeta.forEach((element) => element.setAttribute('aria-hidden', String(hidden)));
+  };
+  const updateAim = (clientX, clientY) => {
+    lastPointerX = clientX;
+    lastPointerY = clientY;
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    const normalX = (clientX / width) * 2 - 1;
+    const normalY = (clientY / height) * 2 - 1;
+    aimYaw = normalX * 1.42;
+    aimPitch = THREE.MathUtils.clamp(-normalY * .72, -.56, .56);
+    if (flightReticle) {
+      flightReticle.style.left = `${clientX}px`;
+      flightReticle.style.top = `${clientY}px`;
+    }
+  };
+  const beginFlight = () => {
+    if (!canPilot || flightMode !== 'hero' || !flightHud) return;
+    flightReturnScroll = window.scrollY;
+    flightVelocity.set(0, 0, 0);
+    flightModeKeys.clear();
+    ship.position.set(-.2, .05, 17.5);
+    updateAim(lastPointerX, lastPointerY);
+    flightYaw = aimYaw;
+    flightPitch = aimPitch;
+    ship.rotation.set(flightPitch, flightYaw, 0, 'YXZ');
+    ship.scale.setScalar(.001);
+    flightMode = 'entering';
+    flightTransitionTime = 0;
+    camera.position.copy(heroCameraPosition);
+    camera.rotation.set(0, 0, 0);
+    lastFlightLookTarget.copy(heroCameraTarget);
+    flightStars.position.copy(ship.position);
+    flightStars.visible = true;
+    flightStarsMaterial.opacity = 0;
+    document.body.classList.add('spaceflight-active');
+    document.body.dataset.flightState = 'entering';
+    flightEntry?.setAttribute('aria-hidden', 'true');
+    flightHud.setAttribute('aria-hidden', 'false');
+    setPortfolioHidden(true);
+    clearHover();
+    dragging = false;
+  };
+  const exitFlight = () => {
+    if (flightMode !== 'entering' && flightMode !== 'playing') return;
+    flightMode = 'exiting';
+    flightTransitionTime = 0;
+    exitCameraStart.copy(camera.position);
+    exitLookStart.copy(lastFlightLookTarget);
+    flightModeKeys.clear();
+    document.body.dataset.flightState = 'exiting';
+    flightHud?.setAttribute('aria-hidden', 'true');
+  };
+  const finishFlight = () => {
+    flightMode = 'hero';
+    flightVelocity.set(0, 0, 0);
+    flightModeKeys.clear();
+    flightStars.visible = false;
+    flightStarsMaterial.opacity = 0;
+    ship.scale.setScalar(.001);
+    document.body.classList.remove('spaceflight-active');
+    document.body.removeAttribute('data-flight-state');
+    flightEntry?.removeAttribute('aria-hidden');
+    flightHud?.setAttribute('aria-hidden', 'true');
+    setPortfolioHidden(false);
+    if (document.activeElement === flightExitButton) flightExitButton.blur();
+    window.scrollTo(0, flightReturnScroll);
+  };
+
+  if (canPilot) {
+    document.addEventListener('keydown', (event) => {
+      if (flightMode === 'hero') {
+        if (!launchKeys.has(event.code) || window.scrollY > 36) return;
+        event.preventDefault();
+        beginFlight();
+        flightModeKeys.add(event.code);
+        return;
+      }
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        exitFlight();
+        return;
+      }
+      if (flightKeys.has(event.code)) {
+        event.preventDefault();
+        if (flightMode !== 'exiting') flightModeKeys.add(event.code);
+      }
+    });
+    document.addEventListener('keyup', (event) => flightModeKeys.delete(event.code));
+    document.addEventListener('pointermove', (event) => {
+      if (flightMode === 'hero') {
+        lastPointerX = event.clientX;
+        lastPointerY = event.clientY;
+        return;
+      }
+      if (flightMode !== 'exiting') updateAim(event.clientX, event.clientY);
+    }, { passive: true });
+    window.addEventListener('blur', () => flightModeKeys.clear());
+    flightExitButton?.addEventListener('click', exitFlight);
+  }
+
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   const ringHitMeshes = ringHits.map(({ hit }) => hit);
@@ -358,6 +628,7 @@ function createScene() {
   let pitchVel = 0;
   const clampPitch = (v) => Math.max(-1.1, Math.min(1.1, v));
   canvas.addEventListener('pointerdown', (event) => {
+    if (flightMode !== 'hero') return;
     dragging = true;
     downX = event.clientX;
     downY = event.clientY;
@@ -371,6 +642,7 @@ function createScene() {
   canvas.addEventListener('selectstart', (event) => event.preventDefault());
   canvas.addEventListener('dragstart', (event) => event.preventDefault());
   canvas.addEventListener('pointermove', (event) => {
+    if (flightMode !== 'hero') return;
     if (dragging) {
       const dx = event.clientX - lastX;
       const dy = event.clientY - lastY;
@@ -398,6 +670,7 @@ function createScene() {
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
   canvas.addEventListener('click', (event) => {
+    if (flightMode !== 'hero') return;
     // A click is a press with (almost) no travel — ignore anything that
     // actually dragged the scene. Net displacement, not accumulated jitter.
     const traveled = Math.hypot(event.clientX - downX, event.clientY - downY);
@@ -517,8 +790,88 @@ function createScene() {
     const s = 1 + p * .45;
     group.scale.set(s, s, s);
     group.position.y = Math.sin(t * .35) * .08 + p * 2.6;
-    camera.rotation.x = -p * .22;
-    camera.position.z = 8.5 - p * .5;
+    if (flightMode === 'hero') {
+      camera.position.set(0, 0, 8.5 - p * .5);
+      camera.rotation.set(-p * .22, 0, 0);
+    } else if (flightMode === 'entering') {
+      flightTransitionTime = Math.min(1, flightTransitionTime + dt / transitionDuration);
+      const ease = smoothstep(flightTransitionTime);
+      updateFlightCameraGoal();
+      ship.scale.setScalar(Math.max(.001, ease));
+      flightStars.position.copy(ship.position);
+      flightStarsMaterial.opacity = ease * .86;
+      camera.position.lerpVectors(heroCameraPosition, flightCameraGoal, ease);
+      lastFlightLookTarget.lerpVectors(heroCameraTarget, flightLookGoal, ease);
+      camera.fov = 38 + 4 * ease;
+      camera.updateProjectionMatrix();
+      camera.lookAt(lastFlightLookTarget);
+      if (flightTransitionTime >= 1) {
+        flightMode = 'playing';
+        document.body.dataset.flightState = 'playing';
+      }
+    } else if (flightMode === 'playing') {
+      const steeringEase = 1 - Math.exp(-dt * 4.2);
+      flightYaw += (aimYaw - flightYaw) * steeringEase;
+      flightPitch += (aimPitch - flightPitch) * steeringEase;
+      const strafe = (flightModeKeys.has('KeyD') ? 1 : 0) - (flightModeKeys.has('KeyA') ? 1 : 0);
+      const thrust = (flightModeKeys.has('KeyW') ? 1 : 0) - (flightModeKeys.has('KeyS') ? 1 : 0);
+      const lift = (flightModeKeys.has('Space') ? 1 : 0)
+        - (flightModeKeys.has('ShiftLeft') || flightModeKeys.has('ShiftRight') ? 1 : 0);
+      const bank = -strafe * .24 - (aimYaw - flightYaw) * .1;
+      ship.rotation.set(flightPitch, flightYaw, bank, 'YXZ');
+      flightForward.set(0, 0, -1).applyQuaternion(ship.quaternion).normalize();
+      flightRight.set(1, 0, 0).applyQuaternion(ship.quaternion).normalize();
+      flightVelocity.addScaledVector(flightForward, thrust * 8.5 * dt);
+      flightVelocity.addScaledVector(flightRight, strafe * 5.4 * dt);
+      flightVelocity.addScaledVector(flightUp, lift * 5.4 * dt);
+      flightVelocity.multiplyScalar(Math.exp(-.19 * dt));
+      if (flightVelocity.length() > 26) flightVelocity.setLength(26);
+      ship.position.addScaledVector(flightVelocity, dt);
+
+      updateFlightCameraGoal();
+      cameraLookEase = 1 - Math.exp(-dt * 5.2);
+      camera.position.lerp(flightCameraGoal, cameraLookEase);
+      lastFlightLookTarget.lerp(flightLookGoal, cameraLookEase);
+      camera.fov += (42 - camera.fov) * (1 - Math.exp(-dt * 2.4));
+      camera.updateProjectionMatrix();
+      camera.lookAt(lastFlightLookTarget);
+
+      const speed = flightVelocity.length();
+      if (flightSpeedReadout) flightSpeedReadout.textContent = speed.toFixed(1);
+      const enginePulse = .58 + Math.min(.42, speed / 30) + Math.sin(t * 17) * .09;
+      enginePlumes.forEach((plume, index) => {
+        plume.material.opacity = enginePulse;
+        plume.scale.z = .72 + Math.min(.7, speed / 24) + Math.sin(t * 19 + index) * .08;
+      });
+      engineGlow.intensity = 2.2 + speed * .13 + Math.sin(t * 12) * .35;
+
+      const wrapRadius = 95;
+      for (let i = 0; i < flightStarCount; i += 1) {
+        const offset = i * 3;
+        flightStarPositions[offset] -= flightVelocity.x * dt * 2.1;
+        flightStarPositions[offset + 1] -= flightVelocity.y * dt * 2.1;
+        flightStarPositions[offset + 2] -= flightVelocity.z * dt * 2.1;
+        for (let axis = 0; axis < 3; axis += 1) {
+          const limit = axis === 1 ? 65 : wrapRadius;
+          if (flightStarPositions[offset + axis] > limit) flightStarPositions[offset + axis] -= limit * 2;
+          else if (flightStarPositions[offset + axis] < -limit) flightStarPositions[offset + axis] += limit * 2;
+        }
+      }
+      flightStarPositionAttribute.needsUpdate = true;
+      flightStars.position.copy(ship.position);
+    } else if (flightMode === 'exiting') {
+      flightTransitionTime = Math.min(1, flightTransitionTime + dt / returnDuration);
+      const ease = smoothstep(flightTransitionTime);
+      ship.scale.setScalar(Math.max(.001, 1 - ease));
+      flightStarsMaterial.opacity = .86 * (1 - ease);
+      camera.position.lerpVectors(exitCameraStart, heroCameraPosition, ease);
+      lastFlightLookTarget.lerpVectors(exitLookStart, heroCameraTarget, ease);
+      camera.fov = 42 - 4 * ease;
+      camera.updateProjectionMatrix();
+      camera.lookAt(lastFlightLookTarget);
+      flightStars.position.copy(ship.position);
+      if (flightTransitionTime >= 1) finishFlight();
+    }
     renderer.render(scene, camera);
     animationFrame = requestAnimationFrame(render);
   };
