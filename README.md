@@ -55,7 +55,7 @@ Every visual element is **procedurally generated** — no images, no assets, jus
 <td align="center" width="33%">
 
 ### 🌍 Hero Planet & Flight
-**Three.js** procedural planet, orbiting project worlds, and a desktop-only third-person spaceship
+**Three.js** procedural planet, orbiting project worlds, and a desktop-only third-person flying saucer
 
 </td>
 <td align="center" width="33%">
@@ -73,7 +73,7 @@ Every visual element is **procedurally generated** — no images, no assets, jus
 </tr>
 </table>
 
-At the top of the portfolio on desktop, press **W**, **A**, **S**, or **D** to pull away from the hero planet and enter flight mode. Hold **W** to fly forward (**S** reverses); releasing thrust stops the ship. **A/D** turn and bank the ship in place, the **mouse** aims through a full half turn, and **Space/Shift** move up or down. Press **Escape** to return to the portfolio. Flight mode is disabled on touch devices.
+At the top of the portfolio on desktop, press **W**, **A**, **S**, or **D** to pull away from the hero planet and enter flight mode. Hold **W** to fly forward (**S** reverses); releasing thrust stops the saucer and switches off its engine glow. **A/D** turn and bank it in place, the **mouse** aims through a full half turn, and **Space/Shift** move up or down. The saucer spins faster while maneuvering. Press **Escape** to return to the portfolio. Flight mode is disabled on touch devices.
 
 ---
 

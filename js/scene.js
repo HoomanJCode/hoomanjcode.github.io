@@ -105,82 +105,107 @@ function createScene() {
   rim.position.set(3, -2, 2);
   scene.add(rim);
 
-  // A small procedural interceptor for the desktop flight mode. Its nose
-  // points down local -Z, which makes the chase camera and thrust controls
-  // straightforward to reason about.
+  // A procedural flying saucer for the desktop flight mode. The circular
+  // silhouette can rotate freely while the mouse and A/D set its heading.
   const ship = new THREE.Group();
   ship.position.set(-.2, .05, 17.5);
   ship.rotation.order = 'YXZ';
   ship.scale.setScalar(.001);
   scene.add(ship);
-  const hullMaterial = new THREE.MeshStandardMaterial({ color: 0x9db5d9, metalness: .78, roughness: .27, flatShading: true });
-  const wingMaterial = new THREE.MeshStandardMaterial({ color: 0x344c72, metalness: .72, roughness: .34, flatShading: true });
+  const saucerModel = new THREE.Group();
+  ship.add(saucerModel);
+  const hullMaterial = new THREE.MeshStandardMaterial({ color: 0x829cbc, metalness: .82, roughness: .28, flatShading: true });
+  const undersideMaterial = new THREE.MeshStandardMaterial({ color: 0x263753, metalness: .74, roughness: .34, flatShading: true });
   const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xd5ff4f, metalness: .58, roughness: .3, emissive: 0x526510, emissiveIntensity: .42 });
-  const cockpitMaterial = new THREE.MeshPhysicalMaterial({ color: 0x5dcfff, metalness: .45, roughness: .12, clearcoat: 1, emissive: 0x0b314f, emissiveIntensity: .65 });
+  const glassMaterial = new THREE.MeshPhysicalMaterial({ color: 0x5dcfff, metalness: .38, roughness: .13, clearcoat: 1, emissive: 0x0b314f, emissiveIntensity: .55 });
   const engineMaterial = new THREE.MeshStandardMaterial({ color: 0x202734, metalness: .84, roughness: .3 });
   const plumeMaterial = new THREE.MeshBasicMaterial({ color: 0x75ddff, transparent: true, opacity: .64, depthWrite: false });
 
-  const fuselage = new THREE.Mesh(new THREE.ConeGeometry(.37, 2.8, 8), hullMaterial);
-  fuselage.rotation.x = -Math.PI / 2;
-  ship.add(fuselage);
-  const rearBody = new THREE.Mesh(new THREE.CylinderGeometry(.3, .37, .72, 8), hullMaterial);
-  rearBody.rotation.x = Math.PI / 2;
-  rearBody.position.z = .92;
-  ship.add(rearBody);
+  const saucerProfile = [
+    new THREE.Vector2(0, -.22),
+    new THREE.Vector2(.36, -.23),
+    new THREE.Vector2(.74, -.19),
+    new THREE.Vector2(1.08, -.08),
+    new THREE.Vector2(1.3, -.005),
+    new THREE.Vector2(1.28, .055),
+    new THREE.Vector2(1.08, .11),
+    new THREE.Vector2(.82, .17),
+    new THREE.Vector2(.56, .22),
+    new THREE.Vector2(.31, .27),
+    new THREE.Vector2(0, .29),
+  ];
+  saucerModel.add(new THREE.Mesh(new THREE.LatheGeometry(saucerProfile, 56), hullMaterial));
+  const underside = new THREE.Mesh(new THREE.CylinderGeometry(.62, .78, .18, 32), undersideMaterial);
+  underside.position.y = -.2;
+  saucerModel.add(underside);
 
-  const wingShape = new THREE.Shape();
-  wingShape.moveTo(-.2, -.48);
-  wingShape.lineTo(-1.72, .82);
-  wingShape.lineTo(-1.45, 1.12);
-  wingShape.lineTo(-.28, .62);
-  wingShape.closePath();
-  const wingGeometry = new THREE.ExtrudeGeometry(wingShape, {
-    depth: .085,
-    bevelEnabled: true,
-    bevelSegments: 1,
-    steps: 1,
-    bevelSize: .035,
-    bevelThickness: .025,
+  const cockpit = new THREE.Mesh(
+    new THREE.SphereGeometry(.46, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+    glassMaterial
+  );
+  cockpit.position.y = .235;
+  cockpit.scale.y = .82;
+  saucerModel.add(cockpit);
+
+  const outerRim = new THREE.Mesh(new THREE.TorusGeometry(1.26, .035, 8, 56), trimMaterial);
+  outerRim.rotation.x = Math.PI / 2;
+  outerRim.position.y = .025;
+  saucerModel.add(outerRim);
+  const innerRim = new THREE.Mesh(
+    new THREE.TorusGeometry(.87, .018, 6, 48),
+    new THREE.MeshBasicMaterial({ color: 0x71cbff, transparent: true, opacity: .74 })
+  );
+  innerRim.rotation.x = Math.PI / 2;
+  innerRim.position.y = .145;
+  saucerModel.add(innerRim);
+
+  const portholeMaterials = [0x75ddff, 0xd5ff4f, 0xff765c].map((color) => (
+    new THREE.MeshBasicMaterial({ color, toneMapped: false })
+  ));
+  const portholeCount = 16;
+  for (let i = 0; i < portholeCount; i += 1) {
+    const angle = (i / portholeCount) * Math.PI * 2;
+    const radius = 1.14;
+    const porthole = new THREE.Mesh(new THREE.SphereGeometry(.052, 8, 6), portholeMaterials[i % portholeMaterials.length]);
+    porthole.position.set(Math.cos(angle) * radius, .055, Math.sin(angle) * radius);
+    saucerModel.add(porthole);
+  }
+  const headingBeacon = new THREE.Mesh(
+    new THREE.SphereGeometry(.075, 10, 8),
+    new THREE.MeshBasicMaterial({ color: 0x75ddff, toneMapped: false })
+  );
+  headingBeacon.position.set(0, .095, -1.17);
+  saucerModel.add(headingBeacon);
+
+  const reactorMaterial = new THREE.MeshStandardMaterial({
+    color: 0x0d293a,
+    emissive: 0x23cbff,
+    emissiveIntensity: 0,
+    metalness: .55,
+    roughness: .18,
   });
-  wingGeometry.translate(0, 0, -.0425);
-  const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
-  leftWing.rotation.x = Math.PI / 2;
-  ship.add(leftWing);
-  const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
-  rightWing.rotation.x = Math.PI / 2;
-  rightWing.scale.x = -1;
-  ship.add(rightWing);
-
-  const cockpit = new THREE.Mesh(new THREE.SphereGeometry(.34, 16, 12), cockpitMaterial);
-  cockpit.position.set(0, .2, -.34);
-  cockpit.scale.set(.78, .72, 1.55);
-  ship.add(cockpit);
-  const noseLight = new THREE.Mesh(new THREE.SphereGeometry(.075, 10, 8), trimMaterial);
-  noseLight.position.set(0, 0, -1.35);
-  ship.add(noseLight);
+  const reactor = new THREE.Mesh(new THREE.SphereGeometry(.25, 16, 12), reactorMaterial);
+  reactor.position.set(0, -.3, 0);
+  saucerModel.add(reactor);
 
   const enginePlumes = [];
   for (const side of [-1, 1]) {
-    const engine = new THREE.Mesh(new THREE.CylinderGeometry(.14, .19, .72, 10), engineMaterial);
-    engine.rotation.x = Math.PI / 2;
-    engine.position.set(side * .31, -.04, .86);
-    ship.add(engine);
-    const nozzle = new THREE.Mesh(new THREE.TorusGeometry(.13, .025, 6, 12), trimMaterial);
-    nozzle.position.set(side * .31, -.04, 1.23);
-    ship.add(nozzle);
+    const engine = new THREE.Mesh(new THREE.CylinderGeometry(.12, .16, .22, 10), engineMaterial);
+    engine.position.set(side * .3, -.22, .58);
+    saucerModel.add(engine);
+    const nozzle = new THREE.Mesh(new THREE.TorusGeometry(.12, .025, 6, 12), trimMaterial);
+    nozzle.rotation.x = Math.PI / 2;
+    nozzle.position.set(side * .3, -.22, .7);
+    saucerModel.add(nozzle);
     const plume = new THREE.Mesh(new THREE.ConeGeometry(.105, .58, 8), plumeMaterial.clone());
     plume.rotation.x = Math.PI / 2;
-    plume.position.set(side * .31, -.04, 1.55);
-    ship.add(plume);
+    plume.position.set(side * .3, -.22, .98);
+    saucerModel.add(plume);
     enginePlumes.push(plume);
-    const wingMark = new THREE.Mesh(new THREE.BoxGeometry(.64, .022, .045), trimMaterial);
-    wingMark.position.set(side * .94, .06, .48);
-    wingMark.rotation.y = side * -.48;
-    ship.add(wingMark);
   }
   const engineGlow = new THREE.PointLight(0x63d9ff, 2.4, 4.5);
-  engineGlow.position.set(0, 0, 1.55);
-  ship.add(engineGlow);
+  engineGlow.position.set(0, -.24, .72);
+  saucerModel.add(engineGlow);
 
   // A second, much wider star layer fades in as the camera leaves the hero
   // planet. It wraps around the ship while flying so the player can keep
@@ -442,6 +467,7 @@ function createScene() {
   let flightMode = 'hero';
   let flightTransitionTime = 0;
   let flightReturnScroll = 0;
+  let saucerSpin = 0;
   let flightYaw = 0;
   let shipYaw = 0;
   let flightPitch = 0;
@@ -492,6 +518,8 @@ function createScene() {
     flightReturnScroll = window.scrollY;
     flightVelocity.set(0, 0, 0);
     flightThrottle = 0;
+    saucerSpin = 0;
+    saucerModel.rotation.y = 0;
     flightModeKeys.clear();
     ship.position.set(-.2, .05, 17.5);
     updateAim(lastPointerX, lastPointerY);
@@ -500,7 +528,11 @@ function createScene() {
     flightPitch = aimPitch;
     flightRoll = 0;
     ship.rotation.set(flightPitch, shipYaw, flightRoll, 'YXZ');
-    enginePlumes.forEach((plume) => { plume.material.opacity = 0; });
+    enginePlumes.forEach((plume) => {
+      plume.material.opacity = 0;
+      plume.scale.y = .001;
+    });
+    reactorMaterial.emissiveIntensity = 0;
     engineGlow.intensity = 0;
     ship.scale.setScalar(.001);
     flightMode = 'entering';
@@ -526,6 +558,12 @@ function createScene() {
     exitCameraStart.copy(camera.position);
     exitLookStart.copy(lastFlightLookTarget);
     flightModeKeys.clear();
+    enginePlumes.forEach((plume) => {
+      plume.material.opacity = 0;
+      plume.scale.y = .001;
+    });
+    reactorMaterial.emissiveIntensity = 0;
+    engineGlow.intensity = 0;
     document.body.dataset.flightState = 'exiting';
     flightHud?.setAttribute('aria-hidden', 'true');
   };
@@ -534,6 +572,8 @@ function createScene() {
     flightVelocity.set(0, 0, 0);
     flightThrottle = 0;
     flightModeKeys.clear();
+    reactorMaterial.emissiveIntensity = 0;
+    engineGlow.intensity = 0;
     flightStars.visible = false;
     flightStarsMaterial.opacity = 0;
     ship.scale.setScalar(.001);
@@ -804,6 +844,8 @@ function createScene() {
     } else if (flightMode === 'entering') {
       flightTransitionTime = Math.min(1, flightTransitionTime + dt / transitionDuration);
       const ease = smoothstep(flightTransitionTime);
+      saucerSpin += dt * 1.1;
+      saucerModel.rotation.y = saucerSpin;
       updateFlightCameraGoal();
       ship.scale.setScalar(Math.max(.001, ease));
       flightStars.position.copy(ship.position);
@@ -820,7 +862,7 @@ function createScene() {
     } else if (flightMode === 'playing') {
       const steeringEase = 1 - Math.exp(-dt * 4.2);
       const turnInput = (flightModeKeys.has('KeyD') ? 1 : 0) - (flightModeKeys.has('KeyA') ? 1 : 0);
-      flightYaw -= turnInput * 1.85 * dt;
+      flightYaw -= turnInput * 2.6 * dt;
       const desiredYaw = flightYaw + aimYaw;
       const yawDifference = Math.atan2(Math.sin(desiredYaw - shipYaw), Math.cos(desiredYaw - shipYaw));
       shipYaw += yawDifference * steeringEase;
@@ -828,6 +870,8 @@ function createScene() {
       const thrust = (flightModeKeys.has('KeyW') ? 1 : 0) - (flightModeKeys.has('KeyS') ? 1 : 0);
       const lift = (flightModeKeys.has('Space') ? 1 : 0)
         - (flightModeKeys.has('ShiftLeft') || flightModeKeys.has('ShiftRight') ? 1 : 0);
+      saucerSpin += dt * (thrust !== 0 || turnInput !== 0 || lift !== 0 ? 4.8 : .65);
+      saucerModel.rotation.y = saucerSpin;
       const bank = -turnInput * .48 - yawDifference * .08;
       flightRoll += (bank - flightRoll) * (1 - Math.exp(-dt * 5));
       ship.rotation.set(flightPitch, shipYaw, flightRoll, 'YXZ');
@@ -859,6 +903,7 @@ function createScene() {
         plume.scale.y = engineOn ? .72 + Math.min(.7, speed / 24) + Math.sin(t * 19 + index) * .08 : .001;
       });
       engineGlow.intensity = engineOn ? 2.2 + speed * .13 + Math.sin(t * 12) * .35 : 0;
+      reactorMaterial.emissiveIntensity = engineOn ? 1.8 + Math.sin(t * 15) * .25 : 0;
 
       const wrapRadius = 95;
       for (let i = 0; i < flightStarCount; i += 1) {
@@ -877,6 +922,8 @@ function createScene() {
     } else if (flightMode === 'exiting') {
       flightTransitionTime = Math.min(1, flightTransitionTime + dt / returnDuration);
       const ease = smoothstep(flightTransitionTime);
+      saucerSpin += dt * 1.1;
+      saucerModel.rotation.y = saucerSpin;
       ship.scale.setScalar(Math.max(.001, 1 - ease));
       flightStarsMaterial.opacity = .86 * (1 - ease);
       camera.position.lerpVectors(exitCameraStart, heroCameraPosition, ease);
