@@ -740,6 +740,7 @@ function createScene() {
   const projectileRight = new THREE.Vector3();
   const enemyAttackDirection = new THREE.Vector3();
   const enemyPursuitDirection = new THREE.Vector3();
+  const enemyOrbitDirection = new THREE.Vector3();
   const enemyFacingTarget = new THREE.Vector3();
   const hostileShotTarget = new THREE.Vector3();
   let playerHealth = 100;
@@ -750,6 +751,7 @@ function createScene() {
   let waveSpawned = 0;
   let waveBreakRemaining = -1;
   const enemyWaveSize = (wave) => Math.min(8, wave + 2);
+  const enemyPlayerAggroRange = 12;
   const enemyPlayerStandoff = { min: 16, max: 18 };
   const planetPulse = { active: false, age: 0, radius: 0 };
   let pulseCooldownRemaining = 0;
@@ -1104,7 +1106,9 @@ function createScene() {
       const waitingToSpawn = Math.max(0, enemyWaveSize(waveNumber) - waveSpawned);
       const raidSize = enemies.length + waitingToSpawn;
       const playerUnderAttack = enemies.some((enemy) => enemy.target === 'player');
-      const planetUnderAttack = enemies.some((enemy) => enemy.target === 'planet' && enemy.distance <= 16.1);
+      const planetUnderAttack = enemies.some((enemy) => (
+        enemy.target === 'planet' && enemy.distance <= enemy.orbitRadius + .1
+      ));
       const attacking = playerUnderAttack || planetUnderAttack;
       wave = `W${String(waveNumber).padStart(2, '0')}`;
       count = String(raidSize).padStart(2, '0');
@@ -1342,6 +1346,15 @@ function createScene() {
   const spawnEnemy = (direction, distance = 48 + Math.random() * 6) => {
     const mesh = new THREE.Group();
     const model = new THREE.Group();
+    const orbitAxis = randomEnemyDirection();
+    orbitAxis.addScaledVector(direction, -orbitAxis.dot(direction));
+    if (orbitAxis.lengthSq() < 1e-6) {
+      const fallbackAxis = Math.abs(direction.y) < .9
+        ? new THREE.Vector3(0, 1, 0)
+        : new THREE.Vector3(1, 0, 0);
+      orbitAxis.crossVectors(direction, fallbackAxis);
+    }
+    orbitAxis.normalize();
     const marker = document.createElement('span');
     marker.className = 'flight-threat-marker';
     marker.setAttribute('aria-hidden', 'true');
@@ -1407,6 +1420,10 @@ function createScene() {
       flightDirection: direction.clone().negate().normalize(),
       target: 'planet',
       distance,
+      orbitAxis,
+      orbitRadius: 18 + Math.random() * 4,
+      orbitSpeed: .42 + Math.random() * .18 + Math.min(.16, (waveNumber - 1) * .015),
+      orbitSign: Math.random() < .5 ? -1 : 1,
       speed: 2.05 + Math.random() * .45 + Math.min(.6, (waveNumber - 1) * .07),
       health: 3 + Math.floor((waveNumber - 1) / 4),
       hitRadius: .72,
@@ -1472,7 +1489,7 @@ function createScene() {
 
     for (const enemy of enemies) {
       const playerDistanceSq = enemy.mesh.position.distanceToSquared(ship.position);
-      if (enemy.target === 'planet' && playerDistanceSq <= 22 * 22) {
+      if (enemy.target === 'planet' && playerDistanceSq <= enemyPlayerAggroRange * enemyPlayerAggroRange) {
         enemy.target = 'player';
         enemy.fireCooldown = Math.min(enemy.fireCooldown, .65);
       }
@@ -1492,9 +1509,11 @@ function createScene() {
           enemy.mesh.position.addScaledVector(enemy.flightDirection, enemy.speed * 1.2 * dt);
         }
       } else {
-        enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
+        enemy.direction.applyAxisAngle(enemy.orbitAxis, enemy.orbitSpeed * enemy.orbitSign * dt).normalize();
+        enemy.distance = Math.max(enemy.orbitRadius, enemy.distance - enemy.speed * dt);
         enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
-        enemy.flightDirection.copy(planetNoFlyCenter).sub(enemy.mesh.position).normalize();
+        enemyOrbitDirection.crossVectors(enemy.orbitAxis, enemy.direction).multiplyScalar(enemy.orbitSign).normalize();
+        enemy.flightDirection.copy(enemyOrbitDirection);
       }
       enemyFacingTarget.copy(enemy.mesh.position).addScaledVector(enemy.flightDirection, -1);
       enemy.mesh.lookAt(enemyFacingTarget);
@@ -1511,7 +1530,7 @@ function createScene() {
         particle.position.set(side * (.32 + Math.sin(enemy.age * 8 + phase * Math.PI * 2) * .045), -.025, -.87 - progress * 1.55);
         particle.scale.setScalar(.3 + Math.sin(progress * Math.PI) * .72);
       });
-      if (enemy.target === 'player' || enemy.distance <= 16.05) {
+      if (enemy.target === 'player' || enemy.distance <= enemy.orbitRadius + .05) {
         enemy.fireCooldown -= dt;
         if (enemy.fireCooldown <= 0) spawnHostileProjectile(enemy);
       }
