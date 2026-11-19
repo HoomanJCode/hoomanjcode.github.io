@@ -159,7 +159,7 @@ a { color: inherit; text-decoration: none; }
   .flight-brand .flight-icon { width: 16px; height: 16px; }
   .flight-mouse-status { display: flex; align-items: center; justify-content: center; width: 29px; height: 29px; margin-left: auto; border: 1px solid rgba(226,237,255,.13); border-radius: 50%; background: rgba(5,9,16,.3); color: rgba(226,237,255,.48); transition: color .2s ease, border-color .2s ease, box-shadow .2s ease; }
   .flight-mouse-status.locked { border-color: rgba(140,236,255,.35); color: #8cecff; box-shadow: 0 0 13px rgba(140,236,255,.14); }
-  .flight-mouse-status.unavailable { border-color: rgba(255,113,129,.28); color: #ff7181; }
+  .flight-mouse-status.fallback { border-color: rgba(213,255,79,.28); color: var(--acid); }
   .flight-hud-top button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(226,237,255,.2); padding: 6px 8px; background: linear-gradient(125deg, rgba(20,34,52,.6), rgba(5,9,16,.35)); cursor: pointer; pointer-events: auto; transition: color .2s ease, border-color .2s ease; }
   .flight-hud-top button .flight-icon { width: 14px; height: 14px; }
   .flight-hud-top button kbd { color: rgba(226,237,255,.7); }

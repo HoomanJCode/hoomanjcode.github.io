@@ -785,6 +785,8 @@ function createScene() {
   let lastPointerY = window.innerHeight / 2;
   let pointerLockPending = false;
   let pointerLockUnavailable = false;
+  const pointerAimSensitivity = .003;
+  const pointerPitchSensitivity = .0018;
   let cameraLookEase = 0;
   const transitionDuration = 2.7;
   const returnDuration = 1.15;
@@ -1622,24 +1624,45 @@ function createScene() {
     const normalY = (clientY / height) * 2 - 1;
     aimYaw = -normalX * Math.PI;
     aimPitch = THREE.MathUtils.clamp(-normalY * .72, -.56, .56);
-    if (flightReticle) {
-      flightReticle.style.left = `${clientX}px`;
-      flightReticle.style.top = `${clientY}px`;
+    positionFlightReticle(clientX, clientY);
+  };
+  const positionFlightReticle = (clientX, clientY) => {
+    if (!flightReticle) return;
+    flightReticle.style.left = `${clientX}px`;
+    flightReticle.style.top = `${clientY}px`;
+  };
+  const updateAimFromMouseDelta = (movementX, movementY, locked) => {
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    if (locked) {
+      const fullTurn = Math.PI * 2;
+      aimYaw = ((aimYaw - movementX * pointerAimSensitivity + Math.PI) % fullTurn + fullTurn) % fullTurn - Math.PI;
+      aimPitch = THREE.MathUtils.clamp(aimPitch - movementY * pointerPitchSensitivity, -.56, .56);
+      lastPointerX = width / 2;
+      lastPointerY = height / 2;
+      positionFlightReticle(lastPointerX, lastPointerY);
+      return;
     }
+
+    // When pointer lock is unavailable, keep a virtual pointer that wraps on
+    // both axes. Pointer lock remains the preferred path because it also
+    // keeps the real cursor inside the game window.
+    lastPointerX = ((lastPointerX + movementX) % width + width) % width;
+    lastPointerY = ((lastPointerY + movementY) % height + height) % height;
+    updateAim(lastPointerX, lastPointerY);
   };
   const updateMouseLockStatus = () => {
     const flightMouseStatus = document.querySelector('#flightMouseStatus');
     if (!flightMouseStatus) return;
     const locked = document.pointerLockElement === canvas;
-    const label = locked
-      ? 'MOUSE WRAP · ACTIVE'
-      : pointerLockUnavailable
-        ? 'MOUSE WRAP · UNAVAILABLE'
-        : 'CLICK TO LOCK · MOUSE WRAP';
+    let label = 'CLICK TO LOCK · EDGE WRAP FALLBACK';
+    if (locked) label = 'MOUSE LOCKED · AIM CENTERED';
+    else if (pointerLockPending) label = 'LOCKING MOUSE · CENTER AIM';
+    else if (pointerLockUnavailable) label = 'EDGE WRAP · FALLBACK';
     flightMouseStatus.setAttribute('aria-label', label);
     flightMouseStatus.title = label;
     flightMouseStatus.classList.toggle('locked', locked);
-    flightMouseStatus.classList.toggle('unavailable', !locked && pointerLockUnavailable);
+    flightMouseStatus.classList.toggle('fallback', !locked && pointerLockUnavailable);
   };
   const lockFlightPointer = (clientX, clientY) => {
     if (document.pointerLockElement === canvas || pointerLockPending) return;
@@ -1655,6 +1678,7 @@ function createScene() {
     pointerLockUnavailable = false;
     try {
       const request = canvas.requestPointerLock();
+      updateMouseLockStatus();
       if (request && typeof request.catch === 'function') {
         request.catch(() => {
           pointerLockPending = false;
@@ -1684,6 +1708,8 @@ function createScene() {
     saucerModel.rotation.y = 0;
     flightModeKeys.clear();
     ship.position.set(-.2, .05, 17.5);
+    lastPointerX = window.innerWidth / 2;
+    lastPointerY = window.innerHeight / 2;
     updateAim(lastPointerX, lastPointerY);
     flightYaw = 0;
     shipYaw = aimYaw;
@@ -1707,6 +1733,7 @@ function createScene() {
     flightEntry?.setAttribute('aria-hidden', 'true');
     flightHud.setAttribute('aria-hidden', 'false');
     updateMouseLockStatus();
+    lockFlightPointer(lastPointerX, lastPointerY);
     setPortfolioHidden(true);
     clearHover();
     dragging = false;
@@ -1780,6 +1807,11 @@ function createScene() {
     document.addEventListener('keyup', (event) => flightModeKeys.delete(event.code));
     document.addEventListener('pointerlockchange', () => {
       pointerLockPending = false;
+      if (document.pointerLockElement === canvas) {
+        lastPointerX = window.innerWidth / 2;
+        lastPointerY = window.innerHeight / 2;
+        positionFlightReticle(lastPointerX, lastPointerY);
+      }
       if (document.pointerLockElement === canvas && flightMode === 'exiting') releaseFlightPointer();
       updateMouseLockStatus();
     });
@@ -1796,13 +1828,11 @@ function createScene() {
       }
       if (flightMode === 'exiting') return;
       if (document.pointerLockElement === canvas) {
-        const width = Math.max(1, window.innerWidth);
-        const height = Math.max(1, window.innerHeight);
-        lastPointerX = ((lastPointerX + event.movementX) % width + width) % width;
-        lastPointerY = THREE.MathUtils.clamp(lastPointerY + event.movementY, 0, height - 1);
-        updateAim(lastPointerX, lastPointerY);
+        updateAimFromMouseDelta(event.movementX, event.movementY, true);
       } else {
-        updateAim(event.clientX, event.clientY);
+        const movementX = Number.isFinite(event.movementX) ? event.movementX : event.clientX - lastPointerX;
+        const movementY = Number.isFinite(event.movementY) ? event.movementY : event.clientY - lastPointerY;
+        updateAimFromMouseDelta(movementX, movementY, false);
       }
     }, { passive: true });
     const startFiring = (event) => {
@@ -1962,6 +1992,11 @@ function createScene() {
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    if (document.pointerLockElement === canvas) {
+      lastPointerX = window.innerWidth / 2;
+      lastPointerY = window.innerHeight / 2;
+      positionFlightReticle(lastPointerX, lastPointerY);
+    }
   };
   window.addEventListener('resize', resize, { passive: true });
   resize();
