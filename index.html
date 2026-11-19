@@ -149,6 +149,7 @@
           <symbol id="flight-icon-alert" viewBox="0 0 24 24"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5m0 3h.01"/></symbol>
           <symbol id="flight-icon-mouse" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="5.5"/><path d="M12 3v6m-5.5-1H12"/></symbol>
           <symbol id="flight-icon-exit" viewBox="0 0 24 24"><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M10 8l4 4-4 4m4-4H3"/></symbol>
+          <symbol id="flight-icon-restart" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/></symbol>
           <symbol id="flight-icon-thrust" viewBox="0 0 24 24"><path d="M12 20V4m0 0L6 10m6-6 6 6M7 17v3m10-3v3"/></symbol>
           <symbol id="flight-icon-boost" viewBox="0 0 24 24"><path d="m7 14 5-5 5 5M7 20l5-5 5 5"/></symbol>
           <symbol id="flight-icon-turn" viewBox="0 0 24 24"><path d="M5 8a8 8 0 0 1 14-2l2 2m-2-5v5h-5M19 16a8 8 0 0 1-14 2l-2-2m2 5v-5h5"/></symbol>
@@ -209,6 +210,18 @@
           <div class="flight-speed" title="Flight speed" aria-label="Flight speed">
             <svg class="flight-icon"><use href="#flight-icon-speedometer"/></svg><strong id="flightSpeed">0.0</strong>
           </div>
+        </div>
+        <div id="flightGameOver" class="flight-game-over" role="dialog" aria-modal="true" aria-labelledby="flightGameOverTitle" aria-describedby="flightGameOverWave" aria-hidden="true" hidden>
+          <section class="flight-game-over-card">
+            <span class="flight-game-over-icon"><svg class="flight-icon"><use href="#flight-icon-alert"/></svg></span>
+            <p class="flight-game-over-kicker">DEFENSE LOST</p>
+            <h2 id="flightGameOverTitle">SHIP LOST</h2>
+            <p id="flightGameOverWave" class="flight-game-over-wave">WAVE 01 REACHED</p>
+            <div class="flight-game-over-actions">
+              <button id="flightRestart" type="button"><svg class="flight-icon"><use href="#flight-icon-restart"/></svg><span>REDEPLOY</span></button>
+              <button id="flightReturn" type="button"><svg class="flight-icon"><use href="#flight-icon-exit"/></svg><span>RETURN TO WEBSITE</span></button>
+            </div>
+          </section>
         </div>
       </div>
       <div class="hero-copy">

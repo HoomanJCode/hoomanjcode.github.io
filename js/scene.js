@@ -670,6 +670,11 @@ function createScene() {
 
   const flightHud = document.querySelector('#flightHud');
   const flightExitButton = document.querySelector('#flightExit');
+  const flightGameOver = document.querySelector('#flightGameOver');
+  const flightGameOverTitle = document.querySelector('#flightGameOverTitle');
+  const flightGameOverWave = document.querySelector('#flightGameOverWave');
+  const flightRestartButton = document.querySelector('#flightRestart');
+  const flightReturnButton = document.querySelector('#flightReturn');
   const flightSpeedReadout = document.querySelector('#flightSpeed');
   const flightReticle = document.querySelector('#flightReticle');
   const flightThreatMarkers = document.querySelector('#flightThreatMarkers');
@@ -1307,10 +1312,18 @@ function createScene() {
     shipPulseMesh.visible = false;
     shipPulseMaterial.opacity = 0;
     flightMode = 'defeated';
+    releaseFlightPointer();
     flightModeKeys.clear();
     clearWeaponState();
     clearFusionEffect();
     document.body.dataset.flightState = 'defeated';
+    if (flightGameOver) {
+      if (flightGameOverTitle) flightGameOverTitle.textContent = outcome === 'shipLost' ? 'SHIP LOST' : 'BASE LOST';
+      if (flightGameOverWave) flightGameOverWave.textContent = `WAVE ${String(waveNumber).padStart(2, '0')} REACHED`;
+      flightGameOver.hidden = false;
+      flightGameOver.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => flightRestartButton?.focus({ preventScroll: true }));
+    }
     updateThreatStatus();
     updatePulseStatus();
     updateShipPulseStatus();
@@ -1351,6 +1364,10 @@ function createScene() {
     Object.keys(upgrades).forEach((type) => { upgrades[type] = 0; });
     pickupNoticeRemaining = 0;
     if (flightPickupNotice) flightPickupNotice.hidden = true;
+    if (flightGameOver) {
+      flightGameOver.hidden = true;
+      flightGameOver.setAttribute('aria-hidden', 'true');
+    }
     updateHealthHud();
     updateThreatStatus();
     updateUpgradeHud();
@@ -1791,6 +1808,10 @@ function createScene() {
   const exitFlight = () => {
     if (flightMode !== 'entering' && flightMode !== 'playing' && flightMode !== 'defeated') return;
     flightMode = 'exiting';
+    if (flightGameOver) {
+      flightGameOver.hidden = true;
+      flightGameOver.setAttribute('aria-hidden', 'true');
+    }
     releaseFlightPointer();
     flightTransitionTime = 0;
     exitCameraStart.copy(camera.position);
@@ -1815,13 +1836,22 @@ function createScene() {
     flightStarsMaterial.opacity = 0;
     ship.scale.setScalar(.001);
     engineEffect.visible = false;
+    if (flightGameOver) {
+      flightGameOver.hidden = true;
+      flightGameOver.setAttribute('aria-hidden', 'true');
+    }
     document.body.classList.remove('spaceflight-active');
     document.body.removeAttribute('data-flight-state');
     flightEntry?.removeAttribute('aria-hidden');
     flightHud?.setAttribute('aria-hidden', 'true');
     setPortfolioHidden(false);
-    if (document.activeElement === flightExitButton) flightExitButton.blur();
+    if (document.activeElement === flightExitButton || flightGameOver?.contains(document.activeElement)) document.activeElement.blur();
     window.scrollTo(0, flightReturnScroll);
+  };
+  const restartFlight = () => {
+    if (flightMode !== 'defeated') return;
+    finishFlight();
+    beginFlight();
   };
 
   if (canPilot) {
@@ -1922,6 +1952,18 @@ function createScene() {
       clearWeaponState();
     });
     flightExitButton?.addEventListener('click', exitFlight);
+    flightRestartButton?.addEventListener('click', restartFlight);
+    flightReturnButton?.addEventListener('click', exitFlight);
+    flightGameOver?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      if (event.shiftKey && document.activeElement === flightRestartButton) {
+        event.preventDefault();
+        flightReturnButton?.focus();
+      } else if (!event.shiftKey && document.activeElement === flightReturnButton) {
+        event.preventDefault();
+        flightRestartButton?.focus();
+      }
+    });
   }
 
   const raycaster = new THREE.Raycaster();
