@@ -750,6 +750,7 @@ function createScene() {
   let waveSpawned = 0;
   let waveBreakRemaining = -1;
   const enemyWaveSize = (wave) => Math.min(8, wave + 2);
+  const enemyPlayerStandoff = { min: 16, max: 18 };
   const planetPulse = { active: false, age: 0, radius: 0 };
   let pulseCooldownRemaining = 0;
   const pulseCooldown = 12;
@@ -1395,6 +1396,9 @@ function createScene() {
       model.add(gun);
     }
     mesh.add(model);
+    // Keep raiders clearly subordinate to the player's larger saucer while
+    // preserving enough silhouette and engine glow to read at combat range.
+    model.scale.setScalar(.48);
     const enemy = {
       mesh,
       model,
@@ -1405,7 +1409,7 @@ function createScene() {
       distance,
       speed: 2.05 + Math.random() * .45 + Math.min(.6, (waveNumber - 1) * .07),
       health: 3 + Math.floor((waveNumber - 1) / 4),
-      hitRadius: 1.22,
+      hitRadius: .72,
       age: Math.random() * Math.PI * 2,
       fireCooldown: 2.2 + Math.random() * 1.4,
       exhausts,
@@ -1474,12 +1478,19 @@ function createScene() {
       }
 
       if (enemy.target === 'player') {
-        enemyPursuitDirection.copy(ship.position).sub(enemy.mesh.position);
+        const playerDistance = Math.sqrt(playerDistanceSq);
+        if (playerDistance < enemyPlayerStandoff.min) {
+          enemyPursuitDirection.copy(enemy.mesh.position).sub(ship.position);
+        } else {
+          enemyPursuitDirection.copy(ship.position).sub(enemy.mesh.position);
+        }
         if (enemyPursuitDirection.lengthSq() > 1e-6) {
           enemyPursuitDirection.normalize();
           enemy.flightDirection.lerp(enemyPursuitDirection, 1 - Math.exp(-dt * 3.2)).normalize();
         }
-        enemy.mesh.position.addScaledVector(enemy.flightDirection, enemy.speed * 1.2 * dt);
+        if (playerDistance > enemyPlayerStandoff.max || playerDistance < enemyPlayerStandoff.min) {
+          enemy.mesh.position.addScaledVector(enemy.flightDirection, enemy.speed * 1.2 * dt);
+        }
       } else {
         enemy.distance = Math.max(16, enemy.distance - enemy.speed * dt);
         enemy.mesh.position.copy(planetNoFlyCenter).addScaledVector(enemy.direction, enemy.distance);
