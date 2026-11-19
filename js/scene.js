@@ -373,7 +373,7 @@ function createScene() {
   });
   // Twin exhaust plumes extend behind the raider's local -Z tail, opposite its
   // +Z nose, so they follow the ship as it steers toward the planet.
-  const enemyExhaustGeometry = new THREE.ConeGeometry(.2, 1.2, 10, 1, true);
+  const enemyExhaustGeometry = new THREE.ConeGeometry(.2, 2.2, 10, 1, true);
   enemyExhaustGeometry.rotateX(-Math.PI / 2);
   const enemyExhaustMaterial = new THREE.MeshBasicMaterial({
     color: 0xff315b,
@@ -384,7 +384,7 @@ function createScene() {
     toneMapped: false,
     blending: THREE.AdditiveBlending,
   });
-  const enemyExhaustCoreGeometry = new THREE.ConeGeometry(.095, .88, 8, 1, true);
+  const enemyExhaustCoreGeometry = new THREE.ConeGeometry(.095, 1.55, 8, 1, true);
   enemyExhaustCoreGeometry.rotateX(-Math.PI / 2);
   const enemyExhaustCoreMaterial = new THREE.MeshBasicMaterial({
     color: 0xffb3c0,
@@ -746,6 +746,10 @@ function createScene() {
   const projectileTarget = new THREE.Vector3();
   const projectileDirection = new THREE.Vector3();
   const projectileRight = new THREE.Vector3();
+  const aimAssistDirection = new THREE.Vector3();
+  const aimAssistTarget = new THREE.Vector3();
+  const aimAssistOffset = new THREE.Vector3();
+  const aimAssistScreen = new THREE.Vector3();
   const enemyAttackDirection = new THREE.Vector3();
   const enemyPursuitDirection = new THREE.Vector3();
   const enemyOrbitDirection = new THREE.Vector3();
@@ -1169,12 +1173,70 @@ function createScene() {
     }
     flightThreatStatus.classList.toggle('danger', danger);
   };
+  const findAimAssistEnemy = () => {
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    const locked = document.pointerLockElement === canvas;
+    const cursorX = locked ? width / 2 : lastPointerX;
+    const cursorY = locked ? height / 2 : lastPointerY;
+    const screenRadius = Math.min(118, Math.max(54, height * .115));
+    const screenRadiusSq = screenRadius * screenRadius;
+    const shotSpeed = 34 * (1 + upgrades.speed * .22);
+    const maxRange = shotSpeed * projectileLifetime + 4;
+    const maxRangeSq = maxRange * maxRange;
+    let selected = null;
+    let bestCursorDistanceSq = screenRadiusSq;
+    camera.updateMatrixWorld(true);
+
+    for (const enemy of enemies) {
+      aimAssistOffset.copy(enemy.mesh.position).sub(ship.position);
+      const distanceSq = aimAssistOffset.lengthSq();
+      if (distanceSq < 1e-6 || distanceSq > maxRangeSq) continue;
+      if (flightForward.dot(aimAssistOffset.normalize()) < .35) continue;
+
+      aimAssistScreen.copy(enemy.mesh.position).project(camera);
+      if (aimAssistScreen.z < -1 || aimAssistScreen.z > 1
+        || Math.abs(aimAssistScreen.x) > 1 || Math.abs(aimAssistScreen.y) > 1) continue;
+      const screenX = (aimAssistScreen.x * .5 + .5) * width;
+      const screenY = (-aimAssistScreen.y * .5 + .5) * height;
+      const cursorDistanceSq = (screenX - cursorX) ** 2 + (screenY - cursorY) ** 2;
+      if (cursorDistanceSq >= bestCursorDistanceSq) continue;
+      bestCursorDistanceSq = cursorDistanceSq;
+      selected = enemy;
+    }
+
+    if (!selected) return null;
+
+    // Lead moving raiders so the small screen-space correction still helps at range.
+    const distance = selected.mesh.position.distanceTo(ship.position);
+    let targetSpeed = selected.speed;
+    if (selected.target === 'player') {
+      targetSpeed = distance < enemyPlayerStandoff.min || distance > enemyPlayerStandoff.max
+        ? selected.speed * 1.2
+        : 0;
+    } else if (selected.distance <= selected.orbitRadius + .05) {
+      targetSpeed = selected.distance * selected.orbitSpeed;
+    }
+    let interceptTime = distance / shotSpeed;
+    for (let leadStep = 0; leadStep < 2; leadStep += 1) {
+      aimAssistTarget.copy(selected.mesh.position)
+        .addScaledVector(selected.flightDirection, targetSpeed * interceptTime);
+      aimAssistDirection.copy(aimAssistTarget).sub(ship.position);
+      interceptTime = aimAssistDirection.length() / shotSpeed;
+    }
+    aimAssistDirection.normalize();
+    return selected;
+  };
   const updateThreatMarkers = () => {
     if (!flightThreatMarkers) return;
     const active = flightMode === 'playing' && combatOutcome === 'active';
     flightThreatMarkers.hidden = !active;
-    if (!active) return;
+    if (!active) {
+      flightReticle?.classList.remove('targeting');
+      return;
+    }
     camera.updateMatrixWorld();
+    flightReticle?.classList.toggle('targeting', Boolean(findAimAssistEnemy()));
     threatCameraInverse.copy(camera.quaternion).invert();
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -1428,14 +1490,14 @@ function createScene() {
       exhaust.add(core);
       model.add(exhaust);
       exhausts.push({ plume, core });
-      for (let particleIndex = 0; particleIndex < 3; particleIndex += 1) {
+      for (let particleIndex = 0; particleIndex < 4; particleIndex += 1) {
         const particle = new THREE.Mesh(enemyExhaustParticleGeometry, enemyExhaustParticleMaterial);
         particle.position.set(side * .32, -.025, -.9 - particleIndex * .44);
         model.add(particle);
         exhaustParticles.push({
           mesh: particle,
           side,
-          phase: particleIndex / 3 + Math.random() * .16,
+          phase: particleIndex / 4 + Math.random() * .12,
         });
       }
       const fin = new THREE.Mesh(enemyFinGeometry, enemyWingMaterial);
@@ -1580,13 +1642,13 @@ function createScene() {
       enemy.model.rotation.z = Math.sin(enemy.age * 1.7) * .045;
       const thrustPulse = .9 + Math.sin(enemy.age * 12) * .1;
       enemy.exhausts.forEach(({ plume, core }) => {
-        plume.scale.z = thrustPulse;
-        core.scale.z = thrustPulse * 1.05;
+        plume.scale.z = thrustPulse * 1.65;
+        core.scale.z = thrustPulse * 1.55;
       });
       enemy.exhaustParticles.forEach(({ mesh: particle, side, phase }) => {
         const progress = (enemy.age * .82 + phase) % 1;
-        particle.position.set(side * (.32 + Math.sin(enemy.age * 8 + phase * Math.PI * 2) * .045), -.025, -.87 - progress * 1.55);
-        particle.scale.setScalar(.3 + Math.sin(progress * Math.PI) * .72);
+        particle.position.set(side * (.32 + Math.sin(enemy.age * 8 + phase * Math.PI * 2) * .045), -.025, -.87 - progress * 3.6);
+        particle.scale.setScalar(.34 + Math.sin(progress * Math.PI) * .82);
       });
       const canAttack = enemy.target === 'player' || enemy.distance <= enemy.orbitRadius + .05;
       if (canAttack) {
@@ -1635,6 +1697,7 @@ function createScene() {
         : [-.22, -.11, 0, .11, .22];
     const shotSpeed = 34 * (1 + upgrades.speed * .22);
     const shotDamage = 1 + upgrades.power * .5;
+    const aimAssistEnemy = findAimAssistEnemy();
     weaponEmitters.forEach((emitter) => {
       emitter.getWorldPosition(fireOrigin);
       shotOffsets.forEach((spread) => {
@@ -1646,7 +1709,9 @@ function createScene() {
         projectile.add(trail);
         projectile.scale.setScalar(1 + upgrades.power * .16);
         projectile.position.copy(fireOrigin);
-        projectileDirection.copy(flightForward).addScaledVector(projectileRight, spread).normalize();
+        projectileDirection.copy(aimAssistEnemy ? aimAssistDirection : flightForward)
+          .addScaledVector(projectileRight, spread)
+          .normalize();
         projectileTarget.copy(fireOrigin).add(projectileDirection);
         projectile.lookAt(projectileTarget);
         scene.add(projectile);
