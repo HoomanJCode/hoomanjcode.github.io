@@ -683,6 +683,7 @@ function createScene() {
   const flightThreatIcon = document.querySelector('#flightThreatIcon');
   const flightThreatWave = document.querySelector('#flightThreatWave');
   const flightThreatCount = document.querySelector('#flightThreatCount');
+  const flightThreatMessage = document.querySelector('#flightThreatMessage');
   const flightThreatTimer = document.querySelector('#flightThreatTimer');
   const flightPulseStatus = document.querySelector('#flightPulseStatus');
   const flightPulseIcon = document.querySelector('#flightPulseIcon');
@@ -690,6 +691,8 @@ function createScene() {
   const flightShipPulseStatus = document.querySelector('#flightShipPulseStatus');
   const flightShipPulseIcon = document.querySelector('#flightShipPulseIcon');
   const flightShipPulseReadout = document.querySelector('#flightShipPulseReadout');
+  const flightPulseCharge = document.querySelector('#flightPulseStatus .flight-pulse-charge i');
+  const flightShipPulseCharge = document.querySelector('#flightShipPulseStatus .flight-pulse-charge i');
   const upgradeLevelReadouts = {
     speed: document.querySelector('#upgradeSpeedLevel'),
     power: document.querySelector('#upgradePowerLevel'),
@@ -983,6 +986,9 @@ function createScene() {
     flightPulseStatus.setAttribute('aria-label', status);
     flightPulseStatus.title = `${status} — Space`;
     if (flightPulseReadout) flightPulseReadout.textContent = coolingDown && !planetPulse.active ? String(Math.ceil(pulseCooldownRemaining)) : '';
+    if (flightPulseCharge) {
+      flightPulseCharge.style.width = `${THREE.MathUtils.clamp(1 - pulseCooldownRemaining / pulseCooldown, 0, 1) * 100}%`;
+    }
     flightPulseIcon?.setAttribute('href', planetPulse.active ? '#flight-icon-wave' : coolingDown ? '#flight-icon-rate' : '#flight-icon-ready');
     flightPulseStatus.classList.toggle('active', planetPulse.active);
     flightPulseStatus.classList.toggle('recharging', !planetPulse.active && coolingDown);
@@ -998,13 +1004,20 @@ function createScene() {
     flightShipPulseStatus.setAttribute('aria-label', status);
     flightShipPulseStatus.title = `${status} — F`;
     if (flightShipPulseReadout) flightShipPulseReadout.textContent = coolingDown && !shipPulse.active ? String(Math.ceil(shipPulseCooldownRemaining)) : '';
+    if (flightShipPulseCharge) {
+      flightShipPulseCharge.style.width = `${THREE.MathUtils.clamp(1 - shipPulseCooldownRemaining / shipPulseCooldown, 0, 1) * 100}%`;
+    }
     flightShipPulseIcon?.setAttribute('href', shipPulse.active ? '#flight-icon-wave' : coolingDown ? '#flight-icon-rate' : '#flight-icon-ready');
     flightShipPulseStatus.classList.toggle('active', shipPulse.active);
     flightShipPulseStatus.classList.toggle('recharging', !shipPulse.active && coolingDown);
   };
   const updateUpgradeHud = () => {
     Object.entries(upgradeLevelReadouts).forEach(([type, element]) => {
-      if (element) element.textContent = `${upgrades[type]}/${maxUpgradeLevel}`;
+      if (!element) return;
+      element.textContent = `${upgrades[type]}/${maxUpgradeLevel}`;
+      element.parentElement?.querySelectorAll('.flight-upgrade-pips i').forEach((pip, index) => {
+        pip.classList.toggle('active', index < upgrades[type]);
+      });
     });
   };
   const showPickupNotice = (type) => {
@@ -1092,14 +1105,17 @@ function createScene() {
     let icon = 'radar';
     let wave = '';
     let count = '';
+    let message = '';
     let timer = '';
     let danger = false;
     if (combatOutcome === 'shipLost') {
       label = 'Ship destroyed. Press Escape to return to profile.';
+      message = 'SHIP LOST';
       icon = 'alert';
       danger = true;
     } else if (combatOutcome === 'planetLost') {
       label = 'Planet lost. Press Escape to return to profile.';
+      message = 'BASE LOST';
       icon = 'alert';
       danger = true;
     } else if (enemies.length || waveSpawned < enemyWaveSize(waveNumber)) {
@@ -1136,6 +1152,10 @@ function createScene() {
     if (flightThreatCount) {
       flightThreatCount.textContent = count;
       flightThreatCount.hidden = !count;
+    }
+    if (flightThreatMessage) {
+      flightThreatMessage.textContent = message;
+      flightThreatMessage.hidden = !message;
     }
     if (flightThreatTimer) {
       flightThreatTimer.textContent = timer;

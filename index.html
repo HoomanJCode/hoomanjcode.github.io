@@ -173,20 +173,20 @@
           </div>
           <p id="flightThreatStatus" class="flight-threat-status" role="status" aria-label="Raider wave scanning">
             <svg class="flight-icon"><use id="flightThreatIcon" href="#flight-icon-radar"/></svg>
-            <span id="flightThreatWave">W01</span><span id="flightThreatCount">03</span><span id="flightThreatTimer" hidden></span>
+            <span id="flightThreatWave">W01</span><span id="flightThreatCount">03</span><span id="flightThreatMessage" hidden></span><span id="flightThreatTimer" hidden></span>
           </p>
           <section class="flight-loadout" aria-label="Ship weapon upgrades and shockwave abilities">
             <div class="flight-upgrade-grid">
-              <div title="Bolt speed" aria-label="Bolt speed"><svg class="flight-icon"><use href="#flight-icon-bolt"/></svg><strong id="upgradeSpeedLevel">0/2</strong></div>
-              <div title="Bolt power" aria-label="Bolt power"><svg class="flight-icon"><use href="#flight-icon-power"/></svg><strong id="upgradePowerLevel">0/2</strong></div>
-              <div title="Spread shot" aria-label="Spread shot"><svg class="flight-icon"><use href="#flight-icon-spread"/></svg><strong id="upgradeSpreadLevel">0/2</strong></div>
-              <div title="Fire rate" aria-label="Fire rate"><svg class="flight-icon"><use href="#flight-icon-rate"/></svg><strong id="upgradeRapidLevel">0/2</strong></div>
+              <div title="Bolt speed" aria-label="Bolt speed"><svg class="flight-icon"><use href="#flight-icon-bolt"/></svg><span class="flight-upgrade-pips" aria-hidden="true"><i></i><i></i></span><strong id="upgradeSpeedLevel">0/2</strong></div>
+              <div title="Bolt power" aria-label="Bolt power"><svg class="flight-icon"><use href="#flight-icon-power"/></svg><span class="flight-upgrade-pips" aria-hidden="true"><i></i><i></i></span><strong id="upgradePowerLevel">0/2</strong></div>
+              <div title="Spread shot" aria-label="Spread shot"><svg class="flight-icon"><use href="#flight-icon-spread"/></svg><span class="flight-upgrade-pips" aria-hidden="true"><i></i><i></i></span><strong id="upgradeSpreadLevel">0/2</strong></div>
+              <div title="Fire rate" aria-label="Fire rate"><svg class="flight-icon"><use href="#flight-icon-rate"/></svg><span class="flight-upgrade-pips" aria-hidden="true"><i></i><i></i></span><strong id="upgradeRapidLevel">0/2</strong></div>
             </div>
             <p id="flightShipPulseStatus" class="flight-pulse-status ship-wave" title="Ship shockwave — F" aria-label="Ship shockwave ready">
-              <kbd>F</kbd><svg class="flight-icon"><use id="flightShipPulseIcon" href="#flight-icon-ready"/></svg><span id="flightShipPulseReadout"></span>
+              <kbd>F</kbd><svg class="flight-icon"><use id="flightShipPulseIcon" href="#flight-icon-ready"/></svg><span id="flightShipPulseReadout"></span><span class="flight-pulse-charge" aria-hidden="true"><i></i></span>
             </p>
             <p id="flightPulseStatus" class="flight-pulse-status" title="Planet shockwave — Space" aria-label="Planet shockwave ready">
-              <kbd>SPACE</kbd><svg class="flight-icon"><use id="flightPulseIcon" href="#flight-icon-ready"/></svg><span id="flightPulseReadout"></span>
+              <kbd>SPACE</kbd><svg class="flight-icon"><use id="flightPulseIcon" href="#flight-icon-ready"/></svg><span id="flightPulseReadout"></span><span class="flight-pulse-charge" aria-hidden="true"><i></i></span>
             </p>
             <p id="flightPickupNotice" class="flight-pickup-notice" aria-live="polite" aria-label="Upgrade collected" hidden>
               <svg class="flight-icon"><use id="flightPickupIcon" href="#flight-icon-loot"/></svg><span id="flightPickupLevel"></span>
