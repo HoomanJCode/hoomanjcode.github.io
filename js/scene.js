@@ -311,6 +311,9 @@ function createScene() {
   const activeProjectiles = [];
   const hostileProjectiles = [];
   const enemies = [];
+  const combatEffects = [];
+  const combatBurstRingGeometry = new THREE.TorusGeometry(1, .025, 6, 32);
+  const combatBurstCoreGeometry = new THREE.SphereGeometry(.36, 12, 8);
   const enemyFuselageGeometry = new THREE.ConeGeometry(.3, 1.45, 6, 1);
   enemyFuselageGeometry.rotateX(Math.PI / 2);
   const enemyWingShape = new THREE.Shape();
@@ -669,6 +672,7 @@ function createScene() {
   const flightExitButton = document.querySelector('#flightExit');
   const flightSpeedReadout = document.querySelector('#flightSpeed');
   const flightReticle = document.querySelector('#flightReticle');
+  const flightThreatMarkers = document.querySelector('#flightThreatMarkers');
   const playerHealthFill = document.querySelector('#playerHealthFill');
   const playerHealthValue = document.querySelector('#playerHealthValue');
   const planetHealthFill = document.querySelector('#planetHealthFill');
@@ -715,6 +719,9 @@ function createScene() {
   const flightCameraOffsetWorld = new THREE.Vector3();
   const flightLookOffsetWorld = new THREE.Vector3();
   const lastFlightLookTarget = new THREE.Vector3();
+  const threatScreenPoint = new THREE.Vector3();
+  const threatCameraSpace = new THREE.Vector3();
+  const threatCameraInverse = new THREE.Quaternion();
   const exitCameraStart = new THREE.Vector3();
   const exitLookStart = new THREE.Vector3();
   const planetNoFlyCenter = new THREE.Vector3();
@@ -760,6 +767,9 @@ function createScene() {
   let pointerFirePendingClick = false;
   let fireCooldown = 0;
   let muzzleFlashRemaining = 0;
+  let damageFeedbackRemaining = 0;
+  let damageShakeRemaining = 0;
+  let damageShakeStrength = 0;
   let flightMode = 'hero';
   let flightTransitionTime = 0;
   let flightReturnScroll = 0;
@@ -780,6 +790,131 @@ function createScene() {
   const returnDuration = 1.15;
   const fireInterval = .18;
   const projectileLifetime = 1.4;
+  const disposeCombatEffect = (effect) => {
+    scene.remove(effect.group);
+    effect.geometry.dispose();
+    effect.materials.forEach((material) => material.dispose());
+  };
+  const spawnCombatBurst = (position, size = 1, tint = 0xff785f, lifetime = .76) => {
+    const particleCount = size >= .8 ? 30 : 10;
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const baseColor = new THREE.Color(tint);
+    const flashColor = new THREE.Color(0xfff1d5);
+    const velocities = [];
+    for (let i = 0; i < particleCount; i += 1) {
+      const direction = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+      const speed = size * (2.2 + Math.random() * 4.5);
+      velocities.push(direction.multiplyScalar(speed));
+      const color = baseColor.clone().lerp(flashColor, Math.random() * .65);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const pointsMaterial = new THREE.PointsMaterial({
+      size: .2 * Math.min(1.5, size),
+      vertexColors: true,
+      transparent: true,
+      opacity: .96,
+      depthWrite: false,
+      sizeAttenuation: true,
+      toneMapped: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geometry, pointsMaterial);
+    points.frustumCulled = false;
+    const ringMaterial = new THREE.MeshBasicMaterial({
+      color: tint,
+      transparent: true,
+      opacity: .88,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const ring = new THREE.Mesh(combatBurstRingGeometry, ringMaterial);
+    ring.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    ring.scale.setScalar(size * .06);
+    const coreMaterial = new THREE.MeshBasicMaterial({
+      color: 0xfff1d5,
+      transparent: true,
+      opacity: .92,
+      depthWrite: false,
+      toneMapped: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const core = new THREE.Mesh(combatBurstCoreGeometry, coreMaterial);
+    core.scale.setScalar(.001);
+    const flareMaterial = new THREE.SpriteMaterial({
+      map: skyBeaconTexture,
+      color: tint,
+      transparent: true,
+      opacity: .9,
+      depthWrite: false,
+      toneMapped: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const flare = new THREE.Sprite(flareMaterial);
+    flare.scale.setScalar(.001);
+    flare.renderOrder = 4;
+    const group = new THREE.Group();
+    group.position.copy(position);
+    group.add(points, ring, core, flare);
+    group.renderOrder = 4;
+    scene.add(group);
+    combatEffects.push({
+      group,
+      points,
+      ring,
+      core,
+      flare,
+      geometry,
+      positions,
+      velocities,
+      pointsMaterial,
+      ringMaterial,
+      coreMaterial,
+      flareMaterial,
+      materials: [pointsMaterial, ringMaterial, coreMaterial, flareMaterial],
+      size,
+      age: 0,
+      lifetime,
+    });
+  };
+  const updateCombatEffects = (dt) => {
+    for (let i = combatEffects.length - 1; i >= 0; i -= 1) {
+      const effect = combatEffects[i];
+      effect.age += dt;
+      if (effect.age >= effect.lifetime) {
+        disposeCombatEffect(effect);
+        combatEffects.splice(i, 1);
+        continue;
+      }
+      const progress = effect.age / effect.lifetime;
+      const growth = 1 - Math.pow(1 - progress, 3);
+      effect.ring.scale.setScalar(effect.size * (.06 + growth * 1.3));
+      effect.ringMaterial.opacity = .88 * (1 - progress);
+      effect.core.scale.setScalar(effect.size * (.05 + Math.sin(Math.min(1, effect.age / .16) * Math.PI / 2) * .92) * (1 - progress * .35));
+      effect.coreMaterial.opacity = Math.max(0, .92 * (1 - progress * 1.7));
+      effect.flare.scale.setScalar(effect.size * (.12 + Math.sin(Math.min(1, effect.age / .14) * Math.PI / 2) * 1.55) * (1 - progress * .65));
+      effect.flareMaterial.opacity = Math.max(0, .9 * (1 - progress * 2.2));
+      effect.pointsMaterial.opacity = .96 * (1 - progress);
+      const damping = Math.exp(-dt * 2.4);
+      for (let particleIndex = 0; particleIndex < effect.velocities.length; particleIndex += 1) {
+        const velocity = effect.velocities[particleIndex];
+        const offset = particleIndex * 3;
+        effect.positions[offset] += velocity.x * dt;
+        effect.positions[offset + 1] += velocity.y * dt;
+        effect.positions[offset + 2] += velocity.z * dt;
+        velocity.multiplyScalar(damping);
+      }
+      effect.geometry.attributes.position.needsUpdate = true;
+    }
+  };
   const smoothstep = (value) => value * value * (3 - 2 * value);
   const placeEngineEffect = (scale) => {
     engineEffect.position.copy(ship.position);
@@ -806,12 +941,21 @@ function createScene() {
     activeProjectiles.length = 0;
   };
   const clearDefenseObjects = () => {
-    enemies.forEach(({ mesh }) => scene.remove(mesh));
+    enemies.forEach(({ mesh, marker }) => {
+      scene.remove(mesh);
+      marker?.remove();
+    });
     hostileProjectiles.forEach(({ object }) => scene.remove(object));
     pickups.forEach(({ mesh }) => scene.remove(mesh));
+    combatEffects.forEach(disposeCombatEffect);
     enemies.length = 0;
     hostileProjectiles.length = 0;
     pickups.length = 0;
+    combatEffects.length = 0;
+    damageFeedbackRemaining = 0;
+    damageShakeRemaining = 0;
+    damageShakeStrength = 0;
+    delete document.body.dataset.hitFeedback;
     planetPulse.active = false;
     planetPulse.age = 0;
     planetPulse.radius = 0;
@@ -890,7 +1034,9 @@ function createScene() {
     if (!enemy) return;
     const deathPosition = enemy.mesh.position.clone();
     scene.remove(enemy.mesh);
+    enemy.marker?.remove();
     enemies.splice(index, 1);
+    spawnCombatBurst(deathPosition, 1.35, 0xff805f, 1.2);
     spawnUpgradePickup(deathPosition);
     updateThreatStatus();
   };
@@ -908,6 +1054,7 @@ function createScene() {
       pickup.mesh.rotation.x += dt * .65;
       if (pickup.mesh.position.distanceToSquared(ship.position) <= 2.2 * 2.2) {
         upgrades[pickup.type] = Math.min(maxUpgradeLevel, upgrades[pickup.type] + 1);
+        spawnCombatBurst(pickup.mesh.position, .62, pickupMaterials[pickup.type].color.getHex(), .42);
         scene.remove(pickup.mesh);
         pickups.splice(i, 1);
         updateUpgradeHud();
@@ -989,6 +1136,60 @@ function createScene() {
     }
     flightThreatStatus.classList.toggle('danger', danger);
   };
+  const updateThreatMarkers = () => {
+    if (!flightThreatMarkers) return;
+    const active = flightMode === 'playing' && combatOutcome === 'active';
+    flightThreatMarkers.hidden = !active;
+    if (!active) return;
+    camera.updateMatrixWorld();
+    threatCameraInverse.copy(camera.quaternion).invert();
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const halfWidth = Math.max(30, width / 2 - 34);
+    const halfHeight = Math.max(30, height / 2 - 48);
+    enemies.forEach((enemy) => {
+      const marker = enemy.marker;
+      if (!marker) return;
+      threatCameraSpace.copy(enemy.mesh.position).sub(camera.position).applyQuaternion(threatCameraInverse);
+      threatScreenPoint.copy(enemy.mesh.position).project(camera);
+      const visible = threatCameraSpace.z < 0
+        && Math.abs(threatScreenPoint.x) < .94
+        && Math.abs(threatScreenPoint.y) < .9
+        && threatScreenPoint.z >= -1
+        && threatScreenPoint.z <= 1;
+      marker.hidden = visible;
+      marker.classList.toggle('engaged', enemy.target === 'player');
+      if (visible) return;
+
+      let directionX = threatScreenPoint.x;
+      let directionY = -threatScreenPoint.y;
+      if (threatCameraSpace.z > 0) {
+        directionX *= -1;
+        directionY *= -1;
+      }
+      if (Math.abs(directionX) + Math.abs(directionY) < .001) {
+        directionX = 0;
+        directionY = 1;
+      }
+      const directionLength = Math.hypot(directionX, directionY);
+      directionX /= directionLength;
+      directionY /= directionLength;
+      const edgeDistance = Math.min(
+        halfWidth / Math.max(Math.abs(directionX), .001),
+        halfHeight / Math.max(Math.abs(directionY), .001)
+      );
+      let markerX = width / 2 + directionX * edgeDistance;
+      let markerY = height / 2 + directionY * edgeDistance;
+      if (markerX < 292 && markerY >= 68 && markerY <= 344) markerX = 292;
+      if (markerY > height - 72) {
+        markerY = height - 64;
+        markerX = THREE.MathUtils.clamp(markerX, Math.min(width * .57, 540), width - 130);
+      }
+      marker.style.left = `${markerX}px`;
+      marker.style.top = `${markerY}px`;
+      marker.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(directionY, directionX) + Math.PI / 2}rad)`;
+    });
+  };
   const activatePlanetPulse = () => {
     if (flightMode !== 'playing' || combatOutcome !== 'active' || pulseCooldownRemaining > 0) return;
     planetPulse.active = true;
@@ -1012,7 +1213,7 @@ function createScene() {
       planetPulseMaterial.opacity = .82 * (1 - progress);
 
       for (let i = enemies.length - 1; i >= 0; i -= 1) {
-        if (enemies[i].distance > planetPulse.radius) continue;
+        if (enemies[i].mesh.position.distanceToSquared(planetNoFlyCenter) > planetPulse.radius * planetPulse.radius) continue;
         destroyEnemy(i);
       }
       for (let i = hostileProjectiles.length - 1; i >= 0; i -= 1) {
@@ -1087,15 +1288,27 @@ function createScene() {
     updatePulseStatus();
     updateShipPulseStatus();
   };
-  const damageShip = (amount) => {
-    playerHealth = Math.max(0, playerHealth - amount);
-    updateHealthHud();
-    if (playerHealth <= 0) endCombat('shipLost');
+  const triggerDamageFeedback = (target, shake) => {
+    document.body.dataset.hitFeedback = target;
+    damageFeedbackRemaining = .28;
+    damageShakeRemaining = .24;
+    damageShakeStrength = Math.max(damageShakeStrength, shake);
   };
-  const damagePlanet = (amount) => {
-    planetHealth = Math.max(0, planetHealth - amount);
+  const damageShip = (amount, hitPosition = ship.position) => {
+    playerHealth = Math.max(0, playerHealth - amount);
+    const destroyed = playerHealth <= 0;
+    triggerDamageFeedback('player', destroyed ? .24 : .1);
+    spawnCombatBurst(hitPosition, destroyed ? 1.45 : .48, 0xff5574, destroyed ? 1 : .34);
     updateHealthHud();
-    if (planetHealth <= 0) endCombat('planetLost');
+    if (destroyed) endCombat('shipLost');
+  };
+  const damagePlanet = (amount, hitPosition = planetNoFlyCenter) => {
+    planetHealth = Math.max(0, planetHealth - amount);
+    const destroyed = planetHealth <= 0;
+    triggerDamageFeedback('planet', destroyed ? .16 : .055);
+    spawnCombatBurst(hitPosition, destroyed ? 2.25 : .68, 0xd5ff4f, destroyed ? 1.25 : .42);
+    updateHealthHud();
+    if (destroyed) endCombat('planetLost');
   };
   const resetDefense = () => {
     clearDefenseObjects();
@@ -1126,6 +1339,11 @@ function createScene() {
   const spawnEnemy = (direction, distance = 48 + Math.random() * 6) => {
     const mesh = new THREE.Group();
     const model = new THREE.Group();
+    const marker = document.createElement('span');
+    marker.className = 'flight-threat-marker';
+    marker.setAttribute('aria-hidden', 'true');
+    marker.hidden = true;
+    flightThreatMarkers?.append(marker);
     const exhausts = [];
     const exhaustParticles = [];
     const wings = new THREE.Mesh(enemyWingGeometry, enemyWingMaterial);
@@ -1178,6 +1396,7 @@ function createScene() {
     const enemy = {
       mesh,
       model,
+      marker,
       direction: direction.clone().normalize(),
       flightDirection: direction.clone().negate().normalize(),
       target: 'planet',
@@ -1295,12 +1514,12 @@ function createScene() {
       projectile.age += dt;
       projectile.object.position.addScaledVector(projectile.velocity, dt);
       if (projectile.target === 'player' && projectile.object.position.distanceToSquared(ship.position) < 1.35 * 1.35) {
-        damageShip(projectile.damage);
+        damageShip(projectile.damage, projectile.object.position);
         scene.remove(projectile.object);
         hostileProjectiles.splice(i, 1);
         if (combatOutcome !== 'active') break;
       } else if (projectile.target === 'planet' && projectile.object.position.distanceToSquared(planetNoFlyCenter) < planetSurfaceRadius * planetSurfaceRadius) {
-        damagePlanet(projectile.damage);
+        damagePlanet(projectile.damage, projectile.object.position);
         scene.remove(projectile.object);
         hostileProjectiles.splice(i, 1);
         if (combatOutcome !== 'active') break;
@@ -1360,6 +1579,7 @@ function createScene() {
           scene.remove(projectile.object);
           activeProjectiles.splice(i, 1);
           if (enemy.health <= 0) destroyEnemy(j);
+          else spawnCombatBurst(enemy.mesh.position, .42, 0x8cecff, .32);
           hitEnemy = true;
           break;
         }
@@ -1790,6 +2010,10 @@ function createScene() {
     const dt = Math.min(.05, Math.max(0, (now - lastFrame) / 1000)) || 1 / 60;
     lastFrame = now;
     const t = clock.getElapsedTime();
+    if (damageFeedbackRemaining > 0) {
+      damageFeedbackRemaining = Math.max(0, damageFeedbackRemaining - dt);
+      if (!damageFeedbackRemaining) delete document.body.dataset.hitFeedback;
+    }
     const p = scrollProgress * scrollProgress * (3 - 2 * scrollProgress);
     if (!entranceDone) {
       if (dragging) {
@@ -1920,6 +2144,13 @@ function createScene() {
       cameraLookEase = 1 - Math.exp(-dt * 5.2);
       camera.position.lerp(flightCameraGoal, cameraLookEase);
       lastFlightLookTarget.lerp(flightLookGoal, cameraLookEase);
+      if (damageShakeRemaining > 0) {
+        const shake = damageShakeStrength * (damageShakeRemaining / .24);
+        camera.position.x += Math.sin(t * 79) * shake;
+        camera.position.y += Math.cos(t * 63) * shake * .72;
+        damageShakeRemaining = Math.max(0, damageShakeRemaining - dt);
+        if (!damageShakeRemaining) damageShakeStrength = 0;
+      }
       camera.fov += (42 - camera.fov) * (1 - Math.exp(-dt * 2.4));
       camera.updateProjectionMatrix();
       camera.lookAt(lastFlightLookTarget);
@@ -1980,6 +2211,8 @@ function createScene() {
     }
 
     updateProjectiles(dt);
+    updateCombatEffects(dt);
+    updateThreatMarkers();
 
     const skyBeaconFade = flightMode === 'entering'
       ? smoothstep(flightTransitionTime)
