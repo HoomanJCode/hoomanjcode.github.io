@@ -760,6 +760,7 @@ function createScene() {
   let waveBreakRemaining = -1;
   const enemyWaveSize = (wave) => Math.min(8, wave + 2);
   const enemyPlayerAggroRange = 12;
+  const enemyPlayerDisengageRange = 24;
   const enemyPlayerStandoff = { min: 16, max: 18 };
   const planetPulse = { active: false, age: 0, radius: 0 };
   let pulseCooldownRemaining = 0;
@@ -1455,6 +1456,7 @@ function createScene() {
       marker,
       direction: direction.clone().normalize(),
       flightDirection: direction.clone().negate().normalize(),
+      facingDirection: direction.clone().negate().normalize(),
       target: 'planet',
       distance,
       orbitAxis,
@@ -1475,8 +1477,9 @@ function createScene() {
     updateThreatStatus();
   };
   const spawnHostileProjectile = (enemy) => {
-    const targetPosition = enemy.target === 'player' ? ship.position : planetNoFlyCenter;
-    enemyAttackDirection.copy(targetPosition).sub(enemy.mesh.position).normalize();
+    // Hostile weapons fire from the ship's nose. The AI must turn toward a
+    // target before it can shoot, so enemies cannot attack sideways or behind.
+    enemyAttackDirection.copy(enemy.facingDirection).normalize();
     const object = new THREE.Group();
     object.add(new THREE.Mesh(hostileCoreGeometry, hostileCoreMaterial));
     const trail = new THREE.Mesh(hostileTrailGeometry, hostileTrailMaterial);
@@ -1529,6 +1532,12 @@ function createScene() {
       if (enemy.target === 'planet' && playerDistanceSq <= enemyPlayerAggroRange * enemyPlayerAggroRange) {
         enemy.target = 'player';
         enemy.fireCooldown = Math.min(enemy.fireCooldown, .65);
+      } else if (enemy.target === 'player' && playerDistanceSq >= enemyPlayerDisengageRange * enemyPlayerDisengageRange) {
+        // Rejoin the planet attack route from the enemy's current position,
+        // rather than snapping back to its original orbit point.
+        enemy.target = 'planet';
+        enemy.direction.copy(enemy.mesh.position).sub(planetNoFlyCenter).normalize();
+        enemy.distance = Math.max(enemy.orbitRadius, enemy.mesh.position.distanceTo(planetNoFlyCenter));
       }
 
       if (enemy.target === 'player') {
@@ -1552,7 +1561,19 @@ function createScene() {
         enemyOrbitDirection.crossVectors(enemy.orbitAxis, enemy.direction).multiplyScalar(enemy.orbitSign).normalize();
         enemy.flightDirection.copy(enemyOrbitDirection);
       }
-      enemyFacingTarget.copy(enemy.mesh.position).addScaledVector(enemy.flightDirection, -1);
+      const shouldFaceTarget = enemy.target === 'player' || enemy.distance <= enemy.orbitRadius + .05;
+      if (enemy.target === 'player') {
+        enemyAttackDirection.copy(ship.position).sub(enemy.mesh.position);
+      } else if (shouldFaceTarget) {
+        enemyAttackDirection.copy(planetNoFlyCenter).sub(enemy.mesh.position);
+      } else {
+        enemyAttackDirection.copy(enemy.flightDirection);
+      }
+      if (enemyAttackDirection.lengthSq() > 1e-6) {
+        enemyAttackDirection.normalize();
+        enemy.facingDirection.lerp(enemyAttackDirection, 1 - Math.exp(-dt * 4.2)).normalize();
+      }
+      enemyFacingTarget.copy(enemy.mesh.position).addScaledVector(enemy.facingDirection, -1);
       enemy.mesh.lookAt(enemyFacingTarget);
       enemy.mesh.rotateY(Math.PI);
       enemy.age += dt;
@@ -1567,9 +1588,14 @@ function createScene() {
         particle.position.set(side * (.32 + Math.sin(enemy.age * 8 + phase * Math.PI * 2) * .045), -.025, -.87 - progress * 1.55);
         particle.scale.setScalar(.3 + Math.sin(progress * Math.PI) * .72);
       });
-      if (enemy.target === 'player' || enemy.distance <= enemy.orbitRadius + .05) {
+      const canAttack = enemy.target === 'player' || enemy.distance <= enemy.orbitRadius + .05;
+      if (canAttack) {
         enemy.fireCooldown -= dt;
-        if (enemy.fireCooldown <= 0) spawnHostileProjectile(enemy);
+        if (enemy.fireCooldown <= 0) {
+          const targetPosition = enemy.target === 'player' ? ship.position : planetNoFlyCenter;
+          enemyAttackDirection.copy(targetPosition).sub(enemy.mesh.position).normalize();
+          if (enemy.facingDirection.dot(enemyAttackDirection) >= .94) spawnHostileProjectile(enemy);
+        }
       }
     }
     updateThreatStatus();
